@@ -484,10 +484,6 @@ function App() {
         .reduce((sum, level) => sum + level.networkCpsBonus, 0)
         * (1 + getPermanentRank(game, 'founders_legacy') * 0.2);
       const masteryFloor = masteryLevel?.threshold ?? 0;
-      const masteryCeiling = nextMasteryLevel?.threshold ?? masteryFloor;
-      const masteryProgress = nextMasteryLevel
-        ? (owned - masteryFloor) / Math.max(1, masteryCeiling - masteryFloor)
-        : 1;
       const masteryTranslationKey = masteryLevel ? `shop.mastery.${masteryLevel.id}` as TranslationKey : 'shop.mastery.unranked';
       const nextMasteryTranslationKey = nextMasteryLevel ? `shop.mastery.${nextMasteryLevel.id}` as TranslationKey : undefined;
       const name = localizedName(language, 'building', building.id, building.name);
@@ -507,18 +503,14 @@ function App() {
         levelLabel: t(masteryTranslationKey),
         multiplierLabel: `×${formatNumber(masteryMultiplier, 2, getLanguageMeta(language).locale)}`,
         networkLabel: `+${formatNumber(masteryNetworkContribution * 100, 2, getLanguageMeta(language).locale)}%`,
-        progress: masteryProgress,
         progressLabel: nextMasteryLevel ? `${fmtInteger(owned)} / ${fmtInteger(nextMasteryLevel.threshold)}` : `${fmtInteger(owned)} / ${fmtInteger(masteryFloor)}`,
         nextLevelLabel: nextMasteryTranslationKey ? t(nextMasteryTranslationKey) : undefined,
-        nextMultiplierLabel: nextMasteryLevel ? `×${formatNumber(masteryMultiplier * nextMasteryLevel.productionMultiplier, 2, getLanguageMeta(language).locale)}` : undefined,
         labels: {
           heading: t('shop.mastery.heading'),
-          bonus: t('shop.mastery.production'),
           network: t('shop.mastery.network'),
-          next: t('shop.mastery.next'),
           maxed: t('shop.mastery.maxed'),
         },
-      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} badge={masteryLevel ? t(masteryTranslationKey) : undefined} />;
+      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} />;
     })}
   </ShopPanel>;
 

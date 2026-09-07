@@ -684,6 +684,8 @@
 .shop-card__details-expedition strong { font-family: var(--font-pixel); font-size: 7px; text-transform: uppercase; }
 .shop-card__details-expedition small { color: var(--ink-muted); font-size: 7px; line-height: 1.35; }
 .shop-card--has-details { isolation: isolate; }
+.shop-card--has-details:hover,
+.shop-card--has-details:focus-within { z-index: 20; }
 .shop-card--has-details:focus-visible {
   z-index: 3;
   outline: 1px solid rgba(176, 220, 103, .58);
@@ -717,6 +719,16 @@
   pointer-events: none;
   transition: opacity 120ms steps(3, end), visibility 120ms linear, transform 120ms steps(3, end);
 }
+.shop-card__details--portal {
+  position: fixed;
+  z-index: 1000;
+  inset: auto;
+  min-height: 0;
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: none;
+}
 .shop-card__details::before,
 .shop-card__details::after {
   position: absolute;
@@ -727,13 +739,6 @@
 }
 .shop-card__details::before { inset-block-start: 3px; inset-inline-start: 3px; border-block-start: 1px solid var(--moss); border-inline-start: 1px solid var(--moss); opacity: .72; }
 .shop-card__details::after { inset-block-end: 3px; inset-inline-end: 3px; border-block-end: 1px solid var(--moss); border-inline-end: 1px solid var(--moss); opacity: .72; }
-@media (hover: hover) and (pointer: fine) {
-  .shop-card:hover .shop-card__details {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-  }
-}
 .shop-card__details-header {
   display: flex;
   align-items: center;

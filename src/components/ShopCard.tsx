@@ -1,3 +1,5 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useI18n } from '../i18n';
 import { Icon } from './Icon';
 
@@ -46,6 +48,9 @@ export interface ShopCardProps {
 
 export function ShopCard({ id, name, description, ownedLabel, priceLabel, productionLabel, canAfford, onBuy, onSell, locked = false, badge, artSrc, buyAmountLabel, productionDetails, mastery, productionHold }: ShopCardProps) {
   const { t } = useI18n();
+  const cardRef = useRef<HTMLElement>(null);
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const [detailsPosition, setDetailsPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   const buyLabel = buyAmountLabel ?? t('shop.buy', { count: 1 });
   const detailId = `shop-production-${id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
   const details = !locked ? productionDetails : undefined;
@@ -55,9 +60,85 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
   const hasNextMastery = Boolean(masteryDetails?.nextLevelLabel);
   const hasHoverDetails = Boolean(details || masteryDetails);
   const masteryTierClass = masteryDetails ? ` shop-card__owned--${masteryDetails.tierId}` : '';
+  const positionDetails = useCallback(() => {
+    if (!hasHoverDetails || !cardRef.current || typeof window === 'undefined') return;
+    const cardRect = cardRef.current.getBoundingClientRect();
+    const actionsRect = cardRef.current.querySelector<HTMLElement>('.shop-card__actions')?.getBoundingClientRect();
+    const actionsBesideCard = Boolean(actionsRect && actionsRect.left > cardRect.left + cardRect.width * .48 && actionsRect.top < cardRect.bottom - 16);
+    const availableWidth = actionsBesideCard && actionsRect
+      ? actionsRect.left - cardRect.left - 14
+      : cardRect.width - 14;
+    const width = Math.max(180, Math.min(360, availableWidth, window.innerWidth - 16));
+    const tooltipHeight = detailsRef.current?.offsetHeight ?? 0;
+    const left = Math.max(8, Math.min(cardRect.left + 7, window.innerWidth - width - 8));
+    const top = Math.max(8, Math.min(cardRect.top + 7, window.innerHeight - tooltipHeight - 8));
+    setDetailsPosition((current) => current && current.top === top && current.left === left && current.width === width ? current : { top, left, width });
+  }, [hasHoverDetails]);
+
+  useLayoutEffect(() => {
+    if (!detailsPosition) return;
+    positionDetails();
+    window.addEventListener('resize', positionDetails);
+    window.addEventListener('scroll', positionDetails, true);
+    return () => {
+      window.removeEventListener('resize', positionDetails);
+      window.removeEventListener('scroll', positionDetails, true);
+    };
+  }, [detailsPosition, positionDetails]);
+
+  const showDetails = () => { if (hasHoverDetails) positionDetails(); };
+  const hidePointerDetails = () => {
+    if (cardRef.current?.contains(document.activeElement)) return;
+    setDetailsPosition(null);
+  };
+
+  const detailsPopover = detailsPosition && typeof document !== 'undefined' ? createPortal(
+    <div
+      ref={detailsRef}
+      className="shop-card__details shop-card__details--portal"
+      id={detailId}
+      role="tooltip"
+      style={{ top: detailsPosition.top, left: detailsPosition.left, width: detailsPosition.width }}
+    >
+      <div className="shop-card__details-header">
+        <span className="shop-card__details-title">
+          <strong>{name}</strong>
+          <small>{labels?.heading ?? masteryLabels?.heading ?? 'Expansion details'}</small>
+        </span>
+        <strong className="shop-card__details-count">×{ownedLabel}</strong>
+      </div>
+      {details && (
+        <dl className="shop-card__details-grid">
+          <div><dt>{labels?.perUnit ?? 'Each'}</dt><dd>{details.perUnit}</dd></div>
+          <div><dt>{labels?.ownedTotal ?? 'Owned total'}</dt><dd>{details.ownedTotal}</dd></div>
+          <div><dt>{labels?.shareOfTotal ?? 'Share of CPS'}</dt><dd>{details.shareOfTotal}</dd></div>
+          <div><dt>{labels?.lifetimeProduced ?? 'Lifetime output'}</dt><dd>{details.lifetimeProduced}</dd></div>
+        </dl>
+      )}
+      {productionHold && <div className="shop-card__details-expedition"><Icon name="hourglass" size={11} /><span><strong>{productionHold.label}</strong>{productionHold.detail && <small>{productionHold.detail}</small>}</span></div>}
+      {masteryDetails && (
+        <div className="shop-card__details-mastery">
+          <div className="shop-card__details-mastery-line">
+            <span><Icon name="trophy" size={11} /><strong>{masteryDetails.levelLabel}</strong></span>
+            <strong>{masteryDetails.multiplierLabel}</strong>
+          </div>
+          <div className="shop-card__details-mastery-foot">
+            <span>{hasNextMastery ? `${masteryDetails.progressLabel} → ${masteryDetails.nextLevelLabel}` : (masteryLabels?.maxed ?? 'Mastered')}</span>
+            {masteryDetails.networkLabel && <span>{masteryLabels?.network ?? 'All warrens'} <strong>{masteryDetails.networkLabel}</strong></span>}
+          </div>
+        </div>
+      )}
+    </div>,
+    document.body,
+  ) : null;
   return (
     <article
+      ref={cardRef}
       className={`shop-card${locked ? ' shop-card--locked' : ''}${canAfford ? ' shop-card--affordable' : ''}${hasHoverDetails ? ' shop-card--has-details' : ''}${productionHold ? ' shop-card--expedition-held' : ''}`}
+      onPointerEnter={showDetails}
+      onPointerLeave={hidePointerDetails}
+      onFocusCapture={showDetails}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDetailsPosition(null); }}
     >
       <div className="shop-card__art" aria-hidden="true">{artSrc ? <img src={artSrc} alt="" /> : <Icon name={locked ? 'lock' : 'brood'} size={28} />}</div>
       <div className="shop-card__body">
@@ -66,44 +147,13 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
         <div className="shop-card__meta"><span><Icon name="cps" size={14} /> {productionLabel}/s</span>{badge && <span className="shop-card__badge">{badge}</span>}</div>
         {productionHold && <div className="shop-card__expedition-hold" title={productionHold.detail} aria-label={`${productionHold.label}${productionHold.detail ? `. ${productionHold.detail}` : ''}`}><Icon name="hourglass" size={12} /><strong>{productionHold.label}</strong></div>}
       </div>
-      {hasHoverDetails && (
-        <div className="shop-card__details" id={detailId} role="tooltip">
-          <div className="shop-card__details-header">
-            <span className="shop-card__details-title">
-              <strong>{name}</strong>
-              <small>{labels?.heading ?? masteryLabels?.heading ?? 'Expansion details'}</small>
-            </span>
-            <strong className="shop-card__details-count">×{ownedLabel}</strong>
-          </div>
-          {details && (
-            <dl className="shop-card__details-grid">
-              <div><dt>{labels?.perUnit ?? 'Each'}</dt><dd>{details.perUnit}</dd></div>
-              <div><dt>{labels?.ownedTotal ?? 'Owned total'}</dt><dd>{details.ownedTotal}</dd></div>
-              <div><dt>{labels?.shareOfTotal ?? 'Share of CPS'}</dt><dd>{details.shareOfTotal}</dd></div>
-              <div><dt>{labels?.lifetimeProduced ?? 'Lifetime output'}</dt><dd>{details.lifetimeProduced}</dd></div>
-            </dl>
-          )}
-          {productionHold && <div className="shop-card__details-expedition"><Icon name="hourglass" size={11} /><span><strong>{productionHold.label}</strong>{productionHold.detail && <small>{productionHold.detail}</small>}</span></div>}
-          {masteryDetails && (
-            <div className="shop-card__details-mastery">
-              <div className="shop-card__details-mastery-line">
-                <span><Icon name="trophy" size={11} /><strong>{masteryDetails.levelLabel}</strong></span>
-                <strong>{masteryDetails.multiplierLabel}</strong>
-              </div>
-              <div className="shop-card__details-mastery-foot">
-                <span>{hasNextMastery ? `${masteryDetails.progressLabel} → ${masteryDetails.nextLevelLabel}` : (masteryLabels?.maxed ?? 'Mastered')}</span>
-                {masteryDetails.networkLabel && <span>{masteryLabels?.network ?? 'All warrens'} <strong>{masteryDetails.networkLabel}</strong></span>}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
       <div className="shop-card__actions">
         <button type="button" className="shop-card__buy" onClick={(event) => { onBuy(id); if (event.detail > 0) event.currentTarget.blur(); }} disabled={locked || !canAfford} aria-describedby={hasHoverDetails ? detailId : undefined} aria-label={t('shop.buyAria', { action: buyLabel, name, price: priceLabel })}>
           <span>{buyLabel}</span><strong><Icon name="coin" size={14} /> {priceLabel}</strong>
         </button>
         {onSell && !locked && <button type="button" className="shop-card__sell" onClick={(event) => { onSell(id); if (event.detail > 0) event.currentTarget.blur(); }} aria-describedby={hasHoverDetails ? detailId : undefined} aria-label={t('shop.sellAria', { name })}>{t('shop.sell')}</button>}
       </div>
+      {detailsPopover}
     </article>
   );
 }

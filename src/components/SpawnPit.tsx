@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { publicAsset } from '../utils/assets';
 import { Icon } from './Icon';
 
 export interface BonusEventView {
@@ -54,7 +55,7 @@ export function SpawnPit({
           aria-label={`Spawn a goblin. Current click power: ${clickPowerLabel}`}
         >
           <span className="spawn-target__glow" aria-hidden="true" />
-          <img src="/assets/goblin-spawn.svg" alt="" draggable={false} />
+          <img src={publicAsset('assets/goblin-spawn.svg')} alt="" draggable={false} />
           <span className="spawn-target__cta">Spawn</span>
         </button>
         {children}

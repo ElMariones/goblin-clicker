@@ -52,6 +52,7 @@ import {
   type PermanentUpgradeId,
 } from './game';
 import { playSound } from './audio';
+import { publicAsset } from './utils/assets';
 import { formatDateTime, formatDuration, formatInteger, formatNumber } from './utils/format';
 import './App.css';
 
@@ -132,7 +133,7 @@ function getUpgradeEffectLabel(upgrade: (typeof UPGRADES)[number]): string {
 }
 
 function buildingArtPath(id: BuildingId): string {
-  return `/assets/building-${id.replace(/_/g, '-')}.svg`;
+  return publicAsset(`assets/building-${id.replace(/_/g, '-')}.svg`);
 }
 
 function App() {
@@ -505,9 +506,9 @@ function App() {
         const owned = game.buildings[building.id];
         const previous = index === 0 ? null : BUILDINGS[index - 1];
         const locked = index > 1 && Boolean(previous && game.buildings[previous.id] === 0 && game.lifetimeGoblins < building.baseCost * 0.25);
-        const quantity = buyAmount === 'max' ? Math.max(1, getMaxAffordableBuildingCount(game, building.id)) : buyAmount;
+        const maxAffordable = buyAmount === 'max' ? getMaxAffordableBuildingCount(game, building.id) : buyAmount;
+        const quantity = buyAmount === 'max' ? Math.max(1, maxAffordable) : buyAmount;
         const cost = getBuildingBulkCost(game, building.id, quantity);
-        const maxAffordable = buyAmount === 'max' ? getMaxAffordableBuildingCount(game, building.id) : quantity;
         const unitProduction = building.baseCps * getBuildingProductionMultiplier(game, building.id) * getGlobalCpsMultiplier(game);
         return (
           <ShopCard
@@ -523,7 +524,7 @@ function App() {
             onSell={owned > 0 ? sellOneBuilding : undefined}
             locked={locked}
             artSrc={locked ? undefined : buildingArtPath(building.id)}
-            buyAmountLabel={buyAmount === 'max' ? `Buy ${formatInteger(maxAffordable)}` : `Buy ${quantity}`}
+            buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? `Buy ${formatInteger(maxAffordable)}` : 'Buy Max') : `Buy ${quantity}`}
             badge={owned >= 100 ? 'Horde' : owned >= 50 ? 'Veteran' : owned >= 10 ? 'Established' : undefined}
           />
         );

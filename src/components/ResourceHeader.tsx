@@ -1,4 +1,5 @@
 import { Icon, type IconName } from './Icon';
+import { publicAsset } from '../utils/assets';
 
 export interface ResourceStat {
   id: string;
@@ -29,7 +30,7 @@ export function ResourceHeader({
   return (
     <div className="resource-header">
       <div className="resource-header__brand">
-        <img src="/assets/goblin-broodmark.svg" alt="" className="resource-header__mark" />
+        <img src={publicAsset('assets/goblin-broodmark.svg')} alt="" className="resource-header__mark" />
         <div>
           <div className="resource-header__eyebrow">{subtitle}</div>
           <h1 className="resource-header__title">{title}</h1>

@@ -1,6 +1,7 @@
 import brandLogo from '../images/brand-logo.webp';
 import bogHatchery from '../images/building-bog-hatchery.webp';
 import broodMatron from '../images/building-brood-matron.webp';
+import deepforgeVat from '../images/building-deepforge-vat.webp';
 import goblinGate from '../images/building-goblin-gate.webp';
 import moonsporeCavern from '../images/building-moonspore-cavern.webp';
 import mushroomNursery from '../images/building-mushroom-nursery.webp';
@@ -9,6 +10,7 @@ import scrapIncubator from '../images/building-scrap-incubator.webp';
 import shamanCircle from '../images/building-shaman-circle.webp';
 import warCamp from '../images/building-war-camp.webp';
 import warrenDen from '../images/building-warren-den.webp';
+import wyrmHoard from '../images/building-wyrm-hoard.webp';
 import goblinSpawn from '../images/goblin-spawn.webp';
 import missionGiver from '../images/mission.webp';
 
@@ -26,7 +28,9 @@ const BUILDING_IMAGE_ART: Readonly<Record<string, string>> = {
   shaman_circle: shamanCircle,
   war_camp: warCamp,
   moonspore_cavern: moonsporeCavern,
+  deepforge_vat: deepforgeVat,
   goblin_gate: goblinGate,
+  wyrm_hoard: wyrmHoard,
   reality_burrow: realityBurrow,
 };
 

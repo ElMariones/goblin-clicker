@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
 import { useI18n } from '../i18n';
 import { Icon } from './Icon';
 import type { UpgradeView } from './UpgradeModal';
@@ -11,32 +11,37 @@ interface ResearchTreeProps {
 type Point = { x: number; y: number };
 type Motif = 'claw' | 'scroll' | 'egg' | 'mushroom' | 'burrow' | 'bog' | 'gear' | 'moon' | 'spear' | 'spore' | 'forge' | 'gate' | 'wyrm' | 'rift';
 
-const CANVAS_WIDTH = 1080;
-const CANVAS_HEIGHT = 1680;
-const NODE_WIDTH = 190;
-const NODE_HEIGHT = 86;
-const ROOT: Point = { x: 92, y: 638 };
+const CANVAS_WIDTH = 3800;
+const CANVAS_HEIGHT = 1260;
+const NODE_WIDTH = 252;
+const NODE_HEIGHT = 133;
+const ROOT: Point = { x: 112, y: 500 };
 const HUBS = {
-  manual: { x: 328, y: 161 },
-  global: { x: 328, y: 329 },
-  structures: { x: 328, y: 812 },
+  manual: { x: 360, y: 174 },
+  global: { x: 360, y: 344 },
+  structures: { x: 360, y: 694 },
 } satisfies Record<string, Point>;
+const STRUCTURE_SECTORS: readonly Point[] = [
+  { x: 500, y: 710 },
+  { x: 1550, y: 710 },
+  { x: 2600, y: 710 },
+];
 
-const manualBranch = ['sharpened_nails', 'midwife_whistles', 'riotous_birthing'];
-const globalBranch = ['green_thumb', 'warren_accounting', 'grand_clutch_plan'];
+const manualBranch = ['sharpened_nails', 'midwife_whistles', 'riotous_birthing', 'iron_fingertips', 'hatchery_command', 'twitch_of_creation'];
+const globalBranch = ['green_thumb', 'warren_accounting', 'grand_clutch_plan', 'subterranean_logistics', 'horde_standardization', 'empire_beneath_everything'];
 const structureBranches = [
-  ['matron_stew', 'matron_union'],
-  ['richer_compost', 'singing_fungus'],
-  ['double_bunks', 'triple_bunks'],
-  ['warmer_mud', 'royal_sludge'],
-  ['borrowed_bellows', 'unsafe_pressure'],
-  ['louder_rattles', 'forbidden_chorus'],
-  ['mandatory_cuddles', 'drill_sergeant_midwives'],
-  ['silver_spores', 'full_moon_farming'],
-  ['forge_runes', 'molten_cradles'],
-  ['hinge_grease', 'many_doors'],
-  ['warm_scale_blankets', 'borrowed_dragonfire'],
-  ['wider_impossibility', 'burrow_beyond'],
+  ['matron_stew', 'matron_union', 'matron_dynasties'],
+  ['richer_compost', 'singing_fungus', 'mycelial_cradles'],
+  ['double_bunks', 'triple_bunks', 'honeycomb_warrens'],
+  ['warmer_mud', 'royal_sludge', 'primordial_mire'],
+  ['borrowed_bellows', 'unsafe_pressure', 'redline_boilers'],
+  ['louder_rattles', 'forbidden_chorus', 'ancestor_thunder'],
+  ['mandatory_cuddles', 'drill_sergeant_midwives', 'mobilized_generation'],
+  ['silver_spores', 'full_moon_farming', 'perpetual_eclipse'],
+  ['forge_runes', 'molten_cradles', 'heart_of_the_forge'],
+  ['hinge_grease', 'many_doors', 'gate_without_walls'],
+  ['warm_scale_blankets', 'borrowed_dragonfire', 'dragonless_hoard'],
+  ['wider_impossibility', 'burrow_beyond', 'impossible_population'],
 ] as const;
 
 const motifByBranch: Motif[] = ['egg', 'mushroom', 'burrow', 'bog', 'gear', 'moon', 'spear', 'spore', 'forge', 'gate', 'wyrm', 'rift'];
@@ -79,51 +84,79 @@ function pathBetween(from: Point, to: Point) {
   return `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
 }
 
+function defaultTreeOffset(): Point {
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  return { x: viewportWidth <= 360 ? -430 : viewportWidth <= 480 ? -340 : 28, y: -62 };
+}
+
 export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
   const { t } = useI18n();
-  const [offset, setOffset] = useState<Point>({ x: 26, y: -100 });
+  const [offset, setOffset] = useState<Point>(defaultTreeOffset);
+  const [purchaseBurst, setPurchaseBurst] = useState<string | null>(null);
+  const purchaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number; originX: number; originY: number } | null>(null);
   const [dragging, setDragging] = useState(false);
 
   const upgradeMap = useMemo(() => new Map(upgrades.map((upgrade) => [upgrade.id, upgrade])), [upgrades]);
   const positions = useMemo(() => {
     const result = new Map<string, Point>();
-    manualBranch.forEach((id, index) => result.set(id, { x: 420 + index * 214, y: 118 }));
-    globalBranch.forEach((id, index) => result.set(id, { x: 420 + index * 214, y: 286 }));
+    manualBranch.forEach((id, index) => result.set(id, { x: 520 + index * 330, y: 92 }));
+    globalBranch.forEach((id, index) => result.set(id, { x: 520 + index * 330, y: 274 }));
     structureBranches.forEach((branch, index) => {
-      const y = 438 + index * 98;
-      branch.forEach((id, tier) => result.set(id, { x: 520 + tier * 238, y }));
+      const sector = Math.floor(index / 4);
+      const lane = index % 4;
+      const x = 540 + sector * 1_050;
+      const y = 492 + lane * 172 + (sector % 2) * 22;
+      branch.forEach((id, tier) => result.set(id, { x: x + tier * 330, y }));
     });
     return result;
   }, []);
 
   const links = useMemo(() => {
-    const result: Array<{ from: Point; to: Point; active: boolean }> = [
+    const result: Array<{ from: Point; to: Point; active: boolean; ready?: boolean; spine?: boolean }> = [
       { from: ROOT, to: HUBS.manual, active: true },
       { from: ROOT, to: HUBS.global, active: true },
       { from: ROOT, to: HUBS.structures, active: true },
+      { from: HUBS.structures, to: STRUCTURE_SECTORS[0], active: true, spine: true },
     ];
+    const isReady = (id: string) => {
+      const upgrade = upgradeMap.get(id);
+      return Boolean(upgrade && !upgrade.purchased && !upgrade.locked && upgrade.affordable);
+    };
+    for (let sector = 0; sector < STRUCTURE_SECTORS.length - 1; sector += 1) {
+      const ids = structureBranches.slice(0, (sector + 1) * 4).flat();
+      const active = ids.some((id) => upgradeMap.get(id)?.purchased);
+      result.push({ from: STRUCTURE_SECTORS[sector], to: STRUCTURE_SECTORS[sector + 1], active, spine: true });
+    }
     const addBranch = (ids: readonly string[], hub: Point) => {
       const existing = ids.filter((id) => positions.has(id));
       if (!existing.length) return;
       const first = positions.get(existing[0])!;
-      result.push({ from: hub, to: { x: first.x, y: first.y + NODE_HEIGHT / 2 }, active: Boolean(upgradeMap.get(existing[0])?.purchased) });
+      const firstUpgrade = upgradeMap.get(existing[0]);
+      result.push({ from: hub, to: { x: first.x, y: first.y + NODE_HEIGHT / 2 }, active: Boolean(firstUpgrade && (firstUpgrade.purchased || !firstUpgrade.locked)), ready: isReady(existing[0]) });
       for (let index = 0; index < existing.length - 1; index += 1) {
-        const current = upgradeMap.get(existing[index]);
         const next = upgradeMap.get(existing[index + 1]);
         const from = positions.get(existing[index])!;
         const to = positions.get(existing[index + 1])!;
-        result.push({ from: { x: from.x + NODE_WIDTH, y: from.y + NODE_HEIGHT / 2 }, to: { x: to.x, y: to.y + NODE_HEIGHT / 2 }, active: Boolean(current?.purchased && (next?.purchased || !next?.locked)) });
+        result.push({ from: { x: from.x + NODE_WIDTH, y: from.y + NODE_HEIGHT / 2 }, to: { x: to.x, y: to.y + NODE_HEIGHT / 2 }, active: Boolean(next && (next.purchased || !next.locked)), ready: Boolean(next && !next.purchased && !next.locked && next.affordable) });
       }
     };
     addBranch(manualBranch, HUBS.manual);
     addBranch(globalBranch, HUBS.global);
-    structureBranches.forEach((branch) => addBranch(branch, HUBS.structures));
+    structureBranches.forEach((branch, index) => addBranch(branch, STRUCTURE_SECTORS[Math.floor(index / 4)]));
     return result;
   }, [positions, upgradeMap]);
 
-  const resetView = () => setOffset({ x: 26, y: -100 });
-  const centerView = () => setOffset({ x: -170, y: -460 });
+  useEffect(() => () => { if (purchaseTimerRef.current) clearTimeout(purchaseTimerRef.current); }, []);
+
+  const resetView = () => setOffset(defaultTreeOffset());
+  const centerView = () => setOffset({ x: -1_320, y: -360 });
+  const purchase = (id: string) => {
+    if (purchaseTimerRef.current) clearTimeout(purchaseTimerRef.current);
+    setPurchaseBurst(id);
+    onPurchase(id);
+    purchaseTimerRef.current = setTimeout(() => setPurchaseBurst((current) => current === id ? null : current), 760);
+  };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
@@ -181,30 +214,49 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
         <div className="research-tree__grid" aria-hidden="true" />
         <div className="research-tree__surface" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}>
           <svg className="research-tree__links" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`} aria-hidden="true">
-            {links.map((link, index) => <path key={index} className={link.active ? 'research-link research-link--active' : 'research-link'} d={pathBetween(link.from, link.to)} />)}
+            {links.map((link, index) => <path key={index} className={`research-link${link.active ? ' research-link--active' : ''}${link.ready ? ' research-link--ready' : ''}${link.spine ? ' research-link--spine' : ''}`} d={pathBetween(link.from, link.to)} />)}
           </svg>
 
           <div className="research-root" style={{ left: ROOT.x - 36, top: ROOT.y - 36 }} aria-hidden="true"><span><Icon name="sparkles" size={27} /></span><i /></div>
           <div className="research-hub research-hub--manual" style={{ left: HUBS.manual.x - 18, top: HUBS.manual.y - 18 }} aria-hidden="true"><ResearchGlyph motif="claw" /></div>
           <div className="research-hub research-hub--global" style={{ left: HUBS.global.x - 18, top: HUBS.global.y - 18 }} aria-hidden="true"><ResearchGlyph motif="scroll" /></div>
           <div className="research-hub research-hub--structures" style={{ left: HUBS.structures.x - 18, top: HUBS.structures.y - 18 }} aria-hidden="true"><ResearchGlyph motif="burrow" /></div>
+          {STRUCTURE_SECTORS.map((sector, index) => (
+            <div key={index} className={`research-sector research-sector--${index + 1}`} style={{ left: sector.x - 28, top: sector.y - 28 }} aria-hidden="true">
+              <ResearchGlyph motif={index === 0 ? 'egg' : index === 1 ? 'forge' : 'rift'} />
+              <span>0{index + 1}</span>
+            </div>
+          ))}
 
           {upgrades.map((upgrade) => {
             const position = positions.get(upgrade.id);
             if (!position) return null;
-            const unavailable = upgrade.purchased || upgrade.locked || !upgrade.affordable;
+            const ready = !upgrade.purchased && !upgrade.locked && upgrade.affordable;
+            const unaffordable = !upgrade.purchased && !upgrade.locked && !upgrade.affordable;
+            const bursting = purchaseBurst === upgrade.id;
+            const unavailable = upgrade.purchased || upgrade.locked || !upgrade.affordable || bursting;
+            const statusLabel = upgrade.purchased
+              ? t('upgrade.researched')
+                : upgrade.locked
+                ? t('upgrade.unknown')
+                : ready
+                  ? t('research.statusReady')
+                  : t('research.statusUnaffordable');
             return (
               <article
                 key={upgrade.id}
-                className={`research-node${upgrade.purchased ? ' research-node--purchased' : ''}${upgrade.locked ? ' research-node--locked' : ''}${!upgrade.locked && upgrade.affordable && !upgrade.purchased ? ' research-node--ready' : ''}`}
+                className={`research-node${upgrade.purchased ? ' research-node--purchased' : ''}${upgrade.locked ? ' research-node--locked' : ''}${unaffordable ? ' research-node--unaffordable' : ''}${ready ? ' research-node--ready' : ''}${bursting ? ' research-node--purchasing' : ''}`}
                 style={{ left: position.x, top: position.y }}
               >
                 <button
                   type="button"
                   className="research-node__button"
-                  onClick={() => { if (!unavailable) onPurchase(upgrade.id); }}
+                  onClick={() => { if (!unavailable) purchase(upgrade.id); }}
                   aria-disabled={unavailable}
-                  aria-label={`${upgrade.name}. ${upgrade.effectLabel}. ${upgrade.purchased ? t('upgrade.researched') : upgrade.locked ? t('upgrade.unknown') : upgrade.priceLabel}`}
+                  tabIndex={unavailable ? -1 : 0}
+                  aria-label={upgrade.locked
+                    ? `${t('upgrade.unknown')}. ${upgrade.tier ?? ''}`
+                    : `${upgrade.name}. ${upgrade.effectLabel}. ${upgrade.purchased ? t('upgrade.researched') : upgrade.priceLabel}`}
                 >
                   <span className="research-node__icon" aria-hidden="true">
                     <ResearchGlyph motif={motifForUpgrade(upgrade.id)} />
@@ -215,10 +267,16 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
                     <span>{upgrade.locked ? t('upgrade.unknown') : upgrade.effectLabel}</span>
                   </span>
                   <span className="research-node__meta">
+                    <span className={`research-node__status${ready ? ' research-node__status--ready' : ''}${unaffordable ? ' research-node__status--unaffordable' : ''}`}>
+                      <i aria-hidden="true" />
+                      {statusLabel}
+                    </span>
                     <small>{upgrade.tier}</small>
-                    <b>{upgrade.purchased ? '✓' : upgrade.locked ? '—' : <><Icon name="coin" size={11} /> {upgrade.priceLabel}</>}</b>
+                    <b className="research-node__price">{upgrade.purchased ? '✓' : upgrade.locked ? '—' : <><Icon name="coin" size={11} /> {upgrade.priceLabel}</>}</b>
                   </span>
                 </button>
+                {ready && <span className="research-node__ready-mark" aria-hidden="true">+</span>}
+                {bursting && <span className="research-node__burst" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>}
                 <span className="research-node__signal" aria-hidden="true" />
               </article>
             );

@@ -118,6 +118,18 @@ export const UPGRADES = [
     requirements: [{ type: 'lifetimeGoblins', amount: 100_000 }], effects: [{ type: 'clickCpsFraction', fraction: 0.01 }],
   },
   {
+    id: 'iron_fingertips', name: 'Iron Fingertips', description: 'Years of frantic hatching turn every click into a three-goblin command.', cost: 100_000_000,
+    requirements: [{ type: 'totalClicks', amount: 2_500 }], effects: [{ type: 'clickMultiplier', multiplier: 3 }],
+  },
+  {
+    id: 'hatchery_command', name: 'Hatchery Command', description: 'Manual hatching commandeers 5% of the warrens’ current base production.', cost: 50_000_000_000,
+    requirements: [{ type: 'totalClicks', amount: 10_000 }, { type: 'lifetimeGoblins', amount: 1_000_000_000 }], effects: [{ type: 'clickCpsFraction', fraction: 0.05 }],
+  },
+  {
+    id: 'twitch_of_creation', name: 'Twitch of Creation', description: 'A single twitch echoes through the broodways, doubling manual force and adding 10% of base production.', cost: 5_000_000_000_000_000,
+    requirements: [{ type: 'totalClicks', amount: 25_000 }, { type: 'lifetimeGoblins', amount: 100_000_000_000_000 }], effects: [{ type: 'clickMultiplier', multiplier: 2 }, { type: 'clickCpsFraction', fraction: 0.1 }],
+  },
+  {
     id: 'green_thumb', name: 'Green Thumb', description: 'All warrens produce 10% more goblins.', cost: 10_000,
     requirements: [{ type: 'lifetimeGoblins', amount: 1_000 }], effects: [{ type: 'globalCpsMultiplier', multiplier: 1.1 }],
   },
@@ -130,12 +142,28 @@ export const UPGRADES = [
     requirements: [{ type: 'lifetimeGoblins', amount: 2_000_000_000 }], effects: [{ type: 'globalCpsMultiplier', multiplier: 1.25 }],
   },
   {
+    id: 'subterranean_logistics', name: 'Subterranean Logistics', description: 'Burrow schedules, fungus ledgers, and tunnel priority lanes raise all production by 30%.', cost: 2_500_000_000_000,
+    requirements: [{ type: 'lifetimeGoblins', amount: 1_000_000_000_000 }], effects: [{ type: 'globalCpsMultiplier', multiplier: 1.3 }],
+  },
+  {
+    id: 'horde_standardization', name: 'Horde Standardization', description: 'Every warren follows the same ruthlessly efficient breeding doctrine, raising all production by 40%.', cost: 5_000_000_000_000_000,
+    requirements: [{ type: 'lifetimeGoblins', amount: 1_000_000_000_000_000 }, { type: 'prestigeResets', amount: 1 }], effects: [{ type: 'globalCpsMultiplier', multiplier: 1.4 }],
+  },
+  {
+    id: 'empire_beneath_everything', name: 'Empire Beneath Everything', description: 'The warrens become a single civilization-sized machine, increasing all production by 50%.', cost: 10_000_000_000_000_000_000,
+    requirements: [{ type: 'lifetimeGoblins', amount: 1_000_000_000_000_000_000 }, { type: 'prestigeShardsEarned', amount: 10 }], effects: [{ type: 'globalCpsMultiplier', multiplier: 1.5 }],
+  },
+  {
     id: 'matron_stew', name: 'Matron Stew', description: 'Brood Matrons are twice as productive.', cost: 500,
     requirements: [{ type: 'buildingOwned', buildingId: 'brood_matron', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'brood_matron', multiplier: 2 }],
   },
   {
     id: 'matron_union', name: 'Matron Union', description: 'Brood Matrons are twice as productive again.', cost: 50_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'brood_matron', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'brood_matron', multiplier: 2 }],
+  },
+  {
+    id: 'matron_dynasties', name: 'Matron Dynasties', description: 'Brood Matrons are twice as productive yet again.', cost: 50_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'brood_matron', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'brood_matron', multiplier: 2 }],
   },
   {
     id: 'richer_compost', name: 'Richer Compost', description: 'Mushroom Nurseries are twice as productive.', cost: 2_000,
@@ -146,12 +174,20 @@ export const UPGRADES = [
     requirements: [{ type: 'buildingOwned', buildingId: 'mushroom_nursery', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'mushroom_nursery', multiplier: 2 }],
   },
   {
+    id: 'mycelial_cradles', name: 'Mycelial Cradles', description: 'Mushroom Nurseries are twice as productive yet again.', cost: 300_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'mushroom_nursery', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'mushroom_nursery', multiplier: 2 }],
+  },
+  {
     id: 'double_bunks', name: 'Double Bunks', description: 'Warren Dens are twice as productive.', cost: 20_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'warren_den', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'warren_den', multiplier: 2 }],
   },
   {
     id: 'triple_bunks', name: 'Triple Bunks', description: 'Warren Dens are twice as productive again.', cost: 2_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'warren_den', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'warren_den', multiplier: 2 }],
+  },
+  {
+    id: 'honeycomb_warrens', name: 'Honeycomb Warrens', description: 'Warren Dens are twice as productive yet again.', cost: 3_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'warren_den', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'warren_den', multiplier: 2 }],
   },
   {
     id: 'warmer_mud', name: 'Warmer Mud', description: 'Bog Hatcheries are twice as productive.', cost: 150_000,
@@ -162,12 +198,20 @@ export const UPGRADES = [
     requirements: [{ type: 'buildingOwned', buildingId: 'bog_hatchery', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'bog_hatchery', multiplier: 2 }],
   },
   {
+    id: 'primordial_mire', name: 'Primordial Mire', description: 'Bog Hatcheries are twice as productive yet again.', cost: 30_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'bog_hatchery', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'bog_hatchery', multiplier: 2 }],
+  },
+  {
     id: 'borrowed_bellows', name: 'Borrowed Bellows', description: 'Scrap Incubators are twice as productive.', cost: 1_500_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'scrap_incubator', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'scrap_incubator', multiplier: 2 }],
   },
   {
     id: 'unsafe_pressure', name: 'Unsafe Pressure', description: 'Scrap Incubators are twice as productive again.', cost: 150_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'scrap_incubator', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'scrap_incubator', multiplier: 2 }],
+  },
+  {
+    id: 'redline_boilers', name: 'Redline Boilers', description: 'Scrap Incubators are twice as productive yet again.', cost: 300_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'scrap_incubator', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'scrap_incubator', multiplier: 2 }],
   },
   {
     id: 'louder_rattles', name: 'Louder Rattles', description: 'Shaman Circles are twice as productive.', cost: 15_000_000,
@@ -178,12 +222,20 @@ export const UPGRADES = [
     requirements: [{ type: 'buildingOwned', buildingId: 'shaman_circle', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'shaman_circle', multiplier: 2 }],
   },
   {
+    id: 'ancestor_thunder', name: 'Ancestor Thunder', description: 'Shaman Circles are twice as productive yet again.', cost: 3_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'shaman_circle', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'shaman_circle', multiplier: 2 }],
+  },
+  {
     id: 'mandatory_cuddles', name: 'Mandatory Cuddles', description: 'War Camps are twice as productive.', cost: 200_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'war_camp', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'war_camp', multiplier: 2 }],
   },
   {
     id: 'drill_sergeant_midwives', name: 'Drill-Sergeant Midwives', description: 'War Camps are twice as productive again.', cost: 20_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'war_camp', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'war_camp', multiplier: 2 }],
+  },
+  {
+    id: 'mobilized_generation', name: 'Mobilized Generation', description: 'War Camps are twice as productive yet again.', cost: 40_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'war_camp', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'war_camp', multiplier: 2 }],
   },
   {
     id: 'silver_spores', name: 'Silver Spores', description: 'Moonspore Caverns are twice as productive.', cost: 3_300_000_000,
@@ -194,12 +246,20 @@ export const UPGRADES = [
     requirements: [{ type: 'buildingOwned', buildingId: 'moonspore_cavern', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'moonspore_cavern', multiplier: 2 }],
   },
   {
+    id: 'perpetual_eclipse', name: 'Perpetual Eclipse', description: 'Moonspore Caverns are twice as productive yet again.', cost: 660_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'moonspore_cavern', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'moonspore_cavern', multiplier: 2 }],
+  },
+  {
     id: 'forge_runes', name: 'Forge Runes', description: 'Deepforge Vats are twice as productive.', cost: 51_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'deepforge_vat', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'deepforge_vat', multiplier: 2 }],
   },
   {
     id: 'molten_cradles', name: 'Molten Cradles', description: 'Deepforge Vats are twice as productive again.', cost: 5_100_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'deepforge_vat', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'deepforge_vat', multiplier: 2 }],
+  },
+  {
+    id: 'heart_of_the_forge', name: 'Heart of the Forge', description: 'Deepforge Vats are twice as productive yet again.', cost: 10_200_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'deepforge_vat', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'deepforge_vat', multiplier: 2 }],
   },
   {
     id: 'hinge_grease', name: 'Hinge Grease', description: 'Goblin Gates are twice as productive.', cost: 750_000_000_000,
@@ -210,6 +270,10 @@ export const UPGRADES = [
     requirements: [{ type: 'buildingOwned', buildingId: 'goblin_gate', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'goblin_gate', multiplier: 2 }],
   },
   {
+    id: 'gate_without_walls', name: 'Gate Without Walls', description: 'Goblin Gates are twice as productive yet again.', cost: 150_000_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'goblin_gate', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'goblin_gate', multiplier: 2 }],
+  },
+  {
     id: 'warm_scale_blankets', name: 'Warm Scale Blankets', description: 'Wyrm Hoards are twice as productive.', cost: 10_000_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'wyrm_hoard', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'wyrm_hoard', multiplier: 2 }],
   },
@@ -218,12 +282,20 @@ export const UPGRADES = [
     requirements: [{ type: 'buildingOwned', buildingId: 'wyrm_hoard', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'wyrm_hoard', multiplier: 2 }],
   },
   {
+    id: 'dragonless_hoard', name: 'Dragonless Hoard', description: 'Wyrm Hoards are twice as productive yet again.', cost: 2_000_000_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'wyrm_hoard', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'wyrm_hoard', multiplier: 2 }],
+  },
+  {
     id: 'wider_impossibility', name: 'Wider Impossibility', description: 'Reality Burrows are twice as productive.', cost: 140_000_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'reality_burrow', amount: 10 }], effects: [{ type: 'buildingMultiplier', buildingId: 'reality_burrow', multiplier: 2 }],
   },
   {
     id: 'burrow_beyond', name: 'Burrow Beyond', description: 'Reality Burrows are twice as productive again.', cost: 14_000_000_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'reality_burrow', amount: 50 }], effects: [{ type: 'buildingMultiplier', buildingId: 'reality_burrow', multiplier: 2 }],
+  },
+  {
+    id: 'impossible_population', name: 'Impossible Population', description: 'Reality Burrows are twice as productive yet again.', cost: 28_000_000_000_000_000_000,
+    requirements: [{ type: 'buildingOwned', buildingId: 'reality_burrow', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'reality_burrow', multiplier: 2 }],
   },
 ] as const satisfies readonly UpgradeDefinition[];
 

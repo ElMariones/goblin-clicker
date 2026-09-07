@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getBuildingBulkCost, getBuildingCps, getBuildingSellRefund, getBuildingUnitCps, getClickPower, getCps, getMaxAffordableBuildingCount, getPermanentUpgradeCost, getPrestigeShardGain } from './math';
+import { BUILDINGS, UPGRADES } from './content';
+import { getBuildingBulkCost, getBuildingCps, getBuildingSellRefund, getBuildingUnitCps, getClickPower, getCps, getMaxAffordableBuildingCount, getPermanentUpgradeCost, getPrestigeShardGain, isUpgradeUnlocked } from './math';
 import { createInitialGameState } from './state';
 
 describe('economy math', () => {
@@ -41,6 +42,37 @@ describe('economy math', () => {
     state.purchasedUpgrades.sharpened_nails = true;
     state.prestige.permanentUpgrades.stronger_spawn = 2;
     expect(getClickPower(state)).toBeCloseTo(2.4);
+  });
+
+  it('stacks late manual upgrades using the existing click effect model', () => {
+    const state = createInitialGameState(1_000, 123);
+    state.buildings.mushroom_nursery = 100;
+    state.purchasedUpgrades.iron_fingertips = true;
+    state.purchasedUpgrades.hatchery_command = true;
+    state.purchasedUpgrades.twitch_of_creation = true;
+    expect(getClickPower(state)).toBeCloseTo((1 + 100 * 0.15) * 6, 8);
+  });
+
+  it('provides a third building-specific production tier for every structure', () => {
+    for (const building of BUILDINGS) {
+      const tiers = UPGRADES.filter((upgrade) => upgrade.effects.some((effect) => effect.type === 'buildingMultiplier' && effect.buildingId === building.id));
+      expect(tiers).toHaveLength(3);
+      expect(tiers.some((upgrade) => upgrade.requirements.some((requirement) => requirement.type === 'buildingOwned' && requirement.buildingId === building.id && requirement.amount === 100))).toBe(true);
+    }
+  });
+
+  it('gates advanced global research behind late-game milestones', () => {
+    const state = createInitialGameState(1_000, 123);
+    state.lifetimeGoblins = 1_000_000_000_000_000;
+    expect(isUpgradeUnlocked(state, 'horde_standardization')).toBe(false);
+    state.prestige.resets = 1;
+    expect(isUpgradeUnlocked(state, 'horde_standardization')).toBe(true);
+
+    state.lifetimeGoblins = 1_000_000_000_000_000_000;
+    state.prestige.totalShardsEarned = 9;
+    expect(isUpgradeUnlocked(state, 'empire_beneath_everything')).toBe(false);
+    state.prestige.totalShardsEarned = 10;
+    expect(isUpgradeUnlocked(state, 'empire_beneath_everything')).toBe(true);
   });
 
   it('makes first prestige reachable at five million lifetime goblins', () => {

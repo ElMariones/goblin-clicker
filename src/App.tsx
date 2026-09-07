@@ -280,11 +280,26 @@ function App() {
     }
   }).join(' · '), [language, t]);
 
+  const upgradeTierLabel = useCallback((upgrade: (typeof UPGRADES)[number]) => {
+    if (upgrade.requirements.some((req) => req.type === 'prestigeResets' || req.type === 'prestigeShardsEarned')) return t('upgrade.forbidden');
+    if (upgrade.requirements.some((req) =>
+      (req.type === 'buildingOwned' && req.amount >= 100)
+      || (req.type === 'lifetimeGoblins' && req.amount >= 1_000_000_000_000)
+      || (req.type === 'totalClicks' && req.amount >= 2_500)
+    )) return t('upgrade.advanced');
+    if (upgrade.requirements.some((req) =>
+      (req.type === 'buildingOwned' && req.amount >= 50)
+      || (req.type === 'lifetimeGoblins' && req.amount >= 1_000_000)
+      || (req.type === 'totalClicks' && req.amount >= 250)
+    )) return t('upgrade.veteran');
+    return t('upgrade.common');
+  }, [t]);
+
   const upgradesView = useMemo(() => UPGRADES.map((upgrade) => ({
     id: upgrade.id, name: localizedName(language, 'upgrade', upgrade.id, upgrade.name), description: language === 'en' ? upgrade.description : t('upgrade.genericDescription'),
     priceLabel: fmtNumber(upgrade.cost), effectLabel: upgradeEffectLabel(upgrade), purchased: Boolean(game.purchasedUpgrades[upgrade.id]), affordable: canPurchaseUpgrade(game, upgrade.id),
-    locked: !isUpgradeUnlocked(game, upgrade.id), tier: upgrade.requirements.some((req) => req.type === 'buildingOwned' && req.amount >= 50) ? t('upgrade.veteran') : t('upgrade.common'), icon: 'sparkles' as const,
-  })), [fmtNumber, game, language, t, upgradeEffectLabel]);
+    locked: !isUpgradeUnlocked(game, upgrade.id), tier: upgradeTierLabel(upgrade), icon: 'sparkles' as const,
+  })), [fmtNumber, game, language, t, upgradeEffectLabel, upgradeTierLabel]);
 
   const achievementViews = useMemo(() => ACHIEVEMENTS.map((achievement) => ({
     id: achievement.id, name: localizedName(language, 'achievement', achievement.id, achievement.name), description: achievementDescription(achievement),

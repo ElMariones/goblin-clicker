@@ -1,10 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">War camp</title>
-  <rect width="96" height="96" rx="18" fill="#15120e"/>
-  <path d="M18 76 42 29l24 47H18Z" fill="#5b3e26" stroke="#98683e" stroke-width="3"/>
-  <path d="M54 76 69 43l13 33H54Z" fill="#45301f" stroke="#7f5a38" stroke-width="3"/>
-  <path d="M42 29v47M69 43v33" stroke="#b58a57" stroke-width="3"/>
-  <path d="M29 37 18 24l17 4 7-12v20" fill="#6f8638" stroke="#a0bb55" stroke-width="2"/>
-  <circle cx="42" cy="64" r="6" fill="#202618"/>
-  <path d="M12 80h72" stroke="#6b5336" stroke-width="5" stroke-linecap="round"/>
+  <title id="title">War Camp</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#211a12"/><stop offset="1" stop-color="#0d0b08"/></linearGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#55432d" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#8c6f47" stroke-width="2" opacity=".75"/>
+  <path d="M20 79 46 29l26 50H20Z" fill="#5c3b25" stroke="#a06b3d" stroke-width="3" stroke-linejoin="bevel"/>
+  <path d="M46 29v50M29 79l17-26 17 26" fill="none" stroke="#c18c53" stroke-width="3"/>
+  <path d="M35 45h22M31 56h30" stroke="#764727" stroke-width="2" opacity=".9"/>
+  <path d="M26 72h7v7h-7Zm33-2h7v9h-7Z" fill="#3a2a20" stroke="#855b39" stroke-width="2"/>
+  <path d="M32 78c1-10 6-17 14-17s13 7 14 17H32Z" fill="#171912"/>
+  <path d="M14 72V21m0 0 22 7-12 8 12 8-22 1" fill="#687e37" stroke="#a6bd59" stroke-width="2" stroke-linejoin="bevel"/>
+  <path d="M77 76V30m-6 9 12-12m-12 0 12 12" fill="none" stroke="#a6a07a" stroke-width="3" stroke-linecap="square"/>
+  <path d="M76 31 84 18M73 18l11 13" stroke="#72523a" stroke-width="3"/>
+  <circle cx="46" cy="52" r="5" fill="#98b654"/><path d="m43 49 6 6m0-6-6 6" stroke="#27301d" stroke-width="2"/>
+  <path d="M18 63h8l4 6-4 6h-8l-4-6 4-6Z" fill="#4b5d31" stroke="#9ab25b" stroke-width="2"/><path d="M18 67h8m-4-4v12" stroke="#d0dd87" stroke-width="1.5"/>
+  <path d="M66 61h8l2 4-6 4-6-4 2-4Z" fill="#5f4932" stroke="#aa8250" stroke-width="2"/><path d="M68 58v3m4-3v3" stroke="#c89a5d" stroke-width="2"/>
+  <path d="M35 82c2-7 6-10 11-10s9 3 11 10" fill="#2b1d12"/><path d="m42 78 4-7 4 7-4 4-4-4Z" fill="#e3993f"/><rect x="44" y="68" width="4" height="4" fill="#f0c15b"/>
+  <path d="M9 82h78" stroke="#75593a" stroke-width="5"/>
 </svg>

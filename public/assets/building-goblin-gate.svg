@@ -1,10 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Goblin gate</title>
-  <rect width="96" height="96" rx="18" fill="#101410"/>
-  <path d="M17 79V31h18v48M61 79V31h18v48" fill="#41392b" stroke="#786b4e" stroke-width="3"/>
-  <path d="M12 34 48 14l36 20-8 7-28-14-28 14-8-7Z" fill="#5e6e37" stroke="#9bb353" stroke-width="3"/>
-  <path d="M35 42h26v37H35V42Z" fill="#1d2519" stroke="#657747" stroke-width="3"/>
-  <path d="M48 43v36M36 56h24" stroke="#3d4e2e" stroke-width="3"/>
-  <circle cx="53" cy="63" r="2.5" fill="#c4dc77"/>
-  <path d="M13 80h70" stroke="#7e7051" stroke-width="5" stroke-linecap="round"/>
+  <title id="title">Goblin Gate</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#171b13"/><stop offset="1" stop-color="#090c08"/></linearGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#3e4931" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#758650" stroke-width="2" opacity=".7"/>
+  <path d="M15 84V31h21v53M60 84V31h21v53" fill="#463c2c" stroke="#826f4d" stroke-width="3"/>
+  <path d="M19 37h13M19 49h13M19 61h13M64 37h13M64 49h13M64 61h13" stroke="#695a41" stroke-width="2"/>
+  <rect x="20" y="69" width="11" height="8" fill="#332b20" stroke="#927a51" stroke-width="2"/><rect x="65" y="69" width="11" height="8" fill="#332b20" stroke="#927a51" stroke-width="2"/>
+  <circle cx="25.5" cy="73" r="1.5" fill="#c99850"/><circle cx="70.5" cy="73" r="1.5" fill="#c99850"/>
+  <path d="M10 34 48 12l38 22-8 9-30-16-30 16-8-9Z" fill="#65763a" stroke="#a4bb59" stroke-width="3" stroke-linejoin="bevel"/>
+  <path d="M19 34 31 27l6 5-13 7-5-5Zm58 0-12-7-6 5 13 7 5-5Z" fill="#7f9347"/>
+  <path d="M34 39h28v45H34V39Z" fill="#121911" stroke="#5d7042" stroke-width="3"/>
+  <path d="M40 43v41m8-41v41m8-41v41M35 56h26M35 70h26" stroke="#39472e" stroke-width="2"/>
+  <path d="M28 29v-9l8 5m32 4v-9l-8 5" fill="#8fa74e" stroke="#b8cc6c" stroke-width="2"/>
+  <path d="m42 20 6-5 6 5-2 6h-8l-2-6Z" fill="#9abd58"/><rect x="45" y="19" width="2" height="2" fill="#e6f3a4"/><rect x="49" y="19" width="2" height="2" fill="#e6f3a4"/>
+  <path d="M44 26v5h8v-5M39 31h18" fill="none" stroke="#c7d87a" stroke-width="2"/>
+  <path d="M26 18v8m44-8v8" stroke="#8fa74e" stroke-width="2"/><path d="M22 18h8l-4-5-4 5Zm44 0h8l-4-5-4 5Z" fill="#b2c76a"/>
+  <path d="M17 81l6-5 6 5m38 0 6-5 6 5" fill="none" stroke="#5f4e38" stroke-width="2"/>
+  <circle cx="57" cy="64" r="3" fill="#d2e584"/>
+  <circle cx="42" cy="62" r="2" fill="#829b52"/><circle cx="42" cy="75" r="2" fill="#829b52"/>
+  <path d="M9 85h78" stroke="#8e7852" stroke-width="5"/>
 </svg>

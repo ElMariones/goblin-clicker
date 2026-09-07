@@ -8,6 +8,8 @@ An original goblin-themed incremental clicker built for the browser. Spawn gobli
 
 ![Expansion production telemetry](docs/screenshots/expansion-hover.png)
 
+![Draggable Warren research tree](docs/screenshots/research-tree.png)
+
 ![Responsive mobile view](docs/screenshots/mobile.png)
 
 ## Tech stack

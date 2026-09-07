@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Goblin workshop</title>
-  <rect width="96" height="96" rx="18" fill="#111611"/>
-  <path d="M17 72h62l-6 10H23l-6-10Z" fill="#4a3522"/>
-  <path d="M23 36 48 19l25 17v37H23V36Z" fill="#3a2b1d" stroke="#79583a" stroke-width="3"/>
-  <path d="M18 39 48 15l30 24" fill="none" stroke="#947047" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="34" y="49" width="28" height="24" rx="3" fill="#171d12"/>
-  <circle cx="48" cy="57" r="11" fill="#647f3f" stroke="#9bbe63" stroke-width="3"/>
-  <path d="M48 42v30M33 57h30M37 46l22 22M59 46 37 68" stroke="#1f2b18" stroke-width="3"/>
-  <path d="M65 23v-9h8v16" fill="#403020" stroke="#77583a" stroke-width="3"/>
-  <path d="M73 12c8 5 5 11 1 14 8 2 10 9 6 15" fill="none" stroke="#95a38a" stroke-width="3" stroke-linecap="round" opacity=".35"/>
+  <title id="title">Scrap Incubator</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1b1d16"/><stop offset="1" stop-color="#0a0d09"/></linearGradient><linearGradient id="glass" x1="0" x2="1"><stop stop-color="#31472d"/><stop offset=".5" stop-color="#82a94f"/><stop offset="1" stop-color="#273d27"/></linearGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#4a4b35" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#817c54" stroke-width="2" opacity=".7"/>
+  <path d="M24 20h48l7 12v46l-8 8H23l-7-8V32l8-12Z" fill="#3b382d" stroke="#7d7256" stroke-width="3" stroke-linejoin="bevel"/>
+  <path d="M31 29h34l5 8v30l-7 8H33l-7-8V37l5-8Z" fill="#151b15" stroke="#5f624d" stroke-width="2"/>
+  <rect x="33" y="35" width="30" height="34" rx="6" fill="url(#glass)" stroke="#95ad68" stroke-width="2"/>
+  <ellipse cx="48" cy="52" rx="9" ry="13" fill="#9fc863" stroke="#d0e78e" stroke-width="2"/>
+  <path d="m45 44 6 6-5 5 5 6" fill="none" stroke="#56753b" stroke-width="2"/>
+  <path d="M20 43H9v22h11M76 37h11v13h-7m-4 14h11v14H76" fill="none" stroke="#8c693f" stroke-width="4" stroke-linecap="square"/>
+  <circle cx="25" cy="27" r="3" fill="#c49a57"/><circle cx="71" cy="27" r="3" fill="#c49a57"/><circle cx="25" cy="79" r="3" fill="#c49a57"/><circle cx="71" cy="79" r="3" fill="#c49a57"/>
+  <path d="M39 20V11h18v9M41 85v5h14v-5" fill="none" stroke="#6f684f" stroke-width="3"/>
 </svg>

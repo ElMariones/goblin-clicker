@@ -1,9 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Straw brood nest</title>
-  <rect width="96" height="96" rx="18" fill="#11170f"/>
-  <ellipse cx="48" cy="69" rx="34" ry="12" fill="#2b2115"/>
-  <path d="M18 62c10-12 50-12 60 0M15 69c15-11 51-10 66 0M24 76c12-8 36-8 48 0" fill="none" stroke="#987443" stroke-width="5" stroke-linecap="round"/>
-  <ellipse cx="48" cy="56" rx="15" ry="19" fill="#86b24e" stroke="#b5da72" stroke-width="3"/>
-  <path d="m45 44 7 8-6 6 5 8" fill="none" stroke="#5c7c38" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="58" cy="46" r="3" fill="#d8ed9f" opacity=".65"/>
+  <title id="title">Brood Matron</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#152014"/><stop offset="1" stop-color="#080d08"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#354a2b" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#708a4d" stroke-width="2" opacity=".7"/>
+  <path d="M16 72c10-8 20-11 32-11s23 3 32 11l-7 14H23L16 72Z" fill="#5b4126" stroke="#9a7441" stroke-width="3"/>
+  <path d="M22 75h52M28 82h40" fill="none" stroke="#b3884d" stroke-width="3"/>
+  <path d="M31 49c0-15 7-27 17-27s17 12 17 27c0 6-3 11-7 15H38c-4-4-7-9-7-15Z" fill="#324326" stroke="#6b8a45" stroke-width="3"/>
+  <path d="m34 31-9-7 4 13m33-6 9-7-4 13" fill="#668b42" stroke="#91b65c" stroke-width="2" stroke-linejoin="bevel"/>
+  <path d="M37 40h7l2 5h-9m22-5h-7l-2 5h9" fill="#d5ec8f"/>
+  <path d="M43 52h10l-5 5-5-5Z" fill="#a96f38"/>
+  <ellipse cx="48" cy="67" rx="12" ry="15" fill="#91bc58" stroke="#c5df80" stroke-width="2"/>
+  <path d="M42 60c2-4 5-6 8-6" fill="none" stroke="#dff3a2" stroke-width="3" opacity=".8"/>
+  <path d="m45 57 6 6-5 5 4 6" fill="none" stroke="#56753b" stroke-width="2" stroke-linecap="square"/>
+  <circle cx="35" cy="68" r="3" fill="#cbdc8a"/><circle cx="62" cy="70" r="2.5" fill="#b7cf74"/>
 </svg>

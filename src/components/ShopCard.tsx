@@ -31,8 +31,6 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
   return (
     <article
       className={`shop-card${locked ? ' shop-card--locked' : ''}${canAfford ? ' shop-card--affordable' : ''}${details ? ' shop-card--has-details' : ''}`}
-      tabIndex={details ? 0 : undefined}
-      aria-describedby={details ? detailId : undefined}
     >
       <div className="shop-card__art" aria-hidden="true">{artSrc ? <img src={artSrc} alt="" /> : <Icon name={locked ? 'lock' : 'brood'} size={28} />}</div>
       <div className="shop-card__body">
@@ -58,10 +56,10 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
         </div>
       )}
       <div className="shop-card__actions">
-        <button type="button" className="shop-card__buy" onClick={() => onBuy(id)} disabled={locked || !canAfford} aria-describedby={details ? detailId : undefined} aria-label={t('shop.buyAria', { action: buyLabel, name, price: priceLabel })}>
+        <button type="button" className="shop-card__buy" onClick={(event) => { onBuy(id); if (event.detail > 0) event.currentTarget.blur(); }} disabled={locked || !canAfford} aria-describedby={details ? detailId : undefined} aria-label={t('shop.buyAria', { action: buyLabel, name, price: priceLabel })}>
           <span>{buyLabel}</span><strong><Icon name="coin" size={14} /> {priceLabel}</strong>
         </button>
-        {onSell && !locked && <button type="button" className="shop-card__sell" onClick={() => onSell(id)} aria-describedby={details ? detailId : undefined} aria-label={t('shop.sellAria', { name })}>{t('shop.sell')}</button>}
+        {onSell && !locked && <button type="button" className="shop-card__sell" onClick={(event) => { onSell(id); if (event.detail > 0) event.currentTarget.blur(); }} aria-describedby={details ? detailId : undefined} aria-label={t('shop.sellAria', { name })}>{t('shop.sell')}</button>}
       </div>
     </article>
   );

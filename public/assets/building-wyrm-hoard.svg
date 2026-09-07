@@ -1,12 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Wyrm hoard</title>
-  <rect width="96" height="96" rx="18" fill="#17110d"/>
-  <ellipse cx="49" cy="74" rx="33" ry="10" fill="#5a3f1f"/>
-  <circle cx="30" cy="69" r="8" fill="#b88235"/>
-  <circle cx="46" cy="72" r="9" fill="#d09a43"/>
-  <circle cx="63" cy="68" r="8" fill="#aa742b"/>
-  <path d="M22 51c12-23 44-30 57-6-9-2-17 0-23 5 10 0 17 3 22 9-18 3-33 0-45-8-4 5-8 9-13 11 1-5 2-8 2-11Z" fill="#607d3b" stroke="#94b95d" stroke-width="3"/>
-  <path d="m30 37-6-12 13 6m25 2 9-11-2 15" fill="none" stroke="#8fb156" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="45" cy="43" r="3" fill="#f4cf63"/>
-  <path d="M49 49c5 3 9 3 13 1" fill="none" stroke="#25321d" stroke-width="3" stroke-linecap="round"/>
+  <title id="title">Wyrm Hoard</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#24180f"/><stop offset="1" stop-color="#0e0a07"/></linearGradient><linearGradient id="scale" x1="0" x2="1"><stop stop-color="#4d6733"/><stop offset=".5" stop-color="#829e4c"/><stop offset="1" stop-color="#3d542d"/></linearGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#62452c" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#9b7445" stroke-width="2" opacity=".75"/>
+  <ellipse cx="49" cy="76" rx="36" ry="11" fill="#5f421f" stroke="#9d7131" stroke-width="2"/>
+  <circle cx="25" cy="72" r="7" fill="#c18734"/><circle cx="38" cy="77" r="8" fill="#dda748"/><circle cx="53" cy="72" r="9" fill="#b77829"/><circle cx="68" cy="75" r="7" fill="#d49a3d"/><circle cx="77" cy="70" r="5" fill="#ad7026"/>
+  <path d="M20 60c8-27 37-42 59-27-13 1-20 7-24 14 14-4 26 2 31 13-12 1-23-1-31-5 8 7 11 15 6 23-12-4-19-10-24-18-6 7-12 11-20 13 3-5 4-9 3-13Z" fill="url(#scale)" stroke="#9fbd61" stroke-width="3" stroke-linejoin="bevel"/>
+  <path d="m28 39-7-13 14 6m29-4 11-10-3 16" fill="none" stroke="#9ab65d" stroke-width="4" stroke-linecap="square"/>
+  <path d="M34 43h10l-3 6h-8l1-6Z" fill="#27331f"/><rect x="36" y="44" width="4" height="3" fill="#f4d05e"/>
+  <path d="M46 52c6 4 12 4 18 0" fill="none" stroke="#24301d" stroke-width="3"/>
+  <path d="M47 63 35 74m20-10 8 12" stroke="#68833e" stroke-width="3"/>
 </svg>

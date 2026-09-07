@@ -1,9 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Shaman circle</title>
-  <rect width="96" height="96" rx="18" fill="#111311"/>
-  <circle cx="48" cy="52" r="28" fill="#1d241a" stroke="#5d6949" stroke-width="3"/>
-  <path d="M48 18v13M19 52h13M64 52h13M28 31l9 9M59 40l9-9M28 73l9-9M59 64l9 9" stroke="#8ba35c" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="48" cy="52" r="14" fill="#34462a" stroke="#a0c268" stroke-width="3"/>
-  <path d="m48 39 5 9 10 1-8 7 3 10-10-5-10 5 3-10-8-7 10-1 5-9Z" fill="#8db64f"/>
-  <circle cx="48" cy="52" r="4" fill="#e5efaa"/>
+  <title id="title">Shaman Circle</title>
+  <defs><radialGradient id="bg"><stop stop-color="#20251c"/><stop offset="1" stop-color="#090c09"/></radialGradient><radialGradient id="rune"><stop stop-color="#c9eb7b"/><stop offset="1" stop-color="#55793b"/></radialGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#3d4934" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#758651" stroke-width="2" opacity=".7"/>
+  <circle cx="48" cy="52" r="32" fill="#171d15" stroke="#586845" stroke-width="3"/>
+  <path d="M48 14v13M15 52h13m40 0h13M25 29l9 9m28 0 9-9M25 75l9-9m28 0 9 9" stroke="#8fa95d" stroke-width="4" stroke-linecap="square"/>
+  <path d="M48 31 61 39l4 15-8 14-17 4-12-11 2-18 18-12Z" fill="#2f4328" stroke="#89ab57" stroke-width="2"/>
+  <path d="m48 36 5 10 11 2-8 7 2 11-10-5-10 5 2-11-8-7 11-2 5-10Z" fill="url(#rune)"/>
+  <circle cx="48" cy="52" r="4" fill="#eff7b2"/>
+  <path d="M15 79 29 65m52 14L67 65M15 25l15 11m51-11L66 36" fill="none" stroke="#6b4932" stroke-width="3" opacity=".8"/>
+  <rect x="12" y="76" width="7" height="7" fill="#92704a"/><rect x="77" y="76" width="7" height="7" fill="#92704a"/>
 </svg>

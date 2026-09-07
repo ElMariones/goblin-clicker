@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Moonspore cavern</title>
-  <rect width="96" height="96" rx="18" fill="#0f1218"/>
-  <path d="M12 78c6-34 18-55 36-64 18 9 30 30 36 64H12Z" fill="#2f3239"/>
-  <path d="M27 78c3-22 10-35 21-41 11 6 18 19 21 41H27Z" fill="#121720"/>
-  <circle cx="58" cy="28" r="11" fill="#d6dd9b" opacity=".9"/>
-  <circle cx="62" cy="24" r="11" fill="#2f3239"/>
-  <path d="M34 66h7l2 12H32l2-12Zm20-6h9l3 18H51l3-18Z" fill="#7d8f62"/>
-  <path d="M27 66c2-7 7-11 11-11s9 4 11 11c-7 3-15 3-22 0Zm18-6c3-10 9-15 13-15s11 5 14 15c-9 4-18 4-27 0Z" fill="#7b70a7" stroke="#b7a8ea" stroke-width="2"/>
+  <title id="title">Moonspore Cavern</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#171625"/><stop offset="1" stop-color="#090a10"/></linearGradient><radialGradient id="spore"><stop stop-color="#eee8b4"/><stop offset=".3" stop-color="#b7aeec"/><stop offset="1" stop-color="#655a92"/></radialGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#49435f" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#7a6f9e" stroke-width="2" opacity=".75"/>
+  <path d="M10 83c5-37 18-61 38-72 20 11 33 35 38 72H10Z" fill="#31333b" stroke="#555866" stroke-width="2"/>
+  <path d="M24 83c3-26 11-43 24-50 13 7 21 24 24 50H24Z" fill="#0c1018" stroke="#3f4351" stroke-width="2"/>
+  <path d="M56 18a13 13 0 1 0 15 20A11 11 0 0 1 56 18Z" fill="#d9dfa5" stroke="#eef0c6" stroke-width="2"/>
+  <path d="M32 66h7l2 17H29l3-17Zm22-9h9l4 26H50l4-26Z" fill="#859172"/>
+  <path d="M23 66c2-9 8-14 13-14s11 5 14 14c-8 4-19 4-27 0Zm20-9c3-12 10-19 16-19s13 7 17 19c-10 5-23 5-33 0Z" fill="url(#spore)" stroke="#c0b4f0" stroke-width="2"/>
+  <rect x="31" y="59" width="4" height="4" fill="#f0edc8"/><rect x="58" y="47" width="5" height="5" fill="#e0d5ff"/>
+  <path d="M18 40h5m49 7h6M40 25h4" stroke="#a99bd8" stroke-width="2" opacity=".7"/>
 </svg>

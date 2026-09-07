@@ -307,7 +307,7 @@ function App() {
     <SidePanel title={t('ledger.title')} eyebrow={t('ledger.eyebrow')} action={<button className="mini-action" type="button" onClick={() => setModal('achievements')}><Icon name="trophy" size={14} /> {fmtInteger(unlockedAchievementCount)}</button>}>
       <dl className="ledger-grid">
         <div><dt>{t('ledger.thisCycle')}</dt><dd>{fmtNumber(game.runGoblins)}</dd></div><div><dt>{t('ledger.allTime')}</dt><dd>{fmtNumber(game.lifetimeGoblins)}</dd></div>
-        <div><dt>{t('ledger.manual')}</dt><dd>{fmtInteger(game.statistics.totalClicks)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
+        <div><dt>{t('ledger.manual')}</dt><dd>{fmtNumber(game.statistics.manuallyBorn)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
         <div><dt>{t('ledger.baseProduction')}</dt><dd>{fmtNumber(baseCps)}/s</dd></div><div><dt>{t('ledger.bestProduction')}</dt><dd>{fmtNumber(game.statistics.highestCps)}/s</dd></div>
       </dl>
       {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className="buff-pill" key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : t('buff.hatchingFever')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}

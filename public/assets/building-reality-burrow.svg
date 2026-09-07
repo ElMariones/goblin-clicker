@@ -1,16 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Reality burrow</title>
-  <defs>
-    <radialGradient id="p" cx="50%" cy="50%" r="60%">
-      <stop stop-color="#bde76b"/>
-      <stop offset=".45" stop-color="#7662ac"/>
-      <stop offset="1" stop-color="#171421"/>
-    </radialGradient>
-  </defs>
-  <rect width="96" height="96" rx="18" fill="#100f17"/>
-  <circle cx="48" cy="48" r="31" fill="none" stroke="#4c415f" stroke-width="7"/>
-  <circle cx="48" cy="48" r="22" fill="url(#p)" opacity=".9"/>
-  <path d="M48 23c8 8 6 15 0 21s-8 13 0 29M23 48c8-8 15-6 21 0s13 8 29 0" fill="none" stroke="#e0caff" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
-  <circle cx="48" cy="48" r="5" fill="#0d120c"/>
-  <path d="m19 25 7 2-2 7m53-10-7 3 3 7M19 71l7-2-2-7m53 10-7-3 3-7" fill="none" stroke="#9fcd58" stroke-width="3" stroke-linecap="round"/>
+  <title id="title">Reality Burrow</title>
+  <defs><radialGradient id="bg"><stop stop-color="#251f34"/><stop offset="1" stop-color="#0b0910"/></radialGradient><radialGradient id="portal"><stop stop-color="#e2f4a1"/><stop offset=".22" stop-color="#93c95b"/><stop offset=".52" stop-color="#7561a9"/><stop offset="1" stop-color="#15121e"/></radialGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#55486c" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#8976aa" stroke-width="2" opacity=".75"/>
+  <path d="M48 13c18 0 34 16 34 35S66 83 48 83 14 67 14 48 30 13 48 13Z" fill="#191620" stroke="#69577e" stroke-width="6"/>
+  <circle cx="48" cy="48" r="24" fill="url(#portal)" stroke="#a28ac4" stroke-width="2"/>
+  <path d="M48 25c9 7 11 14 4 21-8 8-6 16 3 25M25 47c7-8 15-9 22-2 8 8 16 6 24-3" fill="none" stroke="#e6d9ff" stroke-width="3" stroke-linecap="square" opacity=".8"/>
+  <path d="M37 36 48 31l9 7-4 10 8 8-13 9-11-7 5-11-5-11Z" fill="none" stroke="#b9df78" stroke-width="2" opacity=".85"/>
+  <circle cx="48" cy="48" r="6" fill="#0a0d0a"/><rect x="46" y="46" width="4" height="4" fill="#dff39b"/>
+  <path d="m14 25 11 3-4 10M82 24l-11 4 4 10M14 72l11-4-4-10m61 14-11-4 4-10" fill="none" stroke="#9dce59" stroke-width="3"/>
+  <rect x="10" y="46" width="5" height="5" fill="#816ba3"/><rect x="81" y="45" width="5" height="5" fill="#816ba3"/>
 </svg>

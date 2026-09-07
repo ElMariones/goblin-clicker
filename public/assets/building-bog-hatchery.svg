@@ -1,11 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Bog hatchery</title>
-  <rect width="96" height="96" rx="18" fill="#0e1510"/>
-  <ellipse cx="48" cy="72" rx="34" ry="12" fill="#253521"/>
-  <path d="M18 69c8-10 18-13 30-13s22 3 30 13" fill="#3e5932" stroke="#70874e" stroke-width="4"/>
-  <ellipse cx="48" cy="58" rx="22" ry="11" fill="#566f3b"/>
-  <path d="M39 56c1-15 7-24 9-24s8 9 9 24" fill="#87ad55" stroke="#aecf72" stroke-width="3"/>
-  <circle cx="35" cy="38" r="5" fill="#789a4a" opacity=".7"/>
-  <circle cx="66" cy="49" r="4" fill="#789a4a" opacity=".55"/>
-  <path d="M18 30c9 5 13 11 12 19M75 23c-8 8-10 15-8 22" fill="none" stroke="#496538" stroke-width="4" stroke-linecap="round"/>
+  <title id="title">Bog Hatchery</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#122019"/><stop offset="1" stop-color="#07100c"/></linearGradient><radialGradient id="pool"><stop stop-color="#729c48"/><stop offset="1" stop-color="#243923"/></radialGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#334a35" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#64844e" stroke-width="2" opacity=".7"/>
+  <ellipse cx="48" cy="72" rx="36" ry="15" fill="#1b2c1d" stroke="#49623d" stroke-width="3"/>
+  <ellipse cx="48" cy="70" rx="28" ry="10" fill="url(#pool)" stroke="#66884a" stroke-width="2"/>
+  <path d="M19 64V31m0 11 8-9m-8 16-8-8m66 23V27m0 12 8-8m-8 16-8-8" fill="none" stroke="#607b42" stroke-width="3" stroke-linecap="square"/>
+  <path d="M14 58h14l-3 6H11l3-6Zm54-2h14l3 6H70l-2-6Z" fill="#4c3b28" stroke="#806142" stroke-width="2"/>
+  <path d="M17 55v9m7-11v11m52-12v12m5-9v9" stroke="#9a7448" stroke-width="2"/>
+  <path d="M35 67c0-10 4-17 9-17s9 7 9 17H35Zm16 2c0-13 5-23 11-23s11 10 11 23H51Z" fill="#91b85d" stroke="#c0dc7c" stroke-width="2"/>
+  <path d="m41 55 6 5-5 4m16-11 7 6-6 5" fill="none" stroke="#527438" stroke-width="2"/>
+  <path d="M24 69h10l-4 4H20l4-4Zm42-2h8l-3 4h-8l3-4Z" fill="#557943" stroke="#8aaa5e" stroke-width="1.5"/>
+  <circle cx="29" cy="65" r="2" fill="#b9d978"/><circle cx="58" cy="75" r="2" fill="#9ec368"/><circle cx="72" cy="69" r="1.5" fill="#cbe58c"/>
+  <path d="M27 63v-7m0 0-4-4m4 4 5-5M70 64v-8m0 0-4-4m4 4 4-5" fill="none" stroke="#729450" stroke-width="2"/>
+  <rect x="30" y="35" width="5" height="5" fill="#9bc563" opacity=".8"/><rect x="68" y="47" width="4" height="4" fill="#b6da73"/>
+  <path d="M12 74h7m58-2h7M24 77c8 3 16 4 24 4 10 0 18-1 25-4" fill="none" stroke="#86a25d" stroke-width="2" opacity=".65"/>
 </svg>

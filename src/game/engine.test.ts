@@ -10,6 +10,18 @@ describe('game simulation', () => {
     expect(result.amount).toBe(1);
     expect(result.state.goblins).toBe(1);
     expect(result.state.statistics.totalClicks).toBe(1);
+    expect(result.state.statistics.manuallyBorn).toBe(1);
+  });
+
+  it('counts actual goblins spawned manually rather than click events', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.purchasedUpgrades.sharpened_nails = true;
+
+    const result = hatchGoblin(state, 1_000);
+
+    expect(result.amount).toBe(2);
+    expect(result.state.statistics.totalClicks).toBe(1);
+    expect(result.state.statistics.manuallyBorn).toBe(2);
   });
 
   it('ticks passive production and handles a buff ending mid-tick', () => {

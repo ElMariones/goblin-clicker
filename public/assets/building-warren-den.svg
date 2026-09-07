@@ -1,12 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
-  <title id="title">Deep warren entrance</title>
-  <rect width="96" height="96" rx="18" fill="#10150f"/>
-  <path d="M9 79c7-33 19-55 39-65 20 10 32 32 39 65H9Z" fill="#3c3529"/>
-  <path d="M18 78c5-27 15-45 30-54 15 9 25 27 30 54" fill="none" stroke="#685b43" stroke-width="5"/>
-  <path d="M31 78c1-20 6-32 17-37 11 5 16 17 17 37H31Z" fill="#11170e"/>
-  <path d="M42 51c4-4 8-4 12 0l-2 7h-8l-2-7Z" fill="#9dcc54" opacity=".72"/>
-  <circle cx="44" cy="53" r="1.8" fill="#e4f8ad"/>
-  <circle cx="52" cy="53" r="1.8" fill="#e4f8ad"/>
-  <path d="m11 66 14-7m60 7-14-7M17 47l13 3m49-3-13 3" stroke="#566844" stroke-width="3" stroke-linecap="round" opacity=".7"/>
-  <path d="M8 80h80" stroke="#74855c" stroke-width="4" stroke-linecap="round"/>
+  <title id="title">Warren Den</title>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#171b12"/><stop offset="1" stop-color="#090d08"/></linearGradient></defs>
+  <rect x="1" y="1" width="94" height="94" rx="8" fill="url(#bg)" stroke="#39482d" stroke-width="2"/>
+  <path d="M8 19V9h11M77 9h10v10M8 77v10h11M77 87h10V77" fill="none" stroke="#70834e" stroke-width="2" opacity=".7"/>
+  <path d="M8 82c7-35 21-59 40-69 20 10 34 34 40 69H8Z" fill="#3d3526" stroke="#665940" stroke-width="2"/>
+  <path d="M17 80c5-27 15-47 31-57 16 10 26 30 31 57" fill="none" stroke="#7b6949" stroke-width="5"/>
+  <path d="M29 82c2-23 8-38 19-43 12 5 18 20 20 43H29Z" fill="#070b07" stroke="#28351f" stroke-width="2"/>
+  <path d="M39 51 27 45M57 51l12-6M34 65 18 62m44 3 16-3" fill="none" stroke="#5b7543" stroke-width="3" stroke-linecap="square"/>
+  <path d="m41 56 7-7 7 7-3 8h-8l-3-8Z" fill="#607f3e" stroke="#8db758" stroke-width="2"/>
+  <rect x="44" y="55" width="3" height="3" fill="#e0f4a0"/><rect x="50" y="55" width="3" height="3" fill="#e0f4a0"/>
+  <path d="M10 83h76" stroke="#81945f" stroke-width="4"/><path d="M18 20h8v5h-8zm55 7h8v5h-8z" fill="#566842" opacity=".7"/>
 </svg>

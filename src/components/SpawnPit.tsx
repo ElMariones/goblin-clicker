@@ -19,13 +19,14 @@ export interface SpawnPitProps {
   statusLabel?: string;
   bonusEvent?: BonusEventView | null;
   activityLevel?: 'dormant' | 'stirring' | 'busy' | 'overrun';
+  className?: string;
   children?: ReactNode;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', children }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', children }: SpawnPitProps) {
   const { t } = useI18n();
   return (
-    <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}`} data-activity={activityLevel}>
+    <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
       <div className="spawn-pit__heading">
         <span className="spawn-pit__kicker">{t('spawn.kicker')}</span>
         <strong>{statusLabel ?? t('status.start')}</strong>

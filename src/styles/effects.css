@@ -16,6 +16,61 @@
   60% { opacity: 1; transform: translate(-50%, -50%) scale(calc(var(--token-scale) + .08)) rotate(2deg); }
   100% { opacity: .9; transform: translate(-50%, -50%) scale(var(--token-scale)) rotate(0); }
 }
+@keyframes prestige-confirm-in {
+  0% { opacity: 0; transform: translateY(12px) scale(.97); filter: brightness(1.45) blur(2px); }
+  45% { opacity: 1; transform: translateY(-2px) scale(1.008); filter: brightness(1.12) blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+}
+@keyframes prestige-confirm-scan { from { background-position: 0 0; } to { background-position: 0 32px; } }
+@keyframes sevenfold-pill-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.22); } }
+@keyframes sevenfold-pill-sweep { 0%, 35% { transform: translateX(-130%); } 70%, 100% { transform: translateX(140%); } }
+@keyframes sevenfold-field-spin { to { transform: rotate(360deg); } }
+@keyframes sevenfold-target-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12) saturate(1.06); }
+}
+@keyframes prestige-vacuum-left {
+  0% { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0) brightness(1); }
+  43% { opacity: .72; transform: translate3d(34vw, 4vh, 0) scale(.16) rotate(6deg); filter: blur(1px) brightness(1.25) saturate(.7); }
+  50%, 72% { opacity: 0; transform: translate3d(38vw, 6vh, 0) scale(.015) rotate(22deg); filter: blur(5px) brightness(2); }
+  82% { opacity: 0; transform: scale(.72); filter: blur(4px) brightness(.7); }
+  100% { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0) brightness(1); }
+}
+@keyframes prestige-vacuum-right {
+  0% { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0) brightness(1); }
+  43% { opacity: .72; transform: translate3d(-34vw, 4vh, 0) scale(.16) rotate(-6deg); filter: blur(1px) brightness(1.25) saturate(.7); }
+  50%, 72% { opacity: 0; transform: translate3d(-38vw, 6vh, 0) scale(.015) rotate(-22deg); filter: blur(5px) brightness(2); }
+  82% { opacity: 0; transform: scale(.72); filter: blur(4px) brightness(.7); }
+  100% { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0) brightness(1); }
+}
+@keyframes prestige-vacuum-center {
+  0% { opacity: 1; transform: scale(1) rotate(0); filter: blur(0) brightness(1); }
+  43% { opacity: .8; transform: scale(.12) rotate(-5deg); filter: blur(1px) brightness(1.35) saturate(.68); }
+  50%, 72% { opacity: 0; transform: scale(.01) rotate(-18deg); filter: blur(7px) brightness(2.2); }
+  82% { opacity: 0; transform: scale(.68); filter: blur(5px) brightness(.72); }
+  100% { opacity: 1; transform: scale(1) rotate(0); filter: blur(0) brightness(1); }
+}
+@keyframes prestige-vacuum-header {
+  0% { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0); }
+  43% { opacity: .7; transform: translate3d(0, 38vh, 0) scale(.18); filter: blur(1px); }
+  50%, 72% { opacity: 0; transform: translate3d(0, 44vh, 0) scale(.01); filter: blur(6px); }
+  82% { opacity: 0; transform: translateY(-8px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes prestige-vortex {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8) rotate(0deg); filter: blur(0); }
+  18% { opacity: .72; }
+  48% { opacity: 1; transform: translate(-50%, -50%) scale(.38) rotate(250deg); filter: blur(.5px); }
+  63% { opacity: .95; transform: translate(-50%, -50%) scale(.08) rotate(430deg); filter: blur(2px) brightness(1.8); }
+  75% { opacity: 0; transform: translate(-50%, -50%) scale(.02) rotate(520deg); filter: blur(7px) brightness(2.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15) rotate(600deg); filter: blur(0); }
+}
+@keyframes prestige-vacuum-core {
+  0%, 8% { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  56% { opacity: 1; transform: translate(-50%, -50%) scale(.54); filter: brightness(1.55); }
+  73%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(.06); filter: brightness(2); }
+}
 
 .floating-number-layer { position: absolute; z-index: 12; inset: 0; overflow: hidden; pointer-events: none; }
 .floating-number-layer--active::before {
@@ -94,6 +149,76 @@
 .toast--prestige { border-color: rgba(210,171,255,.22); }
 .toast--prestige .toast__icon { color: var(--prestige); border-color: rgba(210,171,255,.2); background: rgba(124,86,168,.08); }
 
+.game-frame--prestige-reset { cursor: progress; }
+.game-frame--prestige-reset .game-frame__header { transform-origin: 50% 100%; animation: prestige-vacuum-header 1.42s steps(22, end) both; }
+.game-frame--prestige-reset .game-shell__rail--left { transform-origin: 100% 50%; animation: prestige-vacuum-left 1.42s steps(22, end) both; }
+.game-frame--prestige-reset .game-shell__stage { transform-origin: 50% 50%; animation: prestige-vacuum-center 1.42s steps(22, end) both; }
+.game-frame--prestige-reset .game-shell__rail--right { transform-origin: 0 50%; animation: prestige-vacuum-right 1.42s steps(22, end) both; }
+.game-frame--prestige-reset .warren-field__token { animation: prestige-vacuum-center 680ms steps(12, end) both; }
+.game-frame--prestige-reset .spawn-pit--sevenfold::after { display: none; }
+.game-frame--prestige-reset .spawn-pit--sevenfold .spawn-target,
+.game-frame--prestige-reset .buff-pill--sevenfold,
+.game-frame--prestige-reset .buff-pill--sevenfold::after { animation: none; }
+
+.prestige-vacuum-fx {
+  position: fixed;
+  z-index: 115;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 52%, transparent 0 9%, rgba(49, 27, 62, .11) 18%, rgba(3, 4, 4, .54) 58%, rgba(0,0,0,.76));
+  pointer-events: auto;
+}
+.prestige-vacuum-fx::before,
+.prestige-vacuum-fx::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(120vmax, 1120px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: prestige-vortex 1.42s cubic-bezier(.7,0,.26,1) both;
+}
+.prestige-vacuum-fx::before {
+  opacity: .6;
+  background: repeating-conic-gradient(from 10deg, transparent 0 13deg, rgba(209, 170, 255, .1) 14deg 16deg, transparent 17deg 31deg);
+  mask-image: radial-gradient(circle, transparent 0 7%, #000 9% 48%, transparent 72%);
+}
+.prestige-vacuum-fx::after {
+  width: min(78vmax, 760px);
+  background: conic-gradient(from 0deg, transparent, rgba(143, 89, 188, .15), transparent 26%, rgba(221, 190, 255, .08), transparent 56%, rgba(112, 68, 149, .18), transparent);
+  filter: blur(6px);
+  animation-direction: reverse;
+}
+.prestige-vacuum-fx__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px dashed rgba(220, 190, 255, .34);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: prestige-vortex 1.42s cubic-bezier(.7,0,.26,1) both;
+}
+.prestige-vacuum-fx__ring--outer { width: min(64vmin, 560px); aspect-ratio: 1; animation-delay: 40ms; }
+.prestige-vacuum-fx__ring--inner { width: min(34vmin, 300px); aspect-ratio: 1; border-style: solid; border-color: rgba(234, 213, 255, .42); animation-direction: reverse; }
+.prestige-vacuum-fx__core {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border: 1px solid rgba(234, 209, 255, .46);
+  border-radius: 50%;
+  color: #e7c6ff;
+  background: radial-gradient(circle, rgba(154, 92, 203, .42), rgba(31, 17, 40, .92) 66%);
+  box-shadow: 0 0 50px rgba(194, 137, 239, .3), inset 0 0 20px rgba(234, 211, 255, .08);
+  animation: prestige-vacuum-core 1.42s steps(18, end) both;
+}
+
 .game-frame::before,
 .game-frame::after {
   position: fixed;
@@ -116,4 +241,17 @@
 
 @media (max-width: 680px) {
   .toast-stack { right: 10px; bottom: 10px; width: calc(100vw - 20px); }
+}
+
+@media (max-width: 940px) {
+  .game-frame--prestige-reset .game-shell__rail--left,
+  .game-frame--prestige-reset .game-shell__rail--right { transform-origin: 50% 50%; animation-name: prestige-vacuum-center; }
+}
+
+[dir="rtl"] .game-frame--prestige-reset .game-shell__rail--left { animation-name: prestige-vacuum-right; }
+[dir="rtl"] .game-frame--prestige-reset .game-shell__rail--right { animation-name: prestige-vacuum-left; }
+
+@media (max-width: 940px) {
+  [dir="rtl"] .game-frame--prestige-reset .game-shell__rail--left,
+  [dir="rtl"] .game-frame--prestige-reset .game-shell__rail--right { animation-name: prestige-vacuum-center; }
 }

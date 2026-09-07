@@ -41,6 +41,7 @@ type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
 interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; language: LanguageCode }
+type ResetEffect = 'prestige-vacuum' | null;
 
 function loadSettings(): UiSettings {
   const fallbackLanguage = detectPreferredLanguage();
@@ -86,8 +87,12 @@ function App() {
   const [toasts, setToasts] = useState<ToastView[]>([]);
   const [floating, setFloating] = useState<FloatingNumberView[]>([]);
   const [saveStatus, setSaveStatus] = useState('');
+  const [resetEffect, setResetEffect] = useState<ResetEffect>(null);
   const toastSequence = useRef(0);
   const floatSequence = useRef(0);
+  const resetTimers = useRef<number[]>([]);
+  const resetInProgress = useRef(false);
+  const resetOverlayRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef(game);
   const previousAchievements = useRef(game.unlockedAchievements);
   const bootToastShown = useRef(false);
@@ -100,8 +105,18 @@ function App() {
   const fmtDuration = useCallback((value: number) => formatDuration(value, locale), [locale]);
   const fmtDate = useCallback((value: number) => formatDateTime(value, locale), [locale]);
 
-  useEffect(() => { gameRef.current = game; }, [game]);
+  useEffect(() => {
+    if (!resetInProgress.current) gameRef.current = game;
+  }, [game]);
   const commitGame = useCallback((next: GameState) => { gameRef.current = next; setGame(next); }, []);
+  useEffect(() => () => {
+    resetTimers.current.forEach((timer) => window.clearTimeout(timer));
+    resetTimers.current = [];
+    resetInProgress.current = false;
+  }, []);
+  useEffect(() => {
+    if (resetEffect) resetOverlayRef.current?.focus();
+  }, [resetEffect]);
   const addToast = useCallback((toast: Omit<ToastView, 'id'>) => {
     const id = `toast-${Date.now()}-${toastSequence.current++}`;
     setToasts((current) => [...current.slice(-3), { ...toast, id }]);
@@ -150,7 +165,10 @@ function App() {
   }, [achievementDescription, addToast, game.unlockedAchievements, language, settings.sound, t]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => commitGame(tickGame(gameRef.current, Date.now())), 100);
+    const timer = window.setInterval(() => {
+      if (resetInProgress.current) return;
+      commitGame(tickGame(gameRef.current, Date.now()));
+    }, 100);
     return () => window.clearInterval(timer);
   }, [commitGame]);
 
@@ -229,9 +247,44 @@ function App() {
   const buyPermanent = (id: string) => { const result = purchasePermanentUpgrade(gameRef.current, id as PermanentUpgradeId, Date.now()); commitGame(result.state); if (result.success) playSound('upgrade', settings.sound); };
 
   const prestige = () => {
-    if (prestigeGain <= 0 || !window.confirm(t('prestige.confirm', { gain: fmtInteger(prestigeGain) }))) return;
-    const result = performPrestigeReset(gameRef.current, gameRef.current.lastUpdateAt); if (!result.success) return;
-    commitGame(result.state); playSound('prestige', settings.sound); addToast({ title: t('prestige.toastTitle'), message: t('prestige.toastMessage', { gain: fmtInteger(result.amount) }), icon: 'crown', tone: 'prestige' });
+    if (prestigeGain <= 0 || resetInProgress.current) return;
+    const resetAt = Date.now();
+    const result = performPrestigeReset(gameRef.current, resetAt); if (!result.success) return;
+    const announceReset = () => {
+      playSound('prestige', settings.sound);
+      addToast({ title: t('prestige.toastTitle'), message: t('prestige.toastMessage', { gain: fmtInteger(result.amount) }), icon: 'crown', tone: 'prestige' });
+    };
+    const finishResetImmediately = () => {
+      commitGame(result.state);
+      announceReset();
+    };
+
+    setModal(null);
+    resetTimers.current.forEach((timer) => window.clearTimeout(timer));
+    resetTimers.current = [];
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    if (!settings.effects || settings.reducedMotion || prefersReducedMotion) {
+      finishResetImmediately();
+      return;
+    }
+
+    // Make the reset authoritative immediately, while keeping the old React
+    // frame visible just long enough for the vacuum transition to consume it.
+    resetInProgress.current = true;
+    gameRef.current = result.state;
+    try { localStorage.setItem(SAVE_KEY, serializeGame(result.state, resetAt)); } catch { /* in-memory reset remains authoritative */ }
+    setResetEffect('prestige-vacuum');
+    resetTimers.current.push(window.setTimeout(() => {
+      setGame(gameRef.current);
+      announceReset();
+    }, 650));
+    resetTimers.current.push(window.setTimeout(() => {
+      const caughtUp = tickGame(gameRef.current, Date.now());
+      resetInProgress.current = false;
+      commitGame(caughtUp);
+      setResetEffect(null);
+    }, 1_420));
   };
 
   const clickMooncap = () => {
@@ -338,6 +391,7 @@ function App() {
   }), [fmtInteger, game, language]);
 
   const activeBuffs = game.buffs.filter((buff) => buff.expiresAt > now);
+  const sevenfoldActive = activeBuffs.some((buff) => buff.id === 'moon_frenzy' && buff.target === 'cps');
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
@@ -351,7 +405,7 @@ function App() {
         <div><dt>{t('ledger.manual')}</dt><dd>{fmtNumber(game.statistics.manuallyBorn)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
         <div><dt>{t('ledger.baseProduction')}</dt><dd>{fmtNumber(baseCps)}/s</dd></div><div><dt>{t('ledger.bestProduction')}</dt><dd>{fmtNumber(game.statistics.highestCps)}/s</dd></div>
       </dl>
-      {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className="buff-pill" key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : t('buff.hatchingFever')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
+      {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className={`buff-pill${buff.id === 'moon_frenzy' ? ' buff-pill--sevenfold' : ''}`} key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : t('buff.hatchingFever')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
     </SidePanel>
     <SidePanel title={t('research.title')} eyebrow={t('research.eyebrow')} action={availableUpgrades > 0 ? <span className="notification-badge">{fmtInteger(availableUpgrades)}</span> : undefined}>
       <p className="panel-copy">{t('research.copy')}</p><button className="panel-primary-button" type="button" onClick={() => setModal('upgrades')}><Icon name="sparkles" size={16} /> {t('research.open')} <Icon name="chevron" size={14} /></button>
@@ -362,7 +416,7 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>
     <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
       id: building.id,
       name: localizedName(language, 'building', building.id, building.name),
@@ -407,12 +461,14 @@ function App() {
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },
       { id: 'reducedMotion', label: t('settings.reducedMotion'), description: t('settings.reducedMotionDescription'), checked: settings.reducedMotion },
     ]} onToggle={(id, checked) => setSettings((current) => ({ ...current, [id]: checked }))} onExportSave={exportSave} onImportSave={importSave} onHardReset={hardReset} onClose={() => setModal(null)} saveStatus={saveStatus || t('settings.autosaveReady')} versionLabel="v1.2.0" />
+    {resetEffect === 'prestige-vacuum' && <div ref={resetOverlayRef} className="prestige-vacuum-fx" role="status" aria-label={t('prestige.confirmAccept')} tabIndex={-1} onKeyDown={(event) => { event.preventDefault(); event.stopPropagation(); }}><span className="prestige-vacuum-fx__ring prestige-vacuum-fx__ring--outer" aria-hidden="true" /><span className="prestige-vacuum-fx__ring prestige-vacuum-fx__ring--inner" aria-hidden="true" /><span className="prestige-vacuum-fx__core" aria-hidden="true"><Icon name="crown" size={30} /></span></div>}
     <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
   </>;
 
   return <I18nProvider language={language}>
     <div className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}>
       <GameShell
+        className={`${resetEffect === 'prestige-vacuum' ? 'game-frame--prestige-reset ' : ''}${sevenfoldActive ? 'game-frame--sevenfold' : ''}`.trim()}
         header={header}
         left={left}
         center={center}

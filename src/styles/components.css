@@ -194,6 +194,46 @@
 .spawn-pit--busy .spawn-pit__embers { filter: blur(8px) brightness(1.14); }
 .spawn-pit--overrun .spawn-pit__embers { filter: blur(9px) brightness(1.3); }
 .spawn-pit--omen-active .spawn-pit__ring--inner { border-color: rgba(255, 205, 111, .27); box-shadow: inset 0 0 48px rgba(197, 133, 44, .11), 0 0 25px rgba(230, 166, 68, .05); }
+.spawn-pit--sevenfold {
+  background:
+    linear-gradient(rgba(104, 219, 246, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(104, 219, 246, .025) 1px, transparent 1px),
+    radial-gradient(circle at 50% 51%, rgba(52, 166, 196, .22), transparent 17rem),
+    radial-gradient(ellipse at 50% 110%, rgba(55, 139, 174, .12), transparent 28rem),
+    linear-gradient(180deg, rgba(7, 13, 14, .5), rgba(4, 8, 9, .78));
+  background-size: 10px 10px, 10px 10px, auto, auto, auto;
+}
+.spawn-pit--sevenfold::after {
+  position: absolute;
+  z-index: 1;
+  inset: -18%;
+  border-radius: 50%;
+  content: "";
+  opacity: .38;
+  background:
+    repeating-conic-gradient(from 0deg, transparent 0 9deg, rgba(117, 231, 255, .055) 10deg 11deg, transparent 12deg 24deg),
+    radial-gradient(circle, transparent 0 31%, rgba(79, 199, 229, .08) 32% 33%, transparent 34% 100%);
+  pointer-events: none;
+  animation: sevenfold-field-spin 8s steps(48, end) infinite;
+}
+.spawn-pit--sevenfold .spawn-pit__rate { color: #8cecff; text-shadow: 0 0 14px rgba(85, 221, 249, .2); }
+.spawn-pit--sevenfold .spawn-pit__ring--outer { border-color: rgba(105, 224, 250, .42); box-shadow: 0 0 28px rgba(71, 203, 234, .08); animation-duration: 18s; }
+.spawn-pit--sevenfold .spawn-pit__ring--inner { border-color: rgba(145, 234, 255, .28); box-shadow: inset 0 0 50px rgba(58, 184, 217, .11), 0 0 32px rgba(67, 210, 238, .06); animation-duration: 13s; }
+.spawn-pit--sevenfold .spawn-pit__embers { background: radial-gradient(circle, rgba(126, 231, 255, .25), rgba(61, 172, 205, .05) 50%, transparent 73%); filter: blur(8px) brightness(1.2); }
+.spawn-pit--sevenfold .spawn-target {
+  border-color: rgba(119, 229, 253, .36);
+  box-shadow:
+    0 26px 52px rgba(0,0,0,.5),
+    0 0 40px rgba(59, 196, 228, .13),
+    0 0 0 5px rgba(7, 16, 17, .58),
+    0 0 0 6px rgba(107, 222, 247, .13),
+    inset 0 1px 0 rgba(215, 250, 255, .11),
+    inset 0 -22px 42px rgba(0,0,0,.34);
+  animation: sevenfold-target-pulse 1.45s steps(9, end) infinite;
+}
+.spawn-pit--sevenfold .spawn-target__glow { background: radial-gradient(circle at 50% 44%, rgba(140, 238, 255, .4), rgba(62, 177, 208, .11) 42%, transparent 70%); filter: blur(11px); }
+.spawn-pit--sevenfold .spawn-target__goblin { filter: drop-shadow(0 18px 13px rgba(0,0,0,.58)) saturate(.76) contrast(1.16) brightness(1.02) drop-shadow(0 0 14px rgba(91, 218, 244, .12)); }
+.spawn-pit--sevenfold .spawn-target__cta { border-color: rgba(128, 229, 250, .34); color: #9ceeff; box-shadow: 3px 3px 0 rgba(0,0,0,.32), inset 0 0 12px rgba(79, 205, 233, .07); }
 
 .warren-field {
   position: absolute;

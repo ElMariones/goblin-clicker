@@ -62,6 +62,27 @@
 .buff-pill span { color: var(--ink-soft); font-weight: 700; }
 .buff-pill strong { font-size: 10px; }
 .buff-pill small { min-width: 25px; color: var(--ink-muted); font-variant-numeric: tabular-nums; text-align: end; }
+.buff-pill--sevenfold {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(111, 224, 255, .34);
+  color: #8cecff;
+  background: linear-gradient(90deg, rgba(46, 144, 180, .12), rgba(18, 66, 89, .07));
+  box-shadow: 0 0 18px rgba(75, 204, 242, .06), inset 0 0 18px rgba(74, 197, 235, .035);
+  animation: sevenfold-pill-pulse 1.35s steps(8, end) infinite;
+}
+.buff-pill--sevenfold::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(110deg, transparent 20%, rgba(140, 237, 255, .15) 44%, transparent 66%);
+  transform: translateX(-130%);
+  animation: sevenfold-pill-sweep 2.2s steps(10, end) infinite;
+  pointer-events: none;
+}
+.buff-pill--sevenfold span { color: #c2edf3; }
+.buff-pill--sevenfold strong { color: #9ef0ff; text-shadow: 0 0 12px rgba(95, 225, 255, .28); }
+.buff-pill--sevenfold small { color: #73aab7; }
 
 .buy-selector { display: inline-flex; padding: 2px; border: 1px solid var(--line); border-radius: 4px; background: rgba(0,0,0,.18); }
 .buy-selector button { min-width: 31px; padding: 5px 6px; border: 0; border-radius: 2px; color: var(--ink-muted); background: transparent; font-family: var(--font-pixel); font-size: 9px; font-weight: 800; }
@@ -84,7 +105,11 @@
   transition-duration: .001ms !important;
 }
 .effects-off .spawn-pit__embers,
-.effects-off .spawn-pit__ring { display: none; }
+.effects-off .spawn-pit__ring,
+.effects-off .spawn-pit--sevenfold::after { display: none; }
+.effects-off .buff-pill--sevenfold,
+.effects-off .buff-pill--sevenfold::after,
+.effects-off .spawn-pit--sevenfold .spawn-target { animation: none; }
 .effects-off .game-frame__crt { opacity: .12; }
 .effects-off .game-frame::before { opacity: .1; }
 

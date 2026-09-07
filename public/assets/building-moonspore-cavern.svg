@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">Moonspore cavern</title>
+  <rect width="96" height="96" rx="18" fill="#0f1218"/>
+  <path d="M12 78c6-34 18-55 36-64 18 9 30 30 36 64H12Z" fill="#2f3239"/>
+  <path d="M27 78c3-22 10-35 21-41 11 6 18 19 21 41H27Z" fill="#121720"/>
+  <circle cx="58" cy="28" r="11" fill="#d6dd9b" opacity=".9"/>
+  <circle cx="62" cy="24" r="11" fill="#2f3239"/>
+  <path d="M34 66h7l2 12H32l2-12Zm20-6h9l3 18H51l3-18Z" fill="#7d8f62"/>
+  <path d="M27 66c2-7 7-11 11-11s9 4 11 11c-7 3-15 3-22 0Zm18-6c3-10 9-15 13-15s11 5 14 15c-9 4-18 4-27 0Z" fill="#7b70a7" stroke="#b7a8ea" stroke-width="2"/>
+</svg>

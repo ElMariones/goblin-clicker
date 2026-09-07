@@ -1,0 +1,41 @@
+import { scheduleNextMooncap } from './events';
+import { getBaseCps, getPermanentRank } from './math';
+import { clampResource } from './state';
+import type { GameState, OfflineProgress } from './types';
+
+export const BASE_OFFLINE_CAP_MS = 8 * 60 * 60 * 1_000;
+export const OFFLINE_CAP_PER_RANK_MS = 2 * 60 * 60 * 1_000;
+export const OFFLINE_EFFICIENCY = 0.75;
+
+export function getOfflineCapMs(state: GameState): number {
+  return BASE_OFFLINE_CAP_MS + getPermanentRank(state, 'deep_warrens') * OFFLINE_CAP_PER_RANK_MS;
+}
+
+export function calculateOfflineProgress(state: GameState, now: number): OfflineProgress {
+  const timestamp = Math.max(state.lastUpdateAt, Math.floor(now));
+  const elapsedMs = timestamp - state.lastUpdateAt;
+  const capMs = getOfflineCapMs(state);
+  const creditedMs = Math.min(elapsedMs, capMs);
+  const goblinsProduced = getBaseCps(state) * (creditedMs / 1_000) * OFFLINE_EFFICIENCY;
+  return { elapsedMs, creditedMs, efficiency: OFFLINE_EFFICIENCY, goblinsProduced, capMs };
+}
+
+/**
+ * Applies capped offline production without temporary buffs or Mooncap spawns.
+ * Call once after deserializing a save before entering the foreground tick loop.
+ */
+export function applyOfflineProgress(state: GameState, now: number): { state: GameState; progress: OfflineProgress } {
+  const progress = calculateOfflineProgress(state, now);
+  const timestamp = Math.max(state.lastUpdateAt, Math.floor(now));
+  let next: GameState = {
+    ...state,
+    lastUpdateAt: timestamp,
+    goblins: clampResource(state.goblins + progress.goblinsProduced),
+    runGoblins: clampResource(state.runGoblins + progress.goblinsProduced),
+    lifetimeGoblins: clampResource(state.lifetimeGoblins + progress.goblinsProduced),
+    buffs: [],
+    mooncap: { ...state.mooncap, active: false, spawnedAt: null, expiresAt: null },
+  };
+  next = scheduleNextMooncap(next, timestamp);
+  return { state: next, progress };
+}

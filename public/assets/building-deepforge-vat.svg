@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">Goblin growth cauldron</title>
+  <rect width="96" height="96" rx="18" fill="#10150f"/>
+  <path d="M30 66h36l-5 15H35l-5-15Z" fill="#4d3420"/>
+  <path d="M24 40h48c-2 29-10 38-24 38s-22-9-24-38Z" fill="#393b31" stroke="#6f735e" stroke-width="3"/>
+  <ellipse cx="48" cy="40" rx="25" ry="8" fill="#252a21" stroke="#777d65" stroke-width="3"/>
+  <ellipse cx="48" cy="41" rx="19" ry="5" fill="#7ead46"/>
+  <circle cx="40" cy="37" r="4" fill="#b8e66b" opacity=".7"/>
+  <circle cx="55" cy="35" r="3" fill="#b8e66b" opacity=".8"/>
+  <path d="M39 28c-5-8 2-12 1-19m13 20c7-8-1-12 2-19m8 21c5-5 2-9 4-13" fill="none" stroke="#a3c76a" stroke-width="3" stroke-linecap="round" opacity=".42"/>
+  <path d="M29 78c-6 3-9 7-10 11m48-11c6 3 9 7 10 11" fill="none" stroke="#86603a" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">Straw brood nest</title>
+  <rect width="96" height="96" rx="18" fill="#11170f"/>
+  <ellipse cx="48" cy="69" rx="34" ry="12" fill="#2b2115"/>
+  <path d="M18 62c10-12 50-12 60 0M15 69c15-11 51-10 66 0M24 76c12-8 36-8 48 0" fill="none" stroke="#987443" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="48" cy="56" rx="15" ry="19" fill="#86b24e" stroke="#b5da72" stroke-width="3"/>
+  <path d="m45 44 7 8-6 6 5 8" fill="none" stroke="#5c7c38" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="58" cy="46" r="3" fill="#d8ed9f" opacity=".65"/>
+</svg>

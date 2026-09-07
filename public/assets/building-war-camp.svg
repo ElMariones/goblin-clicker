@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">War camp</title>
+  <rect width="96" height="96" rx="18" fill="#15120e"/>
+  <path d="M18 76 42 29l24 47H18Z" fill="#5b3e26" stroke="#98683e" stroke-width="3"/>
+  <path d="M54 76 69 43l13 33H54Z" fill="#45301f" stroke="#7f5a38" stroke-width="3"/>
+  <path d="M42 29v47M69 43v33" stroke="#b58a57" stroke-width="3"/>
+  <path d="M29 37 18 24l17 4 7-12v20" fill="#6f8638" stroke="#a0bb55" stroke-width="2"/>
+  <circle cx="42" cy="64" r="6" fill="#202618"/>
+  <path d="M12 80h72" stroke="#6b5336" stroke-width="5" stroke-linecap="round"/>
+</svg>

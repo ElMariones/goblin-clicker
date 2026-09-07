@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">Mushroom nursery</title>
+  <rect width="96" height="96" rx="18" fill="#10160f"/>
+  <path d="M14 76c14-9 54-9 68 0" fill="none" stroke="#3c4e2b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M45 41h10l3 34H38l7-34Z" fill="#b5a47a"/>
+  <path d="M17 43c3-18 16-29 31-29s28 11 31 29c-15 7-47 7-62 0Z" fill="#758f3b" stroke="#a7c95d" stroke-width="3"/>
+  <circle cx="34" cy="31" r="4" fill="#d0e890" opacity=".85"/>
+  <circle cx="52" cy="23" r="3" fill="#d0e890" opacity=".75"/>
+  <circle cx="64" cy="35" r="5" fill="#d0e890" opacity=".65"/>
+  <path d="M66 56h7l2 20H61l5-20Z" fill="#9e916d"/>
+  <path d="M57 57c2-9 8-14 13-14s11 5 13 14c-8 4-19 4-26 0Z" fill="#5f7636"/>
+</svg>

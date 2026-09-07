@@ -1,0 +1,97 @@
+.game-frame {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 20%, transparent 80%, rgba(0, 0, 0, 0.24)),
+    radial-gradient(ellipse at 50% 105%, rgba(120, 155, 63, 0.1), transparent 52%);
+}
+
+.game-frame__ambient {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.8;
+  background-image:
+    radial-gradient(circle at 12% 40%, rgba(180, 220, 106, 0.06) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 72%, rgba(230, 166, 68, 0.05) 0 1px, transparent 2px);
+  background-size: 31px 31px, 43px 43px;
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 86%, transparent);
+}
+
+.game-frame__header {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  min-height: var(--header-height);
+  border-bottom: 1px solid var(--line);
+  background: rgba(8, 11, 8, 0.88);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+.game-shell {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.78fr) minmax(420px, 1.55fr) minmax(330px, 1fr);
+  gap: 0;
+  min-height: calc(100vh - var(--header-height));
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+.game-shell__rail,
+.game-shell__stage {
+  min-width: 0;
+}
+
+.game-shell__rail {
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(14, 19, 13, 0.54), rgba(9, 12, 9, 0.76));
+}
+
+.game-shell__rail--left { border-right: 1px solid var(--line); }
+.game-shell__rail--right { border-left: 1px solid var(--line); }
+
+.game-shell__stage {
+  position: relative;
+  display: grid;
+  min-height: calc(100vh - var(--header-height));
+  place-items: stretch;
+  overflow: hidden;
+}
+
+.game-overlay-root { position: relative; z-index: 80; }
+
+@media (max-width: 1180px) {
+  .game-shell {
+    grid-template-columns: minmax(220px, 0.68fr) minmax(390px, 1.35fr) minmax(300px, 0.9fr);
+  }
+  .game-shell__rail { padding: 12px; }
+}
+
+@media (max-width: 940px) {
+  :root { --header-height: auto; }
+  .game-frame__header { position: relative; }
+  .game-shell {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "stage stage"
+      "left right";
+  }
+  .game-shell__stage { grid-area: stage; min-height: 620px; border-bottom: 1px solid var(--line); }
+  .game-shell__rail--left { grid-area: left; border-right: 1px solid var(--line); }
+  .game-shell__rail--right { grid-area: right; border-left: 0; }
+}
+
+@media (max-width: 680px) {
+  .game-shell {
+    display: flex;
+    flex-direction: column;
+  }
+  .game-shell__stage { order: 1; min-height: min(670px, calc(100svh - 118px)); }
+  .game-shell__rail--left { order: 2; border-right: 0; border-bottom: 1px solid var(--line); }
+  .game-shell__rail--right { order: 3; border-left: 0; }
+  .game-shell__rail { padding: 14px; }
+}

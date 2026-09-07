@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title">
+  <title id="title">Goblin workshop</title>
+  <rect width="96" height="96" rx="18" fill="#111611"/>
+  <path d="M17 72h62l-6 10H23l-6-10Z" fill="#4a3522"/>
+  <path d="M23 36 48 19l25 17v37H23V36Z" fill="#3a2b1d" stroke="#79583a" stroke-width="3"/>
+  <path d="M18 39 48 15l30 24" fill="none" stroke="#947047" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="34" y="49" width="28" height="24" rx="3" fill="#171d12"/>
+  <circle cx="48" cy="57" r="11" fill="#647f3f" stroke="#9bbe63" stroke-width="3"/>
+  <path d="M48 42v30M33 57h30M37 46l22 22M59 46 37 68" stroke="#1f2b18" stroke-width="3"/>
+  <path d="M65 23v-9h8v16" fill="#403020" stroke="#77583a" stroke-width="3"/>
+  <path d="M73 12c8 5 5 11 1 14 8 2 10 9 6 15" fill="none" stroke="#95a38a" stroke-width="3" stroke-linecap="round" opacity=".35"/>
+</svg>

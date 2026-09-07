@@ -14,6 +14,10 @@ export function createEmptyBuildings(): Record<BuildingId, number> {
   return Object.fromEntries(BUILDINGS.map(({ id }) => [id, 0])) as Record<BuildingId, number>;
 }
 
+export function createEmptyBuildingProduction(): Record<BuildingId, number> {
+  return Object.fromEntries(BUILDINGS.map(({ id }) => [id, 0])) as Record<BuildingId, number>;
+}
+
 export function createInitialGameState(now = Date.now(), seed = seedFromTimestamp(now)): GameState {
   const timestamp = Math.max(0, Math.floor(now));
   const initial: GameState = {
@@ -47,6 +51,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
       goldenEventsClicked: 0,
       totalTimePlayedMs: 0,
       highestCps: 0,
+      lifetimeProducedByBuilding: createEmptyBuildingProduction(),
     },
   };
 

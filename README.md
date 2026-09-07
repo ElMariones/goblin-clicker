@@ -6,6 +6,8 @@ An original goblin-themed incremental clicker built for the browser. Spawn gobli
 
 ![Desktop mid-game view](docs/screenshots/desktop.png)
 
+![Expansion production telemetry](docs/screenshots/expansion-hover.png)
+
 ![Responsive mobile view](docs/screenshots/mobile.png)
 
 ## Tech stack

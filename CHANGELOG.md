@@ -4,6 +4,19 @@ All notable user-visible changes to Brood & Burrow should be documented here.
 
 The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and intends to use semantic versioning once public builds begin.
 
+## [1.2.0] - 2026-09-07
+
+### Added
+
+- Hover and keyboard-focus production telemetry for every discovered Warren Expansion, showing per-unit output, combined owned output, its share of total CPS, and that expansion's all-time production.
+- Persistent per-expansion production accounting for both foreground and capped offline progress, with safe defaults for older saves.
+
+### Changed
+
+- Rebuilt the central broodling artwork and spawn chamber presentation with a denser CRT reticle, activity-driven glow states, and stronger visual hierarchy.
+- Reworked rapid-click feedback into spread-out pixel telemetry bursts instead of overlapping floating numbers.
+- Localized the new expansion telemetry labels across all seven supported interface languages.
+
 ## [1.1.0] - 2026-09-07
 
 ### Added

@@ -1,6 +1,6 @@
 import { ACHIEVEMENTS, BUILDINGS, PERMANENT_UPGRADES, UPGRADES } from './content';
 import { normalizeSeed, seedFromTimestamp } from './rng';
-import { clampResource, createInitialGameState } from './state';
+import { clampResource, createEmptyBuildingProduction, createInitialGameState } from './state';
 import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type DeserializeResult, type GameState, type PermanentUpgradeId, type SaveEnvelope } from './types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,6 +51,9 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
   }
 
   const rawStats = isRecord(raw.statistics) ? raw.statistics : {};
+  const rawBuildingProduction = isRecord(rawStats.lifetimeProducedByBuilding) ? rawStats.lifetimeProducedByBuilding : {};
+  const lifetimeProducedByBuilding = createEmptyBuildingProduction();
+  for (const { id } of BUILDINGS) lifetimeProducedByBuilding[id] = clampResource(nonNegativeNumber(rawBuildingProduction[id]));
   const rawMooncap = isRecord(raw.mooncap) ? raw.mooncap : {};
   const rawBuffs = Array.isArray(raw.buffs) ? raw.buffs : [];
   const buffs: BuffInstance[] = rawBuffs.flatMap((item): BuffInstance[] => {
@@ -103,6 +106,7 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       goldenEventsClicked: integer(rawStats.goldenEventsClicked),
       totalTimePlayedMs: integer(rawStats.totalTimePlayedMs),
       highestCps: nonNegativeNumber(rawStats.highestCps),
+      lifetimeProducedByBuilding,
     },
   };
 

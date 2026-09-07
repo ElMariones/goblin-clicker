@@ -102,21 +102,45 @@ export function getGlobalCpsMultiplier(state: GameState): number {
   return multiplier;
 }
 
+export function getActiveCpsMultiplier(state: GameState, now = state.lastUpdateAt): number {
+  let multiplier = 1;
+  for (const buff of state.buffs) {
+    if (buff.target === 'cps' && buff.startedAt <= now && buff.expiresAt > now) multiplier *= buff.multiplier;
+  }
+  return multiplier;
+}
+
+/** Current per-unit output before temporary CPS buffs. */
+export function getBuildingUnitBaseCps(state: GameState, buildingId: BuildingId): number {
+  const definition = BUILDING_BY_ID[buildingId];
+  return definition.baseCps * getBuildingProductionMultiplier(state, buildingId) * getGlobalCpsMultiplier(state);
+}
+
+/** Current total output of all owned units of one building before temporary CPS buffs. */
+export function getBuildingBaseCps(state: GameState, buildingId: BuildingId): number {
+  return Math.max(0, state.buildings[buildingId]) * getBuildingUnitBaseCps(state, buildingId);
+}
+
+/** Current per-unit output including active temporary CPS buffs. */
+export function getBuildingUnitCps(state: GameState, buildingId: BuildingId, now = state.lastUpdateAt): number {
+  return getBuildingUnitBaseCps(state, buildingId) * getActiveCpsMultiplier(state, now);
+}
+
+/** Current total output of all owned units of one building, including active temporary CPS buffs. */
+export function getBuildingCps(state: GameState, buildingId: BuildingId, now = state.lastUpdateAt): number {
+  return Math.max(0, state.buildings[buildingId]) * getBuildingUnitCps(state, buildingId, now);
+}
+
 export function getBaseCps(state: GameState): number {
   let total = 0;
   for (const definition of BUILDINGS) {
-    const owned = Math.max(0, state.buildings[definition.id]);
-    total += owned * definition.baseCps * getBuildingProductionMultiplier(state, definition.id);
+    total += getBuildingBaseCps(state, definition.id);
   }
-  return total * getGlobalCpsMultiplier(state);
+  return total;
 }
 
 export function getCps(state: GameState, now = state.lastUpdateAt): number {
-  let cps = getBaseCps(state);
-  for (const buff of state.buffs) {
-    if (buff.target === 'cps' && buff.startedAt <= now && buff.expiresAt > now) cps *= buff.multiplier;
-  }
-  return cps;
+  return getBaseCps(state) * getActiveCpsMultiplier(state, now);
 }
 
 export function getClickPower(state: GameState, now = state.lastUpdateAt): number {

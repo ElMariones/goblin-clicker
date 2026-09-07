@@ -101,6 +101,8 @@ export interface GameStatistics {
   goldenEventsClicked: number;
   totalTimePlayedMs: number;
   highestCps: number;
+  /** All-time passive production credited to each building type, across prestige resets. */
+  lifetimeProducedByBuilding: Record<BuildingId, number>;
 }
 
 export interface PrestigeState {

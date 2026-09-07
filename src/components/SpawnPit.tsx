@@ -18,13 +18,14 @@ export interface SpawnPitProps {
   disabled?: boolean;
   statusLabel?: string;
   bonusEvent?: BonusEventView | null;
+  activityLevel?: 'dormant' | 'stirring' | 'busy' | 'overrun';
   children?: ReactNode;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, children }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', children }: SpawnPitProps) {
   const { t } = useI18n();
   return (
-    <div className="spawn-pit">
+    <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}`} data-activity={activityLevel}>
       <div className="spawn-pit__heading">
         <span className="spawn-pit__kicker">{t('spawn.kicker')}</span>
         <strong>{statusLabel ?? t('status.start')}</strong>
@@ -36,13 +37,13 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
         <span className="spawn-pit__rate">+{perSecondLabel} {t('spawn.perSecond')}</span>
       </div>
 
-      <div className="spawn-pit__arena">
+      <div className="spawn-pit__arena" data-activity={activityLevel}>
         <span className="spawn-pit__ring spawn-pit__ring--outer" aria-hidden="true" />
         <span className="spawn-pit__ring spawn-pit__ring--inner" aria-hidden="true" />
         <span className="spawn-pit__embers" aria-hidden="true" />
-        <button className="spawn-target" type="button" onClick={onSpawn} disabled={disabled} aria-label={t('spawn.aria', { power: clickPowerLabel })}>
-          <span className="spawn-target__glow" aria-hidden="true" />
-          <img src={publicAsset('assets/goblin-spawn.svg')} alt="" draggable={false} />
+        <button className={`spawn-target spawn-target--${activityLevel}`} type="button" onClick={onSpawn} disabled={disabled} aria-label={t('spawn.aria', { power: clickPowerLabel })}>
+          <span className="spawn-target__glow spawn-target__glow--core" aria-hidden="true" />
+          <img className="spawn-target__goblin" src={publicAsset('assets/goblin-spawn.svg')} alt="" draggable={false} />
           <span className="spawn-target__cta">{t('spawn.button')}</span>
         </button>
         {children}

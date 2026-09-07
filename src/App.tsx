@@ -20,7 +20,7 @@ import {
 } from './components';
 import {
   ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimMooncap,
-  createInitialGameState, deserializeGame, getBaseCps, getBuildingBulkCost, getBuildingProductionMultiplier, getClickPower, getCps, getGlobalCpsMultiplier,
+  createInitialGameState, deserializeGame, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
   getMaxAffordableBuildingCount, getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, hatchGoblin, isUpgradeUnlocked, performPrestigeReset,
   purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, tickGame,
   type BuildingId, type GameState, type PermanentUpgradeId,
@@ -184,6 +184,7 @@ function App() {
   const clickPower = getClickPower(game, now);
   const prestigeGain = getPrestigeShardGain(game);
   const totalBuildings = BUILDINGS.reduce((sum, building) => sum + game.buildings[building.id], 0);
+  const spawnActivity = totalBuildings >= 75 ? 'overrun' : totalBuildings >= 25 ? 'busy' : totalBuildings >= 5 ? 'stirring' : 'dormant';
   const availableUpgrades = UPGRADES.filter((upgrade) => !game.purchasedUpgrades[upgrade.id] && isUpgradeUnlocked(game, upgrade.id)).length;
   const unlockedAchievementCount = Object.keys(game.unlockedAchievements).length;
 
@@ -201,9 +202,17 @@ function App() {
   const spawn = () => {
     const result = hatchGoblin(gameRef.current, Date.now()); commitGame(result.state); playSound('spawn', settings.sound);
     if (settings.effects) {
-      const id = `float-${floatSequence.current++}`;
-      setFloating((items) => [...items.slice(-8), { id, text: `+${fmtNumber(result.amount)}`, x: 44 + Math.random() * 12, y: 42 + Math.random() * 11 }]);
-      window.setTimeout(() => setFloating((items) => items.filter((item) => item.id !== id)), 850);
+      const sequence = floatSequence.current++;
+      const id = `float-${sequence}`;
+      const angle = sequence * 2.399963229728653;
+      const radius = 4.5 + (sequence % 4) * 1.35;
+      setFloating((items) => [...items.slice(-8), {
+        id,
+        text: `+${fmtNumber(result.amount)}`,
+        x: 50 + Math.cos(angle) * radius,
+        y: 49 + Math.sin(angle) * radius * 0.72,
+      }]);
+      window.setTimeout(() => setFloating((items) => items.filter((item) => item.id !== id)), 1_000);
     }
   };
 
@@ -312,7 +321,7 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>
     <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
       id: building.id,
       name: localizedName(language, 'building', building.id, building.name),
@@ -327,9 +336,24 @@ function App() {
       const owned = game.buildings[building.id]; const previous = index === 0 ? null : BUILDINGS[index - 1];
       const locked = index > 1 && Boolean(previous && game.buildings[previous.id] === 0 && game.lifetimeGoblins < building.baseCost * 0.25);
       const maxAffordable = buyAmount === 'max' ? getMaxAffordableBuildingCount(game, building.id) : buyAmount; const quantity = buyAmount === 'max' ? Math.max(1, maxAffordable) : buyAmount;
-      const cost = getBuildingBulkCost(game, building.id, quantity); const unitProduction = building.baseCps * getBuildingProductionMultiplier(game, building.id) * getGlobalCpsMultiplier(game);
+      const cost = getBuildingBulkCost(game, building.id, quantity);
+      const unitProduction = getBuildingUnitCps(game, building.id, now);
+      const totalProduction = getBuildingCps(game, building.id, now);
+      const productionShare = cps > 0 ? (totalProduction / cps) * 100 : 0;
       const name = localizedName(language, 'building', building.id, building.name);
-      return <ShopCard key={building.id} id={building.id} name={locked ? t('shop.lockedName') : name} description={locked ? t('shop.lockedDescription') : language === 'en' ? building.description : t('content.buildingDescription')} ownedLabel={fmtInteger(owned)} priceLabel={locked ? '—' : fmtNumber(cost)} productionLabel={locked ? '—' : fmtNumber(unitProduction)} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} badge={owned >= 100 ? t('shop.badgeHorde') : owned >= 50 ? t('shop.badgeVeteran') : owned >= 10 ? t('shop.badgeEstablished') : undefined} />;
+      return <ShopCard key={building.id} id={building.id} name={locked ? t('shop.lockedName') : name} description={locked ? t('shop.lockedDescription') : language === 'en' ? building.description : t('content.buildingDescription')} ownedLabel={fmtInteger(owned)} priceLabel={locked ? '—' : fmtNumber(cost)} productionLabel={locked ? '—' : fmtNumber(unitProduction)} productionDetails={locked ? undefined : {
+        perUnit: `${fmtNumber(unitProduction)}/s`,
+        ownedTotal: `${fmtNumber(totalProduction)}/s`,
+        shareOfTotal: `${fmtNumber(productionShare)}%`,
+        lifetimeProduced: fmtNumber(game.statistics.lifetimeProducedByBuilding[building.id]),
+        labels: {
+          heading: t('shop.telemetryHeading'),
+          perUnit: t('shop.telemetryEach'),
+          ownedTotal: t('shop.telemetryOwned'),
+          shareOfTotal: t('shop.telemetryShare'),
+          lifetimeProduced: t('shop.telemetryLifetime'),
+        },
+      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} badge={owned >= 100 ? t('shop.badgeHorde') : owned >= 50 ? t('shop.badgeVeteran') : owned >= 10 ? t('shop.badgeEstablished') : undefined} />;
     })}
   </ShopPanel>;
 
@@ -341,7 +365,7 @@ function App() {
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },
       { id: 'reducedMotion', label: t('settings.reducedMotion'), description: t('settings.reducedMotionDescription'), checked: settings.reducedMotion },
-    ]} onToggle={(id, checked) => setSettings((current) => ({ ...current, [id]: checked }))} onExportSave={exportSave} onImportSave={importSave} onHardReset={hardReset} onClose={() => setModal(null)} saveStatus={saveStatus || t('settings.autosaveReady')} versionLabel="v1.1.0" />
+    ]} onToggle={(id, checked) => setSettings((current) => ({ ...current, [id]: checked }))} onExportSave={exportSave} onImportSave={importSave} onHardReset={hardReset} onClose={() => setModal(null)} saveStatus={saveStatus || t('settings.autosaveReady')} versionLabel="v1.2.0" />
     <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
   </>;
 

@@ -1,8 +1,10 @@
-import { UPGRADE_BY_ID, type UpgradeId } from './content';
+import { BUILDINGS, UPGRADE_BY_ID, type UpgradeId } from './content';
 import { advanceMooncap, clickMooncap, scheduleNextMooncap, type MooncapClickResult } from './events';
 import {
   canPurchasePermanentUpgrade,
   canPurchaseUpgrade,
+  getBaseCps,
+  getBuildingBaseCps,
   getBuildingBulkCost,
   getBuildingSellRefund,
   getClickPower,
@@ -55,6 +57,17 @@ export function tickGame(state: GameState, now: number): GameState {
   }
 
   const produced = calculateProductionBetween(state, state.lastUpdateAt, timestamp);
+  const baseCps = getBaseCps(state);
+  const lifetimeProducedByBuilding = { ...state.statistics.lifetimeProducedByBuilding };
+  if (produced > 0 && baseCps > 0) {
+    for (const building of BUILDINGS) {
+      const share = getBuildingBaseCps(state, building.id) / baseCps;
+      if (share <= 0) continue;
+      lifetimeProducedByBuilding[building.id] = clampResource(
+        lifetimeProducedByBuilding[building.id] + produced * share,
+      );
+    }
+  }
   let next: GameState = {
     ...state,
     lastUpdateAt: timestamp,
@@ -66,6 +79,7 @@ export function tickGame(state: GameState, now: number): GameState {
       ...state.statistics,
       totalTimePlayedMs: state.statistics.totalTimePlayedMs + (timestamp - state.lastUpdateAt),
       highestCps: Math.max(state.statistics.highestCps, getCps(state, timestamp)),
+      lifetimeProducedByBuilding,
     },
   };
   next = advanceMooncap(next, timestamp);

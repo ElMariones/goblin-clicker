@@ -18,7 +18,18 @@ describe('game simulation', () => {
     state.buffs = [{ id: 'moon_frenzy', multiplier: 7, startedAt: 1_000, expiresAt: 2_000, target: 'cps' }];
     const next = tickGame(state, 3_000);
     expect(next.goblins).toBeCloseTo(8, 8); // 7 for first second + 1 for second.
+    expect(next.statistics.lifetimeProducedByBuilding.mushroom_nursery).toBeCloseTo(8, 8);
     expect(next.buffs).toHaveLength(0);
+  });
+
+  it('attributes mixed passive production to each building without changing aggregate output', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.buildings.brood_matron = 10; // 1/s total
+    state.buildings.mushroom_nursery = 2; // 2/s total
+    const next = tickGame(state, 2_000);
+    expect(next.goblins).toBeCloseTo(3, 8);
+    expect(next.statistics.lifetimeProducedByBuilding.brood_matron).toBeCloseTo(1, 8);
+    expect(next.statistics.lifetimeProducedByBuilding.mushroom_nursery).toBeCloseTo(2, 8);
   });
 
   it('purchases buildings atomically', () => {
@@ -71,6 +82,8 @@ describe('game simulation', () => {
     const applied = applyOfflineProgress(state, twelveHours);
     expect(applied.state.buffs).toHaveLength(0);
     expect(applied.state.lastUpdateAt).toBe(twelveHours);
+    expect(applied.state.statistics.lifetimeProducedByBuilding.mushroom_nursery)
+      .toBeCloseTo(progress.goblinsProduced, 8);
   });
 
   it('produces reproducible Mooncap reward sequences from identical seeds', () => {

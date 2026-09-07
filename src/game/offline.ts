@@ -1,5 +1,6 @@
+import { BUILDINGS } from './content';
 import { scheduleNextMooncap } from './events';
-import { getBaseCps, getPermanentRank } from './math';
+import { getBaseCps, getBuildingBaseCps, getPermanentRank } from './math';
 import { clampResource } from './state';
 import type { GameState, OfflineProgress } from './types';
 
@@ -27,6 +28,12 @@ export function calculateOfflineProgress(state: GameState, now: number): Offline
 export function applyOfflineProgress(state: GameState, now: number): { state: GameState; progress: OfflineProgress } {
   const progress = calculateOfflineProgress(state, now);
   const timestamp = Math.max(state.lastUpdateAt, Math.floor(now));
+  const lifetimeProducedByBuilding = { ...state.statistics.lifetimeProducedByBuilding };
+  for (const building of BUILDINGS) {
+    const produced = getBuildingBaseCps(state, building.id) * (progress.creditedMs / 1_000) * progress.efficiency;
+    if (produced <= 0) continue;
+    lifetimeProducedByBuilding[building.id] = clampResource(lifetimeProducedByBuilding[building.id] + produced);
+  }
   let next: GameState = {
     ...state,
     lastUpdateAt: timestamp,
@@ -35,6 +42,7 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
     lifetimeGoblins: clampResource(state.lifetimeGoblins + progress.goblinsProduced),
     buffs: [],
     mooncap: { ...state.mooncap, active: false, spawnedAt: null, expiresAt: null },
+    statistics: { ...state.statistics, lifetimeProducedByBuilding },
   };
   next = scheduleNextMooncap(next, timestamp);
   return { state: next, progress };

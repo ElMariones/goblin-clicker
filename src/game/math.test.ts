@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getBuildingBulkCost, getBuildingSellRefund, getClickPower, getCps, getMaxAffordableBuildingCount, getPermanentUpgradeCost, getPrestigeShardGain } from './math';
+import { getBuildingBulkCost, getBuildingCps, getBuildingSellRefund, getBuildingUnitCps, getClickPower, getCps, getMaxAffordableBuildingCount, getPermanentUpgradeCost, getPrestigeShardGain } from './math';
 import { createInitialGameState } from './state';
 
 describe('economy math', () => {
@@ -30,6 +30,8 @@ describe('economy math', () => {
 
     state.buffs.push({ id: 'moon_frenzy', multiplier: 7, startedAt: 1_000, expiresAt: 5_000, target: 'cps' });
     expect(getCps(state, 2_000)).toBeCloseTo(16.94, 8);
+    expect(getBuildingUnitCps(state, 'brood_matron', 2_000)).toBeCloseTo(1.694, 8);
+    expect(getBuildingCps(state, 'brood_matron', 2_000)).toBeCloseTo(16.94, 8);
     expect(getCps(state, 5_000)).toBeCloseTo(2.42, 8);
   });
 

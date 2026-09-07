@@ -14,6 +14,15 @@ The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/
 - Localized building, upgrade, achievement, prestige, Mooncap, save, offline-progress, and accessibility text.
 - Locale-aware dates, durations, and number formatting.
 - Right-to-left document direction and layout polish for Arabic.
+- Desktop and mobile release screenshots under `docs/screenshots/`.
+- Third-party attribution/license notice for the adapted React Bits CRTWarp component.
+
+### Changed
+
+- Reworked the visual language toward a restrained pixel/CRT presentation with larger text, sharper controls, scanlines, vignette, and a live CRTWarp shader backdrop.
+- Enlarged and sharpened building SVG presentation in the shop.
+- Purchased structures now appear around the central brood pit and visibly accumulate as the warren grows.
+- Replaced the long root README with a concise project overview and screenshots while preserving the original as `README_ORIGINAL.md`.
 
 ## [1.0.0] - 2026-09-07
 

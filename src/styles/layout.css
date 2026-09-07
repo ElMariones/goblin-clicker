@@ -3,13 +3,38 @@
   isolation: isolate;
   min-height: 100vh;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 20%, transparent 80%, rgba(0, 0, 0, 0.24)),
-    radial-gradient(ellipse at 50% 105%, rgba(120, 155, 63, 0.1), transparent 52%);
+    linear-gradient(90deg, rgba(0, 0, 0, 0.36), transparent 22%, transparent 78%, rgba(0, 0, 0, 0.4)),
+    radial-gradient(ellipse at 50% 105%, rgba(120, 155, 63, 0.12), transparent 52%);
+}
+
+.game-frame__crt {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .48;
+  filter: saturate(.84) contrast(1.12);
+}
+
+.crt-warp-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(123, 175, 71, .04) 0 1px, transparent 1px 5px),
+    radial-gradient(ellipse at 50% 45%, #172313 0%, #080c07 60%, #030503 100%);
+}
+
+.crt-warp-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .game-frame__ambient {
   position: fixed;
-  z-index: -1;
+  z-index: 1;
   inset: 0;
   pointer-events: none;
   opacity: 0.8;
@@ -26,16 +51,19 @@
   top: 0;
   min-height: var(--header-height);
   border-bottom: 1px solid var(--line);
-  background: rgba(8, 11, 8, 0.88);
+  background: rgba(6, 9, 6, 0.9);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
 }
 
 .game-shell {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: minmax(240px, 0.78fr) minmax(420px, 1.55fr) minmax(330px, 1fr);
   gap: 0;
+  height: calc(100vh - var(--header-height));
   min-height: calc(100vh - var(--header-height));
   max-width: 1920px;
   margin: 0 auto;
@@ -48,7 +76,10 @@
 
 .game-shell__rail {
   padding: 18px;
-  background: linear-gradient(180deg, rgba(14, 19, 13, 0.54), rgba(9, 12, 9, 0.76));
+  overflow-y: auto;
+  background:
+    repeating-linear-gradient(0deg, rgba(184, 220, 122, .012) 0 1px, transparent 1px 5px),
+    linear-gradient(180deg, rgba(10, 15, 9, 0.68), rgba(6, 9, 6, 0.82));
 }
 
 .game-shell__rail--left { border-right: 1px solid var(--line); }
@@ -75,12 +106,14 @@
   :root { --header-height: auto; }
   .game-frame__header { position: relative; }
   .game-shell {
+    height: auto;
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "stage stage"
       "left right";
   }
   .game-shell__stage { grid-area: stage; min-height: 620px; border-bottom: 1px solid var(--line); }
+  .game-shell__rail { overflow-y: visible; }
   .game-shell__rail--left { grid-area: left; border-right: 1px solid var(--line); }
   .game-shell__rail--right { grid-area: right; border-left: 0; }
 }

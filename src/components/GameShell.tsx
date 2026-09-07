@@ -6,14 +6,16 @@ export interface GameShellProps {
   left: ReactNode;
   center: ReactNode;
   right: ReactNode;
+  background?: ReactNode;
   overlay?: ReactNode;
   className?: string;
 }
 
-export function GameShell({ header, left, center, right, overlay, className = '' }: GameShellProps) {
+export function GameShell({ header, left, center, right, background, overlay, className = '' }: GameShellProps) {
   const { t } = useI18n();
   return (
     <div className={`game-frame ${className}`.trim()}>
+      {background && <div className="game-frame__crt">{background}</div>}
       <div className="game-frame__ambient" aria-hidden="true" />
       <header className="game-frame__header">{header}</header>
       <main className="game-shell">

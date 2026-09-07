@@ -4,7 +4,7 @@ html {
   min-width: 320px;
   background: var(--bg-abyss);
   font-family: var(--font-ui);
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: auto;
   text-rendering: optimizeLegibility;
 }
 
@@ -20,6 +20,8 @@ body {
 }
 
 button, input, select, textarea { font: inherit; }
+
+button { letter-spacing: .015em; }
 
 button {
   color: inherit;

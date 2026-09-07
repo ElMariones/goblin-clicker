@@ -1,7 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AchievementModal, FloatingNumbers, GameShell, Icon, PrestigeModal, ResourceHeader, SettingsModal, ShopCard, ShopPanel, SidePanel, SpawnPit, ToastStack, UpgradeModal,
-  type FloatingNumberView, type ToastView,
+  AchievementModal,
+  CRTWarp,
+  FloatingNumbers,
+  GameShell,
+  Icon,
+  PrestigeModal,
+  ResourceHeader,
+  SettingsModal,
+  ShopCard,
+  ShopPanel,
+  SidePanel,
+  SpawnPit,
+  ToastStack,
+  UpgradeModal,
+  WarrenBuildingField,
+  type FloatingNumberView,
+  type ToastView,
 } from './components';
 import {
   ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimMooncap,
@@ -297,7 +312,15 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>{settings.effects && <FloatingNumbers items={floating} />}</SpawnPit>;
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>
+    <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
+      id: building.id,
+      name: localizedName(language, 'building', building.id, building.name),
+      owned: game.buildings[building.id],
+      artSrc: buildingArtPath(building.id),
+    }))} />
+    {settings.effects && <FloatingNumbers items={floating} />}
+  </SpawnPit>;
 
   const right = <ShopPanel controls={<div className="buy-selector" role="group" aria-label={t('shop.purchaseQuantity')}>{([1, 10, 100, 'max'] as BuyAmount[]).map((amount) => <button key={amount} type="button" className={buyAmount === amount ? 'is-active' : ''} onClick={() => setBuyAmount(amount)} aria-pressed={buyAmount === amount}>{amount === 'max' ? t('shop.max') : fmtInteger(amount)}</button>)}</div>} footer={t('shop.footer')}>
     {BUILDINGS.map((building, index) => {
@@ -322,7 +345,36 @@ function App() {
     <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
   </>;
 
-  return <I18nProvider language={language}><div className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}><GameShell header={header} left={left} center={center} right={right} overlay={overlay} /></div></I18nProvider>;
+  return <I18nProvider language={language}>
+    <div className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}>
+      <GameShell
+        header={header}
+        left={left}
+        center={center}
+        right={right}
+        background={<CRTWarp
+          color="#82b84c"
+          backgroundColor="#060906"
+          speed={0.18}
+          curvature={0.34}
+          scanlineStrength={0.42}
+          waveAmplitude={0.2}
+          waveFrequency={1.8}
+          bloom={0.8}
+          noise={0.045}
+          vignette={0.8}
+          brightness={0.68}
+          pixelation={4}
+          rgbShift={0.004}
+          mouseReact={false}
+          dpr={1}
+          fps={settings.reducedMotion || !settings.effects ? 1 : 24}
+          paused={settings.reducedMotion || !settings.effects}
+        />}
+        overlay={overlay}
+      />
+    </div>
+  </I18nProvider>;
 }
 
 export default App;

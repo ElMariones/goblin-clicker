@@ -83,6 +83,8 @@
 .buff-pill--sevenfold span { color: #c2edf3; }
 .buff-pill--sevenfold strong { color: #9ef0ff; text-shadow: 0 0 12px rgba(95, 225, 255, .28); }
 .buff-pill--sevenfold small { color: #73aab7; }
+.buff-pill--eclipse { position: relative; overflow: hidden; border-color: rgba(214, 168, 255, .35); color: #e1bfff; background: linear-gradient(90deg, rgba(98,55,128,.15), rgba(31,87,98,.09)); box-shadow: 0 0 18px rgba(188,119,238,.07), inset 0 0 18px rgba(91,205,225,.025); animation: eclipse-pill-pulse 1.2s steps(8, end) infinite; }
+.buff-pill--eclipse span, .buff-pill--eclipse strong { color: #e4c9f8; }
 
 .buy-selector { display: inline-flex; padding: 2px; border: 1px solid var(--line); border-radius: 4px; background: rgba(0,0,0,.18); }
 .buy-selector button { min-width: 31px; padding: 5px 6px; border: 0; border-radius: 2px; color: var(--ink-muted); background: transparent; font-family: var(--font-pixel); font-size: 9px; font-weight: 800; }
@@ -110,6 +112,14 @@
 .effects-off .buff-pill--sevenfold,
 .effects-off .buff-pill--sevenfold::after,
 .effects-off .spawn-pit--sevenfold .spawn-target { animation: none; }
+.effects-off .contract-giver,
+.effects-off .contract-giver--ready,
+.effects-off .moon-dial__charge i,
+.effects-off .contract-giver-portrait img,
+.effects-off .contract-giver-portrait__scan,
+.effects-off .contract-order,
+.effects-off .contract-reward-stamp,
+.effects-off .buff-pill--eclipse { animation: none; }
 .effects-off .game-frame__crt { opacity: .12; }
 .effects-off .game-frame::before { opacity: .1; }
 

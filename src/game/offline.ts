@@ -46,7 +46,7 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
     runGoblins: clampResource(state.runGoblins + progress.goblinsProduced),
     lifetimeGoblins: clampResource(state.lifetimeGoblins + progress.goblinsProduced),
     buffs: [],
-    mooncap: { ...state.mooncap, active: false, spawnedAt: null, expiresAt: null },
+    mooncap: { ...state.mooncap, active: false, family: null, spawnedAt: null, expiresAt: null },
     statistics: { ...state.statistics, lifetimeProducedByBuilding },
   };
   next = scheduleNextMooncap(next, timestamp);

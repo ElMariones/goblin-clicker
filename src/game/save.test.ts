@@ -13,6 +13,10 @@ describe('save system', () => {
     state.statistics.lifetimeProducedByBuilding.warren_den = 678.5;
     state.purchasedUpgrades.sharpened_nails = true;
     state.prestige.permanentUpgrades.founders_legacy = 2;
+    state.mooncap.lunarCharge = 4;
+    state.mooncap.nextFamilyBias = 'oracle';
+    state.contracts.completed = 9;
+    state.buffs = [{ id: 'eclipse', multiplier: 2, startedAt: 9_000, expiresAt: 20_000, target: 'cps' }];
     const loaded = deserializeGame(serializeGame(state, 10_000), 10_000);
     expect(loaded.migratedFrom).toBeNull();
     expect(loaded.state.goblins).toBe(1234.5);
@@ -20,6 +24,10 @@ describe('save system', () => {
     expect(loaded.state.statistics.lifetimeProducedByBuilding.warren_den).toBe(678.5);
     expect(loaded.state.purchasedUpgrades.sharpened_nails).toBe(true);
     expect(loaded.state.prestige.permanentUpgrades.founders_legacy).toBe(2);
+    expect(loaded.state.mooncap.lunarCharge).toBe(4);
+    expect(loaded.state.mooncap.nextFamilyBias).toBe('oracle');
+    expect(loaded.state.contracts.completed).toBe(9);
+    expect(loaded.state.buffs[0]?.id).toBe('eclipse');
     expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
   });
 
@@ -44,6 +52,26 @@ describe('save system', () => {
     expect(loaded.state.statistics.lifetimeProducedByBuilding.brood_matron).toBe(0);
     expect(loaded.state.prestige.permanentUpgrades.founders_legacy).toBeUndefined();
     expect(loaded.warnings[0]).toContain('migrated');
+  });
+
+  it('migrates v3 envelopes to the stable v4 contract and Observatory state', () => {
+    const state = createInitialGameState(10_000, 42);
+    state.goblins = 321;
+    const parsed = JSON.parse(serializeGame(state, 10_000)) as { version: number; state: Record<string, unknown> };
+    parsed.version = 3;
+    parsed.state.version = 3;
+    delete parsed.state.contracts;
+    const mooncap = parsed.state.mooncap as Record<string, unknown>;
+    delete mooncap.family;
+    delete mooncap.lunarCharge;
+    delete mooncap.nextFamilyBias;
+
+    const loaded = deserializeGame(JSON.stringify(parsed), 10_000);
+    expect(loaded.migratedFrom).toBe(3);
+    expect(loaded.state.goblins).toBe(321);
+    expect(Object.keys(loaded.state.contracts.active)).toHaveLength(3);
+    expect(loaded.state.mooncap.lunarCharge).toBe(0);
+    expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
   });
 
   it('does not count prestige starter currency as newly produced goblins on load', () => {

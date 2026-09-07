@@ -1,6 +1,7 @@
-import { claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, tickGame } from './engine';
+import { claimContract, claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, spendLunarCharge, tickGame } from './engine';
+import type { MoonDialAction } from './events';
 import type { UpgradeId } from './content';
-import type { BuildingId, GameState, PermanentUpgradeId } from './types';
+import type { BuildingId, ContractKind, GameState, PermanentUpgradeId } from './types';
 
 export type GameAction =
   | { type: 'tick'; now: number }
@@ -9,6 +10,8 @@ export type GameAction =
   | { type: 'sellBuilding'; buildingId: BuildingId; count?: number; now: number }
   | { type: 'buyUpgrade'; upgradeId: UpgradeId; now: number }
   | { type: 'claimMooncap'; now: number }
+  | { type: 'claimContract'; kind: ContractKind; now: number }
+  | { type: 'moonDial'; action: MoonDialAction; now: number }
   | { type: 'prestige'; now: number }
   | { type: 'buyPermanentUpgrade'; upgradeId: PermanentUpgradeId; now: number }
   | { type: 'replaceState'; state: GameState };
@@ -22,6 +25,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'sellBuilding': return sellBuilding(state, action.buildingId, action.count ?? 1, action.now).state;
     case 'buyUpgrade': return purchaseUpgrade(state, action.upgradeId, action.now).state;
     case 'claimMooncap': return claimMooncap(state, action.now).state;
+    case 'claimContract': return claimContract(state, action.kind, action.now).state;
+    case 'moonDial': return spendLunarCharge(state, action.action, action.now).state;
     case 'prestige': return performPrestigeReset(state, action.now).state;
     case 'buyPermanentUpgrade': return purchasePermanentUpgrade(state, action.upgradeId, action.now).state;
     case 'replaceState': return action.state;

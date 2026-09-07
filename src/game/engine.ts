@@ -1,5 +1,6 @@
 import { BUILDINGS, UPGRADE_BY_ID, type UpgradeId } from './content';
-import { advanceMooncap, clickMooncap, scheduleNextMooncap, type MooncapClickResult } from './events';
+import { ensureContracts, getContractRewardAmount, isContractComplete, resetContractsForMigration } from './contracts';
+import { advanceMooncap, applyMoonDialAction, clickMooncap, scheduleNextMooncap, type MooncapClickResult, type MoonDialAction, type MoonDialResult } from './events';
 import {
   canPurchasePermanentUpgrade,
   canPurchaseUpgrade,
@@ -14,13 +15,20 @@ import {
   getPermanentUpgradeCost,
   getPrestigeShardGain,
 } from './math';
-import { clampResource, createEmptyBuildings } from './state';
-import type { BuildingId, GameState, PermanentUpgradeId } from './types';
+import { clampResource, createEmptyBuildings, creditGoblins } from './state';
+import type { BuildingId, ContractInstance, ContractKind, GameState, PermanentUpgradeId } from './types';
 
 export interface EconomyActionResult {
   state: GameState;
   success: boolean;
   amount: number;
+}
+
+export interface ContractClaimResult {
+  state: GameState;
+  success: boolean;
+  reward: number;
+  contract: ContractInstance | null;
 }
 
 function awardAchievements(state: GameState, now: number): GameState {
@@ -83,7 +91,7 @@ export function tickGame(state: GameState, now: number): GameState {
     },
   };
   next = advanceMooncap(next, timestamp);
-  return awardAchievements(next, timestamp);
+  return awardAchievements(ensureContracts(next, timestamp), timestamp);
 }
 
 export function hatchGoblin(state: GameState, now = state.lastUpdateAt): EconomyActionResult {
@@ -201,10 +209,12 @@ export function performPrestigeReset(state: GameState, now = state.lastUpdateAt)
     mooncap: {
       ...ticked.mooncap,
       active: false,
+      family: null,
       spawnedAt: null,
       expiresAt: null,
     },
   };
+  next = resetContractsForMigration(next, now);
   next = scheduleNextMooncap(next, now);
   return { state: awardAchievements(next, now), success: true, amount: gained };
 }
@@ -213,4 +223,30 @@ export function claimMooncap(state: GameState, now = state.lastUpdateAt): Moonca
   const ticked = tickGame(state, now);
   const result = clickMooncap(ticked, now);
   return { ...result, state: awardAchievements(result.state, now) };
+}
+
+export function claimContract(state: GameState, kind: ContractKind, now = state.lastUpdateAt): ContractClaimResult {
+  const ticked = ensureContracts(tickGame(state, now), now);
+  const contract = ticked.contracts.active[kind] ?? null;
+  if (!contract || !isContractComplete(ticked, contract)) return { state: ticked, success: false, reward: 0, contract };
+  const reward = getContractRewardAmount(ticked, contract);
+  const active = { ...ticked.contracts.active };
+  delete active[kind];
+  let next = creditGoblins(ticked, reward);
+  next = {
+    ...next,
+    contracts: {
+      ...next.contracts,
+      active,
+      completed: next.contracts.completed + 1,
+      oracleBoost: 0,
+    },
+  };
+  next = ensureContracts(next, now);
+  return { state: awardAchievements(next, now), success: true, reward, contract };
+}
+
+export function spendLunarCharge(state: GameState, action: MoonDialAction, now = state.lastUpdateAt): MoonDialResult {
+  const ticked = tickGame(state, now);
+  return applyMoonDialAction(ticked, action, now);
 }

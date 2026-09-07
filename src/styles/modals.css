@@ -107,6 +107,57 @@
 .achievement-progress__track > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--moss-deep), var(--moss-bright)); }
 .achievement-progress strong { color: var(--moss-bright); font-variant-numeric: tabular-nums; }
 
+.contract-modal { width: min(100%, 1040px); border-color: rgba(225, 180, 85, .25); }
+.contract-modal .modal__body { padding: 0; background: radial-gradient(circle at 21% 35%, rgba(196,139,49,.065), transparent 24rem); }
+.contract-terminal { display: grid; min-height: 470px; grid-template-columns: minmax(230px, .78fr) minmax(0, 1.55fr); }
+.contract-giver-portrait {
+  position: relative;
+  isolation: isolate;
+  min-height: 470px;
+  overflow: hidden;
+  border-inline-end: 1px solid rgba(219, 171, 78, .18);
+  background:
+    linear-gradient(rgba(231,184,91,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(231,184,91,.018) 1px, transparent 1px),
+    radial-gradient(circle at 50% 43%, rgba(164, 114, 39, .24), transparent 15rem),
+    linear-gradient(180deg, rgba(31,25,13,.86), rgba(8,10,7,.98));
+  background-size: 6px 6px, 6px 6px, auto, auto;
+}
+.contract-giver-portrait::after { position: absolute; z-index: 4; inset: 0; content: ""; box-shadow: inset 0 0 56px rgba(0,0,0,.64); pointer-events: none; }
+.contract-giver-portrait img { position: absolute; z-index: 2; right: -14%; bottom: -5%; width: 126%; height: 112%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 25px 18px rgba(0,0,0,.72)) saturate(.78) contrast(1.17) brightness(.92) sepia(.04); animation: contract-portrait-enter 360ms steps(8, end) both; }
+.contract-giver-portrait__scan { position: absolute; z-index: 3; inset: 0; opacity: .32; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(239,194,104,.05) 3px 4px); pointer-events: none; animation: contract-scan 4s linear infinite; }
+.contract-giver-portrait__badge { position: absolute; z-index: 5; bottom: 13px; left: 13px; padding: 4px 6px; border: 1px solid rgba(229,180,82,.28); color: #d3a753; background: rgba(18,14,7,.86); font-family: var(--font-pixel); font-size: 7px; font-weight: 850; letter-spacing: .15em; }
+.contract-order { position: relative; isolation: isolate; display: flex; min-width: 0; padding: 28px 30px 25px; overflow: hidden; flex-direction: column; animation: contract-sheet-in 220ms steps(7, end) both; }
+.contract-order::before { position: absolute; z-index: -1; inset: 12px; border: 1px solid rgba(218,170,73,.055); content: ""; pointer-events: none; clip-path: polygon(0 0, 18px 0, 18px 1px, 1px 1px, 1px 18px, 0 18px, 0 0, 100% 0, 100% 18px, calc(100% - 1px) 18px, calc(100% - 1px) 1px, calc(100% - 18px) 1px, calc(100% - 18px) 0, 100% 0, 100% 100%, calc(100% - 18px) 100%, calc(100% - 18px) calc(100% - 1px), calc(100% - 1px) calc(100% - 1px), calc(100% - 1px) calc(100% - 18px), 100% calc(100% - 18px), 100% 100%, 0 100%, 0 calc(100% - 18px), 1px calc(100% - 18px), 1px calc(100% - 1px), 18px calc(100% - 1px), 18px 100%, 0 100%); }
+.contract-order__topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #ba8e3d; font-family: var(--font-pixel); font-size: 8px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.contract-order__topline strong { padding: 3px 5px; border: 1px solid rgba(157,204,81,.18); color: var(--moss); background: rgba(93,134,47,.06); font-size: 7px; }
+.contract-order h3 { margin: 8px 0 6px; color: #eadbb9; font-family: var(--font-display); font-size: clamp(24px, 3.2vw, 34px); line-height: 1.04; }
+.contract-order__dialogue { margin: 0; padding: 11px 13px; border-inline-start: 2px solid rgba(223,171,70,.34); color: #bdb397; background: rgba(226,171,65,.035); font-size: 12px; font-style: italic; line-height: 1.55; }
+.contract-order__objective { display: grid; margin-top: 18px; padding: 13px; border: 1px solid rgba(210,169,89,.14); border-radius: 4px; background: rgba(0,0,0,.12); gap: 5px; }
+.contract-order__objective > span { color: #8f7c58; font-family: var(--font-pixel); font-size: 7px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.contract-order__objective > strong { color: #ddd1b5; font-size: 12px; line-height: 1.35; }
+.contract-progress { height: 7px; margin-top: 3px; overflow: hidden; border: 1px solid rgba(179,205,119,.12); background: rgba(0,0,0,.35); }
+.contract-progress > span { display: block; height: 100%; background: linear-gradient(90deg, #5c7e36, #b0da68); box-shadow: 0 0 9px rgba(166,216,91,.14); transition: width 250ms steps(8, end); }
+.contract-order__objective small { color: #93a177; font-family: var(--font-pixel); font-size: 8px; font-variant-numeric: tabular-nums; }
+.contract-order__reward { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 11px; padding: 9px 12px; border: 1px solid rgba(228,178,77,.17); color: #ae8d50; background: rgba(194,133,34,.045); }
+.contract-order__reward span { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-pixel); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.contract-order__reward strong { color: #efc56e; font-family: var(--font-display); font-size: 17px; font-variant-numeric: tabular-nums; }
+.contract-oracle-boost { display: inline-flex; width: fit-content; margin-top: 7px; padding: 5px 7px; align-items: center; gap: 5px; border: 1px solid rgba(210,171,255,.22); color: #d7b0f7; background: rgba(123,76,158,.08); font-family: var(--font-pixel); font-size: 7px; font-weight: 800; text-transform: uppercase; }
+.contract-claim-button { display: inline-flex; min-height: 42px; margin-top: auto; padding: 9px 13px; align-items: center; justify-content: center; gap: 7px; border: 1px solid rgba(180,226,104,.34); border-radius: 4px; color: #c9ed8d; background: linear-gradient(180deg, rgba(112,157,57,.2), rgba(66,100,31,.12)); font-family: var(--font-pixel); font-size: 9px; font-weight: 850; letter-spacing: .025em; text-transform: uppercase; }
+.contract-claim-button:hover:not(:disabled) { border-color: rgba(199,239,129,.55); background: rgba(115,164,57,.24); box-shadow: 0 0 22px rgba(158,211,76,.08); }
+.contract-claim-button:disabled { opacity: .33; filter: saturate(.35); }
+.contract-reward-stamp { position: absolute; z-index: 4; right: 25px; bottom: 78px; max-width: 72%; padding: 7px 9px; border: 2px solid rgba(177,225,100,.62); color: #bce878; background: rgba(15,25,10,.91); box-shadow: 3px 3px 0 rgba(0,0,0,.34), 0 0 24px rgba(169,221,91,.12); font-family: var(--font-pixel); font-size: 8px; font-weight: 900; letter-spacing: .04em; text-align: center; text-transform: uppercase; transform: rotate(-2deg); animation: contract-stamp 1.25s steps(11, end) both; }
+.contract-tabs { display: grid; padding: 10px 12px; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; border-top: 1px solid rgba(221,176,85,.14); background: rgba(7,9,6,.86); }
+.contract-tabs button { display: flex; min-width: 0; min-height: 68px; padding: 8px 9px; flex-direction: column; align-items: stretch; border: 1px solid rgba(205,169,96,.12); border-radius: 3px; color: #8d836c; background: rgba(255,255,255,.012); text-align: start; }
+.contract-tabs button:hover { border-color: rgba(221,178,91,.28); background: rgba(194,137,43,.045); }
+.contract-tabs button.is-active { border-color: rgba(229,183,91,.36); color: #d4b26c; background: rgba(183,125,37,.07); box-shadow: inset 0 0 18px rgba(216,158,58,.035); }
+.contract-tabs button.is-complete { border-color: rgba(166,215,84,.28); }
+.contract-tabs button > span { font-family: var(--font-pixel); font-size: 6.5px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+.contract-tabs button > strong { margin-top: 3px; overflow: hidden; color: #c8bfa8; font-family: var(--font-display); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.contract-tab-progress { height: 3px; margin-top: auto; overflow: hidden; background: rgba(255,255,255,.04); }
+.contract-tab-progress i { display: block; height: 100%; background: #9ac855; }
+.contract-footer-stat { display: flex; padding: 0 14px 11px; align-items: center; justify-content: flex-end; gap: 5px; color: #8b8068; background: rgba(7,9,6,.86); font-family: var(--font-pixel); font-size: 7px; text-transform: uppercase; }
+
 .prestige-hero {
   position: relative;
   isolation: isolate;
@@ -459,6 +510,10 @@
   .modal__body { padding: 15px; }
   .modal__footer { padding: 11px 15px; }
   .upgrade-grid, .achievement-grid { grid-template-columns: 1fr; }
+  .contract-terminal { min-height: 0; grid-template-columns: 132px minmax(0,1fr); }
+  .contract-giver-portrait { min-height: 440px; }
+  .contract-giver-portrait img { right: -30%; width: 160%; }
+  .contract-order { min-height: 440px; padding: 20px 17px; }
   .prestige-hero { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); }
   .prestige-hero__line { display: none; }
   .prestige-button { grid-column: 1 / -1; justify-content: center; }
@@ -477,6 +532,13 @@
   .settings-section--danger { align-items: stretch; flex-direction: column; }
   .achievement-progress { grid-template-columns: auto auto; }
   .achievement-progress__track { grid-column: 1 / -1; grid-row: 2; }
+  .contract-terminal { display: block; }
+  .contract-giver-portrait { min-height: 190px; border-inline-end: 0; border-bottom: 1px solid rgba(219,171,78,.18); }
+  .contract-giver-portrait img { right: -3%; bottom: -48%; width: 74%; height: 168%; object-position: right bottom; }
+  .contract-order { min-height: 430px; padding: 18px 14px; }
+  .contract-tabs { grid-template-columns: 1fr; }
+  .contract-tabs button { min-height: 56px; }
+  .contract-reward-stamp { right: 14px; bottom: 72px; max-width: calc(100% - 28px); }
 }
 
 .reduce-motion .prestige-hero::before,

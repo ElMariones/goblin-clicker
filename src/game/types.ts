@@ -1,4 +1,4 @@
-export const CURRENT_SAVE_VERSION = 3 as const;
+export const CURRENT_SAVE_VERSION = 4 as const;
 
 export type BuildingId =
   | 'brood_matron'
@@ -108,20 +108,51 @@ export interface PermanentUpgradeDefinition {
 }
 
 export interface BuffInstance {
-  id: 'moon_frenzy' | 'hatching_fever';
+  id: 'moon_frenzy' | 'hatching_fever' | 'eclipse';
   multiplier: number;
   startedAt: number;
   expiresAt: number;
   target: 'cps' | 'click';
 }
 
+export type MooncapFamily = 'clutch' | 'frenzy' | 'blood' | 'oracle';
+
 export interface MooncapEventState {
   active: boolean;
+  family: MooncapFamily | null;
   spawnedAt: number | null;
   expiresAt: number | null;
   nextSpawnAt: number;
+  lunarCharge: number;
+  nextFamilyBias: MooncapFamily | null;
   rngSeed: number;
   rngCounter: number;
+}
+
+export type ContractKind = 'quick' | 'quartermaster' | 'directive';
+
+export type ContractObjective =
+  | { type: 'manualBorn'; start: number; amount: number }
+  | { type: 'buildingOwned'; buildingId: BuildingId; target: number }
+  | { type: 'runGoblins'; target: number }
+  | { type: 'mooncapCatches'; start: number; amount: number }
+  | { type: 'masteryCount'; tier: ExpansionMasteryLevelId; target: number };
+
+export interface ContractInstance {
+  id: string;
+  kind: ContractKind;
+  sequence: number;
+  assignedAt: number;
+  rewardSeconds: number;
+  objective: ContractObjective;
+}
+
+export interface ContractBoardState {
+  active: Partial<Record<ContractKind, ContractInstance>>;
+  completed: number;
+  nextSequence: number;
+  /** Oraclecaps empower the next claimed contract by +50% per stack, capped at two. */
+  oracleBoost: number;
 }
 
 export interface GameStatistics {
@@ -154,6 +185,7 @@ export interface GameState {
   prestige: PrestigeState;
   buffs: BuffInstance[];
   mooncap: MooncapEventState;
+  contracts: ContractBoardState;
   statistics: GameStatistics;
 }
 
@@ -166,8 +198,9 @@ export interface OfflineProgress {
 }
 
 export type MooncapReward =
-  | { type: 'goblins'; amount: number; label: string }
-  | { type: 'buff'; buff: BuffInstance; label: string };
+  | { type: 'goblins'; family: 'clutch'; amount: number; label: string }
+  | { type: 'buff'; family: 'frenzy' | 'blood'; buff: BuffInstance; label: string }
+  | { type: 'oracle'; family: 'oracle'; contractMultiplier: number; label: string };
 
 export interface SaveEnvelope {
   schema: 'goblin-clicker-save';

@@ -38,6 +38,7 @@
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.12) saturate(1.06); }
 }
+@keyframes eclipse-pill-pulse { 0%,100% { filter: brightness(1) saturate(1); } 50% { filter: brightness(1.16) saturate(1.12); } }
 @keyframes prestige-vacuum-left {
   0% { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0) brightness(1); }
   43% { opacity: .72; transform: translate3d(34vw, 4vh, 0) scale(.16) rotate(6deg); filter: blur(1px) brightness(1.25) saturate(.7); }
@@ -80,6 +81,13 @@
   56% { opacity: 1; transform: translate(-50%, -50%) scale(.54); filter: brightness(1.55); }
   73%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(.06); filter: brightness(2); }
 }
+@keyframes contract-giver-idle { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes contract-giver-ready { 0%,100% { filter: brightness(1); transform: translateY(0); } 50% { filter: brightness(1.12); transform: translateY(-3px); } }
+@keyframes moon-charge-pulse { 0%,100% { filter: brightness(.95); } 50% { filter: brightness(1.35); } }
+@keyframes contract-portrait-enter { from { opacity: 0; transform: translateX(-20px) scale(.94); filter: brightness(1.6) saturate(.2); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes contract-scan { from { background-position: 0 0; } to { background-position: 0 36px; } }
+@keyframes contract-sheet-in { from { opacity: 0; transform: translateX(8px); filter: brightness(1.35); } to { opacity: 1; transform: translateX(0); filter: brightness(1); } }
+@keyframes contract-stamp { 0% { opacity: 0; transform: translateY(-10px) scale(1.55) rotate(-7deg); filter: brightness(2); } 18% { opacity: 1; transform: translateY(0) scale(.94) rotate(-2deg); } 26% { transform: scale(1.03) rotate(-2deg); } 72% { opacity: 1; } 100% { opacity: 0; transform: translateY(-7px) scale(.98) rotate(-2deg); } }
 
 .floating-number-layer { position: absolute; z-index: 12; inset: 0; overflow: hidden; pointer-events: none; }
 .floating-number-layer--active::before {

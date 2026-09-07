@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, tickGame } from './engine';
+import { claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, spendLunarCharge, tickGame } from './engine';
 import { applyOfflineProgress, calculateOfflineProgress } from './offline';
 import { createInitialGameState } from './state';
 
@@ -137,14 +137,14 @@ describe('game simulation', () => {
   it('extends Mooncap clutch rewards and buff durations with Moonlit Blood', () => {
     const clutchState = createInitialGameState(1_000, 1);
     clutchState.prestige.permanentUpgrades.moonlit_blood = 2;
-    clutchState.mooncap = { ...clutchState.mooncap, active: true, spawnedAt: 1_000, expiresAt: 20_000 };
+    clutchState.mooncap = { ...clutchState.mooncap, active: true, family: 'clutch', spawnedAt: 1_000, expiresAt: 20_000 };
     const clutch = claimMooncap(clutchState, 1_001);
     expect(clutch.reward?.type).toBe('goblins');
     if (clutch.reward?.type === 'goblins') expect(clutch.reward.amount).toBe(15); // floor(13 × 1.2)
 
     const frenzyState = createInitialGameState(1_000, 2);
     frenzyState.prestige.permanentUpgrades.moonlit_blood = 2;
-    frenzyState.mooncap = { ...frenzyState.mooncap, active: true, spawnedAt: 1_000, expiresAt: 20_000 };
+    frenzyState.mooncap = { ...frenzyState.mooncap, active: true, family: 'frenzy', spawnedAt: 1_000, expiresAt: 20_000 };
     const frenzy = claimMooncap(frenzyState, 1_001);
     expect(frenzy.reward?.type).toBe('buff');
     if (frenzy.reward?.type === 'buff') {
@@ -154,12 +154,51 @@ describe('game simulation', () => {
 
     const feverState = createInitialGameState(1_000, 3);
     feverState.prestige.permanentUpgrades.moonlit_blood = 2;
-    feverState.mooncap = { ...feverState.mooncap, active: true, spawnedAt: 1_000, expiresAt: 20_000 };
+    feverState.mooncap = { ...feverState.mooncap, active: true, family: 'blood', spawnedAt: 1_000, expiresAt: 20_000 };
     const fever = claimMooncap(feverState, 1_001);
     expect(fever.reward?.type).toBe('buff');
     if (fever.reward?.type === 'buff') {
       expect(fever.reward.buff.id).toBe('hatching_fever');
       expect(fever.reward.buff.expiresAt - fever.reward.buff.startedAt).toBe(15_600);
     }
+  });
+
+  it('builds lunar charge, spends it deterministically, and can bias the next Mooncap family', () => {
+    const state = createInitialGameState(1_000, 91);
+    state.mooncap = { ...state.mooncap, active: true, family: 'clutch', spawnedAt: 1_000, expiresAt: 20_000, lunarCharge: 5 };
+    const claimed = claimMooncap(state, 1_001);
+    expect(claimed.state.mooncap.lunarCharge).toBe(6);
+
+    const biased = spendLunarCharge(claimed.state, { type: 'bias', family: 'oracle' }, 1_001);
+    expect(biased.success).toBe(true);
+    expect(biased.state.mooncap.lunarCharge).toBe(4);
+    expect(biased.state.mooncap.nextFamilyBias).toBe('oracle');
+
+    const hastened = spendLunarCharge(biased.state, { type: 'hasten' }, 1_001);
+    expect(hastened.success).toBe(true);
+    expect(hastened.state.mooncap.lunarCharge).toBe(1);
+    expect(hastened.state.mooncap.nextSpawnAt).toBeLessThanOrEqual(9_001);
+    const spawned = tickGame(hastened.state, hastened.state.mooncap.nextSpawnAt);
+    expect(spawned.mooncap.family).toBe('oracle');
+    expect(spawned.mooncap.nextFamilyBias).toBeNull();
+  });
+
+  it('triggers Eclipse when Frenzycap and Bloodcap overlap', () => {
+    const state = createInitialGameState(1_000, 17);
+    state.buffs = [{ id: 'moon_frenzy', multiplier: 7, startedAt: 1_000, expiresAt: 60_000, target: 'cps' }];
+    state.mooncap = { ...state.mooncap, active: true, family: 'blood', spawnedAt: 1_000, expiresAt: 20_000 };
+    const result = claimMooncap(state, 1_001);
+    expect(result.eclipseTriggered).toBe(true);
+    expect(result.state.buffs.some(({ id }) => id === 'hatching_fever')).toBe(true);
+    expect(result.state.buffs.some(({ id }) => id === 'eclipse')).toBe(true);
+  });
+
+  it('Oraclecap strengthens the next contract payout without adding a new currency', () => {
+    const state = createInitialGameState(1_000, 29);
+    state.mooncap = { ...state.mooncap, active: true, family: 'oracle', spawnedAt: 1_000, expiresAt: 20_000 };
+    const result = claimMooncap(state, 1_001);
+    expect(result.reward?.type).toBe('oracle');
+    expect(result.state.contracts.oracleBoost).toBe(1);
+    expect(result.state.mooncap.lunarCharge).toBe(1);
   });
 });

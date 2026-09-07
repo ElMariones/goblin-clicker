@@ -1,7 +1,9 @@
 import { ACHIEVEMENTS, BUILDINGS, PERMANENT_UPGRADES, UPGRADES } from './content';
+import { ensureContracts } from './contracts';
+import { MAX_LUNAR_CHARGE } from './events';
 import { normalizeSeed, seedFromTimestamp } from './rng';
 import { clampResource, createEmptyBuildingProduction, createInitialGameState } from './state';
-import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type DeserializeResult, type GameState, type PermanentUpgradeId, type SaveEnvelope } from './types';
+import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope } from './types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -10,8 +12,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 const LEGACY_SAVE_KEYS = [
   'goblins', 'totalGoblins', 'runGoblins', 'lifetimeGoblins', 'buildings',
   'upgrades', 'purchasedUpgrades', 'prestige', 'prestigePoints', 'statistics',
-  'mooncap', 'totalClicks', 'lastSave', 'lastUpdateAt',
+  'mooncap', 'contracts', 'totalClicks', 'lastSave', 'lastUpdateAt',
 ] as const;
+
+const CONTRACT_KINDS = new Set<ContractKind>(['quick', 'quartermaster', 'directive']);
+const MOONCAP_FAMILIES = new Set<MooncapFamily>(['clutch', 'frenzy', 'blood', 'oracle']);
+const MASTERY_IDS = new Set<ExpansionMasteryLevelId>(['established', 'thriving', 'veteran', 'renowned', 'elite', 'legendary', 'ancestral', 'mythic']);
+const BUILDING_IDS = new Set<BuildingId>(BUILDINGS.map(({ id }) => id));
 
 function looksLikeLegacySave(value: Record<string, unknown>): boolean {
   return LEGACY_SAVE_KEYS.some((key) => Object.prototype.hasOwnProperty.call(value, key));
@@ -27,6 +34,51 @@ function nonNegativeNumber(value: unknown, fallback = 0): number {
 
 function integer(value: unknown, fallback = 0): number {
   return Math.max(0, Math.floor(finiteNumber(value, fallback)));
+}
+
+function mooncapFamily(value: unknown): MooncapFamily | null {
+  return typeof value === 'string' && MOONCAP_FAMILIES.has(value as MooncapFamily) ? value as MooncapFamily : null;
+}
+
+function sanitizeContractObjective(raw: unknown): ContractObjective | null {
+  if (!isRecord(raw) || typeof raw.type !== 'string') return null;
+  switch (raw.type) {
+    case 'manualBorn':
+      return { type: 'manualBorn', start: nonNegativeNumber(raw.start), amount: Math.max(1, integer(raw.amount, 1)) };
+    case 'buildingOwned': {
+      const buildingId = raw.buildingId as BuildingId;
+      if (typeof raw.buildingId !== 'string' || !BUILDING_IDS.has(buildingId)) return null;
+      return { type: 'buildingOwned', buildingId, target: Math.max(1, integer(raw.target, 1)) };
+    }
+    case 'runGoblins':
+      return { type: 'runGoblins', target: Math.max(1, nonNegativeNumber(raw.target, 1)) };
+    case 'mooncapCatches':
+      return { type: 'mooncapCatches', start: integer(raw.start), amount: Math.max(1, integer(raw.amount, 1)) };
+    case 'masteryCount': {
+      const tier = raw.tier as ExpansionMasteryLevelId;
+      if (typeof raw.tier !== 'string' || !MASTERY_IDS.has(tier)) return null;
+      return { type: 'masteryCount', tier, target: Math.max(1, integer(raw.target, 1)) };
+    }
+    default:
+      return null;
+  }
+}
+
+function sanitizeContract(raw: unknown, expectedKind: ContractKind): ContractInstance | null {
+  if (!isRecord(raw)) return null;
+  const kind = raw.kind as ContractKind;
+  if (kind !== expectedKind || !CONTRACT_KINDS.has(kind)) return null;
+  const objective = sanitizeContractObjective(raw.objective);
+  if (!objective) return null;
+  const sequence = integer(raw.sequence);
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id.slice(0, 96) : `${kind}-${sequence}`,
+    kind,
+    sequence,
+    assignedAt: integer(raw.assignedAt),
+    rewardSeconds: Math.max(1, nonNegativeNumber(raw.rewardSeconds, kind === 'quick' ? 35 : kind === 'quartermaster' ? 150 : 600)),
+    objective,
+  };
 }
 
 function sanitizeState(raw: Record<string, unknown>, now: number, warnings: string[]): GameState {
@@ -70,7 +122,7 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
     if (!isRecord(item)) return [];
     const id = item.id;
     const target = item.target;
-    if ((id !== 'moon_frenzy' && id !== 'hatching_fever') || (target !== 'cps' && target !== 'click')) return [];
+    if ((id !== 'moon_frenzy' && id !== 'hatching_fever' && id !== 'eclipse') || (target !== 'cps' && target !== 'click')) return [];
     const startedAt = integer(item.startedAt);
     const expiresAt = integer(item.expiresAt);
     const multiplier = nonNegativeNumber(item.multiplier, 1);
@@ -84,7 +136,15 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
     legacyOrCurrentShards,
     integer(rawPrestige.totalShardsEarned, integer(raw.totalPrestigePoints)),
   );
-  const state: GameState = {
+  const rawContracts = isRecord(raw.contracts) ? raw.contracts : {};
+  const rawActiveContracts = isRecord(rawContracts.active) ? rawContracts.active : {};
+  const activeContracts: GameState['contracts']['active'] = {};
+  for (const kind of CONTRACT_KINDS) {
+    const contract = sanitizeContract(rawActiveContracts[kind], kind);
+    if (contract) activeContracts[kind] = contract;
+  }
+
+  let state: GameState = {
     ...base,
     version: CURRENT_SAVE_VERSION,
     createdAt,
@@ -104,11 +164,20 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
     buffs,
     mooncap: {
       active: rawMooncap.active === true,
+      family: mooncapFamily(rawMooncap.family),
       spawnedAt: rawMooncap.spawnedAt === null ? null : integer(rawMooncap.spawnedAt, 0) || null,
       expiresAt: rawMooncap.expiresAt === null ? null : integer(rawMooncap.expiresAt, 0) || null,
       nextSpawnAt: integer(rawMooncap.nextSpawnAt, base.mooncap.nextSpawnAt),
+      lunarCharge: Math.min(MAX_LUNAR_CHARGE, integer(rawMooncap.lunarCharge)),
+      nextFamilyBias: mooncapFamily(rawMooncap.nextFamilyBias),
       rngSeed: normalizeSeed(finiteNumber(rawMooncap.rngSeed, base.mooncap.rngSeed)),
       rngCounter: integer(rawMooncap.rngCounter),
+    },
+    contracts: {
+      active: activeContracts,
+      completed: integer(rawContracts.completed),
+      nextSequence: integer(rawContracts.nextSequence),
+      oracleBoost: Math.min(2, integer(rawContracts.oracleBoost)),
     },
     statistics: {
       totalClicks: integer(rawStats.totalClicks, integer(raw.totalClicks)),
@@ -125,6 +194,9 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
     state.lastUpdateAt = now;
   }
   if (state.lifetimeGoblins < state.runGoblins) state.lifetimeGoblins = state.runGoblins;
+  if (!state.mooncap.active) state.mooncap.family = null;
+  if (state.mooncap.active && state.mooncap.family === null) state.mooncap.family = 'clutch';
+  state = ensureContracts(state, state.lastUpdateAt);
   return state;
 }
 

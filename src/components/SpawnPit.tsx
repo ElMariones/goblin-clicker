@@ -7,6 +7,7 @@ export interface BonusEventView {
   id: string;
   label: string;
   detail?: string;
+  tone?: 'clutch' | 'frenzy' | 'blood' | 'oracle';
   onClaim: () => void;
 }
 
@@ -20,10 +21,12 @@ export interface SpawnPitProps {
   bonusEvent?: BonusEventView | null;
   activityLevel?: 'dormant' | 'stirring' | 'busy' | 'overrun';
   className?: string;
+  contractGiver?: ReactNode;
+  moonDial?: ReactNode;
   children?: ReactNode;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', children }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, moonDial, children }: SpawnPitProps) {
   const { t } = useI18n();
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
@@ -56,8 +59,11 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
         <strong>+{clickPowerLabel}</strong>
       </div>
 
+      {moonDial}
+      {contractGiver}
+
       {bonusEvent && (
-        <button className="omen-event" type="button" onClick={bonusEvent.onClaim} aria-label={t('spawn.claim', { name: bonusEvent.label })}>
+        <button className={`omen-event${bonusEvent.tone ? ` omen-event--${bonusEvent.tone}` : ''}`} type="button" onClick={bonusEvent.onClaim} aria-label={t('spawn.claim', { name: bonusEvent.label })}>
           <span className="omen-event__icon"><Icon name="sparkles" /></span>
           <span><strong>{bonusEvent.label}</strong>{bonusEvent.detail && <small>{bonusEvent.detail}</small>}</span>
         </button>

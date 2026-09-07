@@ -10,6 +10,7 @@ import shamanCircle from '../images/building-shaman-circle.webp';
 import warCamp from '../images/building-war-camp.webp';
 import warrenDen from '../images/building-warren-den.webp';
 import goblinSpawn from '../images/goblin-spawn.webp';
+import missionGiver from '../images/mission.webp';
 
 export function publicAsset(path: string): string {
   const cleanPath = path.replace(/^\/+/, '');
@@ -32,6 +33,7 @@ const BUILDING_IMAGE_ART: Readonly<Record<string, string>> = {
 export const gameArt = {
   brandLogo,
   goblinSpawn,
+  missionGiver,
 } as const;
 
 /**

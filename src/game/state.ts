@@ -1,4 +1,5 @@
 import { BUILDINGS } from './content';
+import { ensureContracts } from './contracts';
 import { scheduleNextMooncap } from './events';
 import { seedFromTimestamp } from './rng';
 import { CURRENT_SAVE_VERSION, type BuildingId, type GameState } from './types';
@@ -39,11 +40,20 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
     buffs: [],
     mooncap: {
       active: false,
+      family: null,
       spawnedAt: null,
       expiresAt: null,
       nextSpawnAt: timestamp,
+      lunarCharge: 0,
+      nextFamilyBias: null,
       rngSeed: seed >>> 0,
       rngCounter: 0,
+    },
+    contracts: {
+      active: {},
+      completed: 0,
+      nextSequence: 0,
+      oracleBoost: 0,
     },
     statistics: {
       totalClicks: 0,
@@ -55,7 +65,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
     },
   };
 
-  return scheduleNextMooncap(initial, timestamp);
+  return ensureContracts(scheduleNextMooncap(initial, timestamp), timestamp);
 }
 
 export function creditGoblins(state: GameState, amount: number): GameState {

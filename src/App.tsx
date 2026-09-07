@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AchievementModal,
+  ContractModal,
   CRTWarp,
   FloatingNumbers,
   GameShell,
   Icon,
+  MoonDial,
   PrestigeModal,
   ResourceHeader,
   SettingsModal,
@@ -20,25 +22,26 @@ import {
   type ToastView,
 } from './components';
 import {
-  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimMooncap,
+  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
   createInitialGameState, deserializeGame, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
-  getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
+  getContractProgress, getContractRewardAmount, getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
   getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, hatchGoblin, isUpgradeUnlocked, performPrestigeReset,
-  importGameSave, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, tickGame,
-  type BuildingId, type GameState, type PermanentUpgradeId,
+  importGameSave, isContractComplete, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
+  type BuildingId, type ContractKind, type GameState, type MooncapFamily, type PermanentUpgradeId,
 } from './game';
 import { playSound } from './audio';
 import {
   I18nProvider, detectPreferredLanguage, formatCompact, getLanguageMeta, isLanguageCode, localizedName, localizedPerkDescription, translate,
   type LanguageCode, type TranslationKey,
 } from './i18n';
-import { buildingArtAsset } from './utils/assets';
+import { buildingArtAsset, gameArt } from './utils/assets';
 import { formatDateTime, formatDuration, formatInteger, formatNumber } from './utils/format';
 import './App.css';
 
-const SAVE_KEY = 'goblin-clicker.save.v3';
+const SAVE_KEY = 'goblin-clicker.save';
+const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'goblin-clicker.save.v1'] as const;
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | null;
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
@@ -79,7 +82,15 @@ function loadSettings(): UiSettings {
 function loadInitialState(): { state: GameState; offline: number; warning: WarningCode } {
   const now = Date.now();
   let raw: string | null;
-  try { raw = localStorage.getItem(SAVE_KEY); }
+  try {
+    raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+      for (const legacyKey of LEGACY_SAVE_KEYS) {
+        raw = localStorage.getItem(legacyKey);
+        if (raw) break;
+      }
+    }
+  }
   catch { return { state: createInitialGameState(now), offline: 0, warning: 'storageUnavailable' }; }
   if (!raw) return { state: createInitialGameState(now), offline: 0, warning: null };
   try {
@@ -103,12 +114,15 @@ function App() {
   const [toasts, setToasts] = useState<ToastView[]>([]);
   const [floating, setFloating] = useState<FloatingNumberView[]>([]);
   const [saveStatus, setSaveStatus] = useState('');
+  const [contractRewardNotice, setContractRewardNotice] = useState<string | null>(null);
+  const [contractRewardFxKey, setContractRewardFxKey] = useState(0);
   const [resetEffect, setResetEffect] = useState<ResetEffect>(null);
   const toastSequence = useRef(0);
   const floatSequence = useRef(0);
   const resetTimers = useRef<number[]>([]);
   const resetInProgress = useRef(false);
   const resetOverlayRef = useRef<HTMLDivElement>(null);
+  const contractNoticeTimer = useRef<number | null>(null);
   const gameRef = useRef(game);
   const previousAchievements = useRef(game.unlockedAchievements);
   const bootToastShown = useRef(false);
@@ -129,6 +143,7 @@ function App() {
     resetTimers.current.forEach((timer) => window.clearTimeout(timer));
     resetTimers.current = [];
     resetInProgress.current = false;
+    if (contractNoticeTimer.current !== null) window.clearTimeout(contractNoticeTimer.current);
   }, []);
   useEffect(() => {
     if (resetEffect) resetOverlayRef.current?.focus();
@@ -305,13 +320,44 @@ function App() {
 
   const clickMooncap = () => {
     const result = claimMooncap(gameRef.current, Date.now()); commitGame(result.state); if (!result.reward) return; playSound('mooncap', settings.sound);
-    const title = result.reward.type === 'goblins' ? t('mooncap.clutch') : result.reward.buff.target === 'cps' ? t('buff.moonFrenzy') : t('buff.hatchingFever');
+    const title = result.reward.type === 'goblins'
+      ? t('mooncap.clutchcap')
+      : result.reward.type === 'oracle'
+        ? t('mooncap.oraclecap')
+        : result.reward.family === 'frenzy' ? t('mooncap.frenzycap') : t('mooncap.bloodcap');
     const message = result.reward.type === 'goblins'
       ? t('mooncap.clutchMessage', { amount: fmtNumber(result.reward.amount) })
-      : result.reward.buff.target === 'cps'
-        ? t('mooncap.cpsMessage', { multiplier: result.reward.buff.multiplier, duration: fmtDuration(result.reward.buff.expiresAt - result.reward.buff.startedAt) })
-        : t('mooncap.clickMessage', { multiplier: result.reward.buff.multiplier, duration: fmtDuration(result.reward.buff.expiresAt - result.reward.buff.startedAt) });
+      : result.reward.type === 'oracle'
+        ? t('mooncap.oracleMessage', { multiplier: result.reward.contractMultiplier })
+        : result.reward.family === 'frenzy'
+          ? t('mooncap.cpsMessage', { multiplier: result.reward.buff.multiplier, duration: fmtDuration(result.reward.buff.expiresAt - result.reward.buff.startedAt) })
+          : t('mooncap.clickMessage', { multiplier: result.reward.buff.multiplier, duration: fmtDuration(result.reward.buff.expiresAt - result.reward.buff.startedAt) });
     addToast({ title, message, icon: 'sparkles', tone: 'success' });
+    if (result.eclipseTriggered) {
+      const eclipse = result.state.buffs.find((buff) => buff.id === 'eclipse');
+      if (eclipse) addToast({ title: t('mooncap.eclipseTitle'), message: t('mooncap.eclipseMessage', { duration: fmtDuration(eclipse.expiresAt - eclipse.startedAt) }), icon: 'sparkles', tone: 'prestige' });
+    }
+  };
+
+  const collectContract = (kind: ContractKind) => {
+    const result = claimContract(gameRef.current, kind, Date.now());
+    commitGame(result.state);
+    if (!result.success) return;
+    playSound('achievement', settings.sound);
+    const notice = t('contract.rewardNotice', { amount: fmtNumber(result.reward) });
+    setContractRewardNotice(notice);
+    setContractRewardFxKey((value) => value + 1);
+    if (contractNoticeTimer.current !== null) window.clearTimeout(contractNoticeTimer.current);
+    contractNoticeTimer.current = window.setTimeout(() => setContractRewardNotice(null), 2_600);
+    addToast({ title: t('contract.complete'), message: notice, icon: 'clutch', tone: 'success' });
+  };
+
+  const operateMoonDial = (action: Parameters<typeof spendLunarCharge>[1], successMessage: string) => {
+    const result = spendLunarCharge(gameRef.current, action, Date.now());
+    if (!result.success) return;
+    commitGame(result.state);
+    playSound('mooncap', settings.sound);
+    addToast({ title: t('moonDial.title'), message: successMessage, icon: 'totem', tone: 'success' });
   };
 
   const exportSave = () => {
@@ -362,7 +408,7 @@ function App() {
 
   const hardReset = () => {
     if (!window.confirm(t('settings.resetConfirm1')) || !window.confirm(t('settings.resetConfirm2'))) return;
-    const fresh = createInitialGameState(Date.now()); try { localStorage.removeItem(SAVE_KEY); } catch { /* in-memory reset still succeeds */ }
+    const fresh = createInitialGameState(Date.now()); try { localStorage.removeItem(SAVE_KEY); for (const key of LEGACY_SAVE_KEYS) localStorage.removeItem(key); } catch { /* in-memory reset still succeeds */ }
     commitGame(fresh); previousAchievements.current = {}; setModal(null); addToast({ title: t('settings.resetTitle'), message: t('settings.resetMessage'), icon: 'settings' });
   };
 
@@ -434,6 +480,56 @@ function App() {
 
   const activeBuffs = game.buffs.filter((buff) => buff.expiresAt > now);
   const sevenfoldActive = activeBuffs.some((buff) => buff.id === 'moon_frenzy' && buff.target === 'cps');
+  const contractViews = CONTRACT_KINDS.map((kind) => {
+    const contract = game.contracts.active[kind];
+    if (!contract) return null;
+    const objective = contract.objective;
+    let copy: { title: string; dialogue: string; objective: string };
+    switch (objective.type) {
+      case 'manualBorn':
+        copy = { title: t('contract.mission.manualTitle'), dialogue: t('contract.mission.manualDialogue'), objective: t('contract.mission.manualObjective', { amount: fmtNumber(objective.amount) }) };
+        break;
+      case 'buildingOwned': {
+        const name = localizedName(language, 'building', objective.buildingId, BUILDING_BY_ID[objective.buildingId].name);
+        copy = { title: t('contract.mission.buildingTitle', { name }), dialogue: t('contract.mission.buildingDialogue'), objective: t('contract.mission.buildingObjective', { amount: fmtNumber(objective.target), name }) };
+        break;
+      }
+      case 'runGoblins':
+        copy = { title: t('contract.mission.runTitle'), dialogue: t('contract.mission.runDialogue'), objective: t('contract.mission.runObjective', { amount: fmtNumber(objective.target) }) };
+        break;
+      case 'mooncapCatches':
+        copy = { title: t('contract.mission.mooncapTitle'), dialogue: t('contract.mission.mooncapDialogue'), objective: t('contract.mission.mooncapObjective', { amount: fmtNumber(objective.amount) }) };
+        break;
+      case 'masteryCount':
+        copy = { title: t('contract.mission.masteryTitle'), dialogue: t('contract.mission.masteryDialogue'), objective: t('contract.mission.masteryObjective', { amount: fmtNumber(objective.target) }) };
+        break;
+    }
+    const progress = getContractProgress(game, contract);
+    return {
+      id: contract.id,
+      kind,
+      kindLabel: t(kind === 'quick' ? 'contract.quick' : kind === 'quartermaster' ? 'contract.quartermaster' : 'contract.directive'),
+      title: copy.title,
+      dialogue: copy.dialogue,
+      objective: copy.objective,
+      progressLabel: `${fmtNumber(progress.current)} / ${fmtNumber(progress.target)}`,
+      progressRatio: progress.ratio,
+      rewardLabel: `+${fmtNumber(getContractRewardAmount(game, contract))} ${t('common.goblins')}`,
+      complete: isContractComplete(game, contract),
+    };
+  }).filter((contract): contract is NonNullable<typeof contract> => contract !== null);
+  const readyContracts = contractViews.filter(({ complete }) => complete).length;
+  const mooncapFamily = game.mooncap.family;
+  const mooncapCopy = mooncapFamily ? {
+    clutch: { label: t('mooncap.clutchcap'), detail: t('mooncap.clutchcapDetail') },
+    frenzy: { label: t('mooncap.frenzycap'), detail: t('mooncap.frenzycapDetail') },
+    blood: { label: t('mooncap.bloodcap'), detail: t('mooncap.bloodcapDetail') },
+    oracle: { label: t('mooncap.oraclecap'), detail: t('mooncap.oraclecapDetail') },
+  }[mooncapFamily] : null;
+  const familyLabels: Record<MooncapFamily, string> = {
+    clutch: t('mooncap.clutchcap'), frenzy: t('mooncap.frenzycap'), blood: t('mooncap.bloodcap'), oracle: t('mooncap.oraclecap'),
+  };
+  const canExtendMoon = activeBuffs.some((buff) => buff.id === 'moon_frenzy' || buff.id === 'hatching_fever' || buff.id === 'eclipse');
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
@@ -447,7 +543,7 @@ function App() {
         <div><dt>{t('ledger.manual')}</dt><dd>{fmtNumber(game.statistics.manuallyBorn)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
         <div><dt>{t('ledger.baseProduction')}</dt><dd>{fmtNumber(baseCps)}/s</dd></div><div><dt>{t('ledger.bestProduction')}</dt><dd>{fmtNumber(game.statistics.highestCps)}/s</dd></div>
       </dl>
-      {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className={`buff-pill${buff.id === 'moon_frenzy' ? ' buff-pill--sevenfold' : ''}`} key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : t('buff.hatchingFever')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
+      {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className={`buff-pill${buff.id === 'moon_frenzy' ? ' buff-pill--sevenfold' : buff.id === 'eclipse' ? ' buff-pill--eclipse' : ''}`} key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : buff.id === 'hatching_fever' ? t('buff.hatchingFever') : t('buff.eclipse')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
     </SidePanel>
     <SidePanel title={t('research.title')} eyebrow={t('research.eyebrow')} action={availableUpgrades > 0 ? <span className="notification-badge">{fmtInteger(availableUpgrades)}</span> : undefined}>
       <p className="panel-copy">{t('research.copy')}</p><button className="panel-primary-button" type="button" onClick={() => setModal('upgrades')}><Icon name="sparkles" size={16} /> {t('research.open')} <Icon name="chevron" size={14} /></button>
@@ -458,7 +554,25 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} bonusEvent={game.mooncap.active ? { id: 'mooncap', label: t('mooncap.wild'), detail: t('mooncap.detail'), onClaim: clickMooncap } : null}>
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} contractGiver={
+    <button className={`contract-giver${readyContracts > 0 ? ' contract-giver--ready' : ''}`} type="button" onClick={() => setModal('contracts')} aria-label={t('contract.openAria')}>
+      <span className="contract-giver__signal" aria-hidden="true" />
+      <img src={gameArt.missionGiver} alt="" draggable={false} />
+      <span className="contract-giver__copy"><strong>{t('contract.giver')}</strong><small>{readyContracts > 0 ? t('contract.ready', { count: readyContracts }) : t('contract.giverDetail')}</small></span>
+    </button>
+  } moonDial={
+    <MoonDial
+      charge={game.mooncap.lunarCharge}
+      maxCharge={MAX_LUNAR_CHARGE}
+      bias={game.mooncap.nextFamilyBias}
+      canHasten={!game.mooncap.active && game.mooncap.nextSpawnAt > now + 8_000}
+      canExtend={canExtendMoon}
+      onHasten={() => operateMoonDial({ type: 'hasten' }, t('moonDial.hastenMessage'))}
+      onExtend={() => operateMoonDial({ type: 'extend' }, t('moonDial.extendMessage'))}
+      onBias={(family) => operateMoonDial({ type: 'bias', family }, t('moonDial.biasMessage', { family: familyLabels[family] }))}
+      labels={{ title: t('moonDial.title'), charge: t('moonDial.charge'), hasten: t('moonDial.hasten'), extend: t('moonDial.extend'), bias: t('moonDial.bias'), family: familyLabels }}
+    />
+  }>
     <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
       id: building.id,
       name: localizedName(language, 'building', building.id, building.name),
@@ -518,6 +632,18 @@ function App() {
   const overlay = <>
     <UpgradeModal open={modal === 'upgrades'} upgrades={upgradesView} onPurchase={buyUpgrade} onClose={() => setModal(null)} currencyLabel={t('upgrade.available', { amount: fmtNumber(game.goblins) })} />
     <AchievementModal open={modal === 'achievements'} achievements={achievementViews} onClose={() => setModal(null)} />
+    <ContractModal
+      open={modal === 'contracts'}
+      giverImage={gameArt.missionGiver}
+      contracts={contractViews}
+      completedLabel={t('contract.completed', { count: fmtInteger(game.contracts.completed) })}
+      oracleLabel={game.contracts.oracleBoost > 0 ? t('contract.oracleBoost', { multiplier: 1 + game.contracts.oracleBoost * 0.5 }) : undefined}
+      rewardNotice={contractRewardNotice}
+      rewardFxKey={contractRewardFxKey}
+      onClaim={collectContract}
+      onClose={() => setModal(null)}
+      labels={{ title: t('contract.title'), subtitle: t('contract.subtitle'), progress: t('contract.progress'), reward: t('contract.reward'), claim: t('contract.claim'), working: t('contract.working'), complete: t('contract.complete') }}
+    />
     <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onClose={() => setModal(null)} />
     <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} toggles={[
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },

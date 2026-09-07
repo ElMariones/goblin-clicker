@@ -39,9 +39,10 @@ describe('game simulation', () => {
     state.buildings.brood_matron = 10; // 1/s total
     state.buildings.mushroom_nursery = 2; // 2/s total
     const next = tickGame(state, 2_000);
-    expect(next.goblins).toBeCloseTo(3, 8);
-    expect(next.statistics.lifetimeProducedByBuilding.brood_matron).toBeCloseTo(1, 8);
-    expect(next.statistics.lifetimeProducedByBuilding.mushroom_nursery).toBeCloseTo(2, 8);
+    // Established Matrons gain ×1.2 locally and +0.5% to the global mastery network.
+    expect(next.goblins).toBeCloseTo(3.216, 8);
+    expect(next.statistics.lifetimeProducedByBuilding.brood_matron).toBeCloseTo(1.206, 8);
+    expect(next.statistics.lifetimeProducedByBuilding.mushroom_nursery).toBeCloseTo(2.01, 8);
   });
 
   it('purchases buildings atomically', () => {
@@ -83,6 +84,19 @@ describe('game simulation', () => {
     expect(result.state.lifetimeGoblins).toBe(5_000_000);
   });
 
+  it('carries heirloom matrons into a new migration without carrying ordinary buildings', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.lifetimeGoblins = 5_000_000;
+    state.runGoblins = 5_000_000;
+    state.buildings.brood_matron = 42;
+    state.buildings.mushroom_nursery = 11;
+    state.prestige.permanentUpgrades.heirloom_matrons = 3;
+    const result = performPrestigeReset(state, 1_000);
+    expect(result.success).toBe(true);
+    expect(result.state.buildings.brood_matron).toBe(3);
+    expect(result.state.buildings.mushroom_nursery).toBe(0);
+  });
+
   it('caps offline progress and excludes temporary buffs', () => {
     const state = createInitialGameState(0, 7);
     state.buildings.mushroom_nursery = 1;
@@ -98,6 +112,15 @@ describe('game simulation', () => {
       .toBeCloseTo(progress.goblinsProduced, 8);
   });
 
+  it('raises offline efficiency to 100% with a maxed Tireless Lineage', () => {
+    const state = createInitialGameState(0, 7);
+    state.buildings.mushroom_nursery = 1;
+    state.prestige.permanentUpgrades.tireless_lineage = 5;
+    const progress = calculateOfflineProgress(state, 60 * 60 * 1_000);
+    expect(progress.efficiency).toBe(1);
+    expect(progress.goblinsProduced).toBeCloseTo(3_600, 8);
+  });
+
   it('produces reproducible Mooncap reward sequences from identical seeds', () => {
     const a = createInitialGameState(1_000, 12345);
     const b = createInitialGameState(1_000, 12345);
@@ -109,5 +132,34 @@ describe('game simulation', () => {
     const rewardB = claimMooncap(bSpawned, spawnAt + 1);
     expect(rewardA.reward).toEqual(rewardB.reward);
     expect(rewardA.state.mooncap.nextSpawnAt).toBe(rewardB.state.mooncap.nextSpawnAt);
+  });
+
+  it('extends Mooncap clutch rewards and buff durations with Moonlit Blood', () => {
+    const clutchState = createInitialGameState(1_000, 1);
+    clutchState.prestige.permanentUpgrades.moonlit_blood = 2;
+    clutchState.mooncap = { ...clutchState.mooncap, active: true, spawnedAt: 1_000, expiresAt: 20_000 };
+    const clutch = claimMooncap(clutchState, 1_001);
+    expect(clutch.reward?.type).toBe('goblins');
+    if (clutch.reward?.type === 'goblins') expect(clutch.reward.amount).toBe(15); // floor(13 × 1.2)
+
+    const frenzyState = createInitialGameState(1_000, 2);
+    frenzyState.prestige.permanentUpgrades.moonlit_blood = 2;
+    frenzyState.mooncap = { ...frenzyState.mooncap, active: true, spawnedAt: 1_000, expiresAt: 20_000 };
+    const frenzy = claimMooncap(frenzyState, 1_001);
+    expect(frenzy.reward?.type).toBe('buff');
+    if (frenzy.reward?.type === 'buff') {
+      expect(frenzy.reward.buff.id).toBe('moon_frenzy');
+      expect(frenzy.reward.buff.expiresAt - frenzy.reward.buff.startedAt).toBe(92_400);
+    }
+
+    const feverState = createInitialGameState(1_000, 3);
+    feverState.prestige.permanentUpgrades.moonlit_blood = 2;
+    feverState.mooncap = { ...feverState.mooncap, active: true, spawnedAt: 1_000, expiresAt: 20_000 };
+    const fever = claimMooncap(feverState, 1_001);
+    expect(fever.reward?.type).toBe('buff');
+    if (fever.reward?.type === 'buff') {
+      expect(fever.reward.buff.id).toBe('hatching_fever');
+      expect(fever.reward.buff.expiresAt - fever.reward.buff.startedAt).toBe(15_600);
+    }
   });
 });

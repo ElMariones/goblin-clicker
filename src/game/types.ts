@@ -36,6 +36,30 @@ export interface BuildingDefinition {
   costGrowth: number;
 }
 
+export type ExpansionMasteryLevelId =
+  | 'established'
+  | 'thriving'
+  | 'veteran'
+  | 'renowned'
+  | 'elite'
+  | 'legendary'
+  | 'ancestral'
+  | 'mythic';
+
+/**
+ * Expansion mastery is derived from current owned building counts rather than
+ * stored separately. Reaching a level grants both a local multiplicative bonus
+ * and a small additive contribution to the all-warren mastery network bonus.
+ */
+export interface ExpansionMasteryLevelDefinition {
+  id: ExpansionMasteryLevelId;
+  name: string;
+  description: string;
+  threshold: number;
+  productionMultiplier: number;
+  networkCpsBonus: number;
+}
+
 export interface UpgradeDefinition {
   id: string;
   name: string;
@@ -67,7 +91,12 @@ export type PermanentUpgradeId =
   | 'scavenger_memory'
   | 'lucky_totem'
   | 'deep_warrens'
-  | 'starter_clutch';
+  | 'starter_clutch'
+  | 'founders_legacy'
+  | 'ancestral_momentum'
+  | 'tireless_lineage'
+  | 'moonlit_blood'
+  | 'heirloom_matrons';
 
 export interface PermanentUpgradeDefinition {
   id: PermanentUpgradeId;

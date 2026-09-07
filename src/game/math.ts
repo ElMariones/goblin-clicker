@@ -2,6 +2,7 @@ import {
   ACHIEVEMENTS,
   BUILDING_BY_ID,
   BUILDINGS,
+  EXPANSION_MASTERY_LEVELS,
   PERMANENT_UPGRADE_BY_ID,
   UPGRADES,
   UPGRADE_BY_ID,
@@ -21,6 +22,53 @@ const EPSILON = 1e-9;
 
 export function getPermanentRank(state: GameState, id: PermanentUpgradeId): number {
   return Math.max(0, Math.floor(state.prestige.permanentUpgrades[id] ?? 0));
+}
+
+export function getReachedExpansionMasteryLevels(state: GameState, buildingId: BuildingId) {
+  const owned = Math.max(0, Math.floor(state.buildings[buildingId]));
+  return EXPANSION_MASTERY_LEVELS.filter((level) => owned >= level.threshold);
+}
+
+export function getExpansionMasteryLevel(state: GameState, buildingId: BuildingId) {
+  const reached = getReachedExpansionMasteryLevels(state, buildingId);
+  return reached.length > 0 ? reached[reached.length - 1] : null;
+}
+
+export function getNextExpansionMasteryLevel(state: GameState, buildingId: BuildingId) {
+  const owned = Math.max(0, Math.floor(state.buildings[buildingId]));
+  return EXPANSION_MASTERY_LEVELS.find((level) => owned < level.threshold) ?? null;
+}
+
+/** Product of every local mastery multiplier earned by the expansion. */
+export function getExpansionMasteryProductionMultiplier(state: GameState, buildingId: BuildingId): number {
+  return getReachedExpansionMasteryLevels(state, buildingId)
+    .reduce((multiplier, level) => multiplier * level.productionMultiplier, 1);
+}
+
+/**
+ * Additive global CPS contribution from all currently maintained expansion
+ * mastery levels. Founders' Legacy strengthens the contribution without
+ * changing the visible mastery thresholds or local production multipliers.
+ */
+export function getExpansionMasteryNetworkBonus(state: GameState): number {
+  let baseBonus = 0;
+  for (const building of BUILDINGS) {
+    for (const level of getReachedExpansionMasteryLevels(state, building.id)) {
+      baseBonus += level.networkCpsBonus;
+    }
+  }
+  const legacyFactor = 1 + getPermanentRank(state, 'founders_legacy') * 0.2;
+  return baseBonus * legacyFactor;
+}
+
+export function getExpansionMasteryNetworkMultiplier(state: GameState): number {
+  return 1 + getExpansionMasteryNetworkBonus(state);
+}
+
+export function getAncestralMomentumMultiplier(state: GameState): number {
+  const rank = getPermanentRank(state, 'ancestral_momentum');
+  const countedMigrations = Math.min(25, Math.max(0, Math.floor(state.prestige.resets)));
+  return 1 + countedMigrations * rank * 0.01;
 }
 
 export function getBuildingCostMultiplier(state: GameState): number {
@@ -87,7 +135,7 @@ function getPurchasedEffects(state: GameState): UpgradeEffect[] {
 }
 
 export function getBuildingProductionMultiplier(state: GameState, buildingId: BuildingId): number {
-  let multiplier = 1;
+  let multiplier = getExpansionMasteryProductionMultiplier(state, buildingId);
   for (const effect of getPurchasedEffects(state)) {
     if (effect.type === 'buildingMultiplier' && effect.buildingId === buildingId) multiplier *= effect.multiplier;
   }
@@ -95,7 +143,9 @@ export function getBuildingProductionMultiplier(state: GameState, buildingId: Bu
 }
 
 export function getGlobalCpsMultiplier(state: GameState): number {
-  let multiplier = 1 + getPermanentRank(state, 'ancestral_fertility') * 0.05;
+  let multiplier = (1 + getPermanentRank(state, 'ancestral_fertility') * 0.05)
+    * getExpansionMasteryNetworkMultiplier(state)
+    * getAncestralMomentumMultiplier(state);
   for (const effect of getPurchasedEffects(state)) {
     if (effect.type === 'globalCpsMultiplier') multiplier *= effect.multiplier;
   }

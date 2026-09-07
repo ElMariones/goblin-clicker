@@ -8,6 +8,10 @@ export const BASE_OFFLINE_CAP_MS = 8 * 60 * 60 * 1_000;
 export const OFFLINE_CAP_PER_RANK_MS = 2 * 60 * 60 * 1_000;
 export const OFFLINE_EFFICIENCY = 0.75;
 
+export function getOfflineEfficiency(state: GameState): number {
+  return Math.min(1, OFFLINE_EFFICIENCY + getPermanentRank(state, 'tireless_lineage') * 0.05);
+}
+
 export function getOfflineCapMs(state: GameState): number {
   return BASE_OFFLINE_CAP_MS + getPermanentRank(state, 'deep_warrens') * OFFLINE_CAP_PER_RANK_MS;
 }
@@ -17,8 +21,9 @@ export function calculateOfflineProgress(state: GameState, now: number): Offline
   const elapsedMs = timestamp - state.lastUpdateAt;
   const capMs = getOfflineCapMs(state);
   const creditedMs = Math.min(elapsedMs, capMs);
-  const goblinsProduced = getBaseCps(state) * (creditedMs / 1_000) * OFFLINE_EFFICIENCY;
-  return { elapsedMs, creditedMs, efficiency: OFFLINE_EFFICIENCY, goblinsProduced, capMs };
+  const efficiency = getOfflineEfficiency(state);
+  const goblinsProduced = getBaseCps(state) * (creditedMs / 1_000) * efficiency;
+  return { elapsedMs, creditedMs, efficiency, goblinsProduced, capMs };
 }
 
 /**

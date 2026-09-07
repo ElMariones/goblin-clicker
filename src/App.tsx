@@ -16,12 +16,14 @@ import {
   UpgradeModal,
   WarrenBuildingField,
   type FloatingNumberView,
+  type IconName,
   type ToastView,
 } from './components';
 import {
   ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimMooncap,
   createInitialGameState, deserializeGame, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
-  getMaxAffordableBuildingCount, getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, hatchGoblin, isUpgradeUnlocked, performPrestigeReset,
+  getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
+  getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, hatchGoblin, isUpgradeUnlocked, performPrestigeReset,
   importGameSave, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, tickGame,
   type BuildingId, type GameState, type PermanentUpgradeId,
 } from './game';
@@ -42,6 +44,20 @@ type BuyAmount = 1 | 10 | 100 | 'max';
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
 interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; language: LanguageCode }
 type ResetEffect = 'prestige-vacuum' | null;
+
+const PERK_ICONS: Record<PermanentUpgradeId, IconName> = {
+  ancestral_fertility: 'bloodline',
+  stronger_spawn: 'muscle',
+  scavenger_memory: 'memory',
+  lucky_totem: 'totem',
+  deep_warrens: 'burrow',
+  starter_clutch: 'clutch',
+  founders_legacy: 'hammer',
+  ancestral_momentum: 'bloodline',
+  tireless_lineage: 'hourglass',
+  moonlit_blood: 'totem',
+  heirloom_matrons: 'clutch',
+};
 
 function loadSettings(): UiSettings {
   const fallbackLanguage = detectPreferredLanguage();
@@ -387,8 +403,34 @@ function App() {
 
   const prestigePerks = useMemo(() => PERMANENT_UPGRADES.map((perk) => {
     const rank = getPermanentRank(game, perk.id); const cost = getPermanentUpgradeCost(game, perk.id);
-    return { id: perk.id, name: localizedName(language, 'perk', perk.id, perk.name), description: localizedPerkDescription(language, perk.id, perk.description), levelLabel: `${fmtInteger(rank)} / ${fmtInteger(perk.maxRank)}`, priceLabel: Number.isFinite(cost) ? fmtInteger(cost) : '—', affordable: canPurchasePermanentUpgrade(game, perk.id), maxed: rank >= perk.maxRank };
-  }), [fmtInteger, game, language]);
+    let effectLabel: string;
+    switch (perk.id) {
+      case 'ancestral_fertility': effectLabel = t('prestige.effectGlobalCps', { percent: fmtInteger(rank * 5) }); break;
+      case 'stronger_spawn': effectLabel = t('prestige.effectSpawnPower', { percent: fmtInteger(rank * 10) }); break;
+      case 'scavenger_memory': effectLabel = t('prestige.effectExpansionCost', { percent: fmtInteger(rank) }); break;
+      case 'lucky_totem': effectLabel = t('prestige.effectMooncapDelay', { percent: fmtInteger(Math.round((1 - 1 / (1 + rank * 0.1)) * 100)) }); break;
+      case 'deep_warrens': effectLabel = t('prestige.effectOfflineCap', { hours: fmtInteger(8 + rank * 2) }); break;
+      case 'starter_clutch': effectLabel = t('prestige.effectStartingGoblins', { amount: fmtInteger(rank * 50) }); break;
+      case 'founders_legacy': effectLabel = t('prestige.effectMasteryNetwork', { percent: fmtInteger(rank * 20) }); break;
+      case 'ancestral_momentum': effectLabel = t('prestige.effectMigrationCps', { percent: fmtInteger(Math.min(25, game.prestige.resets) * rank) }); break;
+      case 'tireless_lineage': effectLabel = t('prestige.effectOfflineEfficiency', { percent: fmtInteger(Math.min(100, 75 + rank * 5)) }); break;
+      case 'moonlit_blood': effectLabel = t('prestige.effectMooncapPower', { percent: fmtInteger(rank * 10) }); break;
+      case 'heirloom_matrons': effectLabel = t('prestige.effectStartingMatrons', { amount: fmtInteger(rank) }); break;
+    }
+    return {
+      id: perk.id,
+      name: localizedName(language, 'perk', perk.id, perk.name),
+      description: localizedPerkDescription(language, perk.id, perk.description),
+      levelLabel: `${fmtInteger(rank)} / ${fmtInteger(perk.maxRank)}`,
+      priceLabel: Number.isFinite(cost) ? fmtInteger(cost) : '—',
+      affordable: canPurchasePermanentUpgrade(game, perk.id),
+      maxed: rank >= perk.maxRank,
+      rank,
+      maxRank: perk.maxRank,
+      icon: PERK_ICONS[perk.id],
+      effectLabel,
+    };
+  }), [fmtInteger, game, language, t]);
 
   const activeBuffs = game.buffs.filter((buff) => buff.expiresAt > now);
   const sevenfoldActive = activeBuffs.some((buff) => buff.id === 'moon_frenzy' && buff.target === 'cps');
@@ -435,6 +477,19 @@ function App() {
       const unitProduction = getBuildingUnitCps(game, building.id, now);
       const totalProduction = getBuildingCps(game, building.id, now);
       const productionShare = cps > 0 ? (totalProduction / cps) * 100 : 0;
+      const masteryLevel = getExpansionMasteryLevel(game, building.id);
+      const nextMasteryLevel = getNextExpansionMasteryLevel(game, building.id);
+      const masteryMultiplier = getExpansionMasteryProductionMultiplier(game, building.id);
+      const masteryNetworkContribution = getReachedExpansionMasteryLevels(game, building.id)
+        .reduce((sum, level) => sum + level.networkCpsBonus, 0)
+        * (1 + getPermanentRank(game, 'founders_legacy') * 0.2);
+      const masteryFloor = masteryLevel?.threshold ?? 0;
+      const masteryCeiling = nextMasteryLevel?.threshold ?? masteryFloor;
+      const masteryProgress = nextMasteryLevel
+        ? (owned - masteryFloor) / Math.max(1, masteryCeiling - masteryFloor)
+        : 1;
+      const masteryTranslationKey = masteryLevel ? `shop.mastery.${masteryLevel.id}` as TranslationKey : 'shop.mastery.unranked';
+      const nextMasteryTranslationKey = nextMasteryLevel ? `shop.mastery.${nextMasteryLevel.id}` as TranslationKey : undefined;
       const name = localizedName(language, 'building', building.id, building.name);
       return <ShopCard key={building.id} id={building.id} name={locked ? t('shop.lockedName') : name} description={locked ? t('shop.lockedDescription') : language === 'en' ? building.description : t('content.buildingDescription')} ownedLabel={fmtInteger(owned)} priceLabel={locked ? '—' : fmtNumber(cost)} productionLabel={locked ? '—' : fmtNumber(unitProduction)} productionDetails={locked ? undefined : {
         perUnit: `${fmtNumber(unitProduction)}/s`,
@@ -448,7 +503,22 @@ function App() {
           shareOfTotal: t('shop.telemetryShare'),
           lifetimeProduced: t('shop.telemetryLifetime'),
         },
-      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} badge={owned >= 100 ? t('shop.badgeHorde') : owned >= 50 ? t('shop.badgeVeteran') : owned >= 10 ? t('shop.badgeEstablished') : undefined} />;
+      }} mastery={locked ? undefined : {
+        levelLabel: t(masteryTranslationKey),
+        multiplierLabel: `×${formatNumber(masteryMultiplier, 2, getLanguageMeta(language).locale)}`,
+        networkLabel: `+${formatNumber(masteryNetworkContribution * 100, 2, getLanguageMeta(language).locale)}%`,
+        progress: masteryProgress,
+        progressLabel: nextMasteryLevel ? `${fmtInteger(owned)} / ${fmtInteger(nextMasteryLevel.threshold)}` : `${fmtInteger(owned)} / ${fmtInteger(masteryFloor)}`,
+        nextLevelLabel: nextMasteryTranslationKey ? t(nextMasteryTranslationKey) : undefined,
+        nextMultiplierLabel: nextMasteryLevel ? `×${formatNumber(masteryMultiplier * nextMasteryLevel.productionMultiplier, 2, getLanguageMeta(language).locale)}` : undefined,
+        labels: {
+          heading: t('shop.mastery.heading'),
+          bonus: t('shop.mastery.production'),
+          network: t('shop.mastery.network'),
+          next: t('shop.mastery.next'),
+          maxed: t('shop.mastery.maxed'),
+        },
+      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} badge={masteryLevel ? t(masteryTranslationKey) : undefined} />;
     })}
   </ShopPanel>;
 

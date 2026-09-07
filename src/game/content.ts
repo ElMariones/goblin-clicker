@@ -1,6 +1,7 @@
 import type {
   AchievementDefinition,
   BuildingDefinition,
+  ExpansionMasteryLevelDefinition,
   PermanentUpgradeDefinition,
   UpgradeDefinition,
 } from './types';
@@ -103,6 +104,46 @@ export const BUILDINGS = [
     costGrowth: 1.15,
   },
 ] as const satisfies readonly BuildingDefinition[];
+
+/**
+ * Mastery rewards breadth and continued investment in older expansions.
+ * productionMultiplier is applied multiplicatively for every reached level;
+ * networkCpsBonus is added to the all-warren mastery network bonus.
+ */
+export const EXPANSION_MASTERY_LEVELS = [
+  {
+    id: 'established', name: 'Established', threshold: 10, productionMultiplier: 1.2, networkCpsBonus: 0.005,
+    description: 'A permanent crew and stable routines take hold. ×1.20 expansion output and +0.5% all-warren production while this level is maintained.',
+  },
+  {
+    id: 'thriving', name: 'Thriving', threshold: 25, productionMultiplier: 1.25, networkCpsBonus: 0.0075,
+    description: 'The expansion becomes a dependable district. ×1.25 expansion output and another +0.75% all-warren production.',
+  },
+  {
+    id: 'veteran', name: 'Veteran', threshold: 50, productionMultiplier: 1.5, networkCpsBonus: 0.01,
+    description: 'Experienced crews teach every new clutch the shortcuts. ×1.50 expansion output and another +1% all-warren production.',
+  },
+  {
+    id: 'renowned', name: 'Renowned', threshold: 100, productionMultiplier: 2, networkCpsBonus: 0.015,
+    description: 'The expansion becomes a model copied throughout the warrens. ×2 expansion output and another +1.5% all-warren production.',
+  },
+  {
+    id: 'elite', name: 'Elite', threshold: 150, productionMultiplier: 2, networkCpsBonus: 0.02,
+    description: 'Specialist crews turn repetition into doctrine. ×2 expansion output and another +2% all-warren production.',
+  },
+  {
+    id: 'legendary', name: 'Legendary', threshold: 200, productionMultiplier: 2.5, networkCpsBonus: 0.025,
+    description: 'Its methods become campfire legend and practical instruction. ×2.50 expansion output and another +2.5% all-warren production.',
+  },
+  {
+    id: 'ancestral', name: 'Ancestral', threshold: 250, productionMultiplier: 3, networkCpsBonus: 0.035,
+    description: 'Generations of accumulated craft turn the expansion into a bloodline institution. ×3 expansion output and another +3.5% all-warren production.',
+  },
+  {
+    id: 'mythic', name: 'Mythic', threshold: 300, productionMultiplier: 4, networkCpsBonus: 0.05,
+    description: 'The expansion is no longer merely productive; it defines how the entire horde works. ×4 expansion output and another +5% all-warren production.',
+  },
+] as const satisfies readonly ExpansionMasteryLevelDefinition[];
 
 export const UPGRADES = [
   {
@@ -329,12 +370,17 @@ export const ACHIEVEMENTS = [
 ] as const satisfies readonly AchievementDefinition[];
 
 export const PERMANENT_UPGRADES = [
-  { id: 'ancestral_fertility', name: 'Ancestral Fertility', description: '+5% global CPS per rank.', baseCost: 1, costGrowth: 1.8, maxRank: 20 },
-  { id: 'stronger_spawn', name: 'Stronger Spawn', description: '+10% click power per rank.', baseCost: 1, costGrowth: 2, maxRank: 20 },
-  { id: 'scavenger_memory', name: 'Scavenger Memory', description: '-1% building costs per rank.', baseCost: 2, costGrowth: 2, maxRank: 10 },
-  { id: 'lucky_totem', name: 'Lucky Totem', description: 'Mooncaps appear roughly 10% sooner per rank.', baseCost: 3, costGrowth: 2.2, maxRank: 5 },
-  { id: 'deep_warrens', name: 'Deep Warrens', description: '+2 hours offline-production cap per rank.', baseCost: 2, costGrowth: 2, maxRank: 8 },
-  { id: 'starter_clutch', name: 'Starter Clutch', description: 'Begin each migration with 50 goblins per rank.', baseCost: 1, costGrowth: 2.5, maxRank: 5 },
+  { id: 'ancestral_fertility', name: 'Ancestral Fertility', description: 'The old blood remembers how to multiply. Each rank adds +5% to the base global production multiplier, before research and temporary buffs.', baseCost: 1, costGrowth: 1.8, maxRank: 20 },
+  { id: 'stronger_spawn', name: 'Stronger Spawn', description: 'Every generation is born ready to work. Each rank adds +10% to manual spawn power before ordinary click multipliers.', baseCost: 1, costGrowth: 2, maxRank: 20 },
+  { id: 'scavenger_memory', name: 'Scavenger Memory', description: 'The clan remembers where every useful plank and stolen hinge came from. Each rank reduces all expansion purchase prices by 1%, down to the shared 50% cost floor.', baseCost: 2, costGrowth: 2, maxRank: 10 },
+  { id: 'lucky_totem', name: 'Lucky Totem', description: 'An old moon-carved idol calls strange fungus to the surface. Each rank shortens Mooncap spawn delays by the equivalent of roughly 10%, subject to the 30-second minimum.', baseCost: 3, costGrowth: 2.2, maxRank: 5 },
+  { id: 'deep_warrens', name: 'Deep Warrens', description: 'Hidden nurseries keep working while the chief is away. Each rank adds 2 hours to the offline-production cap beyond the base 8 hours.', baseCost: 2, costGrowth: 2, maxRank: 8 },
+  { id: 'starter_clutch', name: 'Starter Clutch', description: 'Every new warren begins with descendants already waiting in the tunnels. Start each migration with 50 goblins per rank.', baseCost: 1, costGrowth: 2.5, maxRank: 5 },
+  { id: 'founders_legacy', name: "Founders' Legacy", description: 'Older expansions teach the whole horde. Each rank makes expansion-mastery network bonuses 20% stronger, doubling their global contribution at rank 5.', baseCost: 4, costGrowth: 2.15, maxRank: 5 },
+  { id: 'ancestral_momentum', name: 'Ancestral Momentum', description: 'Each successful migration makes the next empire quicker to organize. Gain +1% global production per completed migration per rank, counting up to 25 migrations.', baseCost: 5, costGrowth: 2.3, maxRank: 5 },
+  { id: 'tireless_lineage', name: 'Tireless Lineage', description: 'The warrens waste less time while unattended. Each rank raises offline efficiency by 5 percentage points, from 75% up to 100% at rank 5.', baseCost: 4, costGrowth: 2.25, maxRank: 5 },
+  { id: 'moonlit_blood', name: 'Moonlit Blood', description: 'Mooncaps recognize an old bargain in the bloodline. Each rank adds 10% to Mooncap clutch rewards and to the duration of Moon Frenzy and Hatching Fever.', baseCost: 6, costGrowth: 2.35, maxRank: 5 },
+  { id: 'heirloom_matrons', name: 'Heirloom Matrons', description: 'Trusted matrons travel with the clan instead of being left behind. Begin each migration with 1 Brood Matron per rank, immediately restoring a trickle of passive production.', baseCost: 3, costGrowth: 2.4, maxRank: 8 },
 ] as const satisfies readonly PermanentUpgradeDefinition[];
 
 export type UpgradeId = (typeof UPGRADES)[number]['id'];

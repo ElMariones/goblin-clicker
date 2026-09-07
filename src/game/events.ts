@@ -6,6 +6,10 @@ export const MOONCAP_MIN_DELAY_MS = 120_000;
 export const MOONCAP_MAX_DELAY_MS = 300_000;
 export const MOONCAP_DURATION_MS = 13_000;
 
+export function getMoonlitBloodFactor(state: GameState): number {
+  return 1 + getPermanentRank(state, 'moonlit_blood') * 0.1;
+}
+
 function nextRandom(state: GameState): [number, GameState] {
   const value = randomAt(state.mooncap.rngSeed, state.mooncap.rngCounter);
   return [
@@ -89,7 +93,8 @@ export function clickMooncap(state: GameState, now: number): MooncapClickResult 
   let reward: MooncapReward;
 
   if (roll < 0.55) {
-    const amount = Math.max(13, Math.floor(state.goblins * 0.1), Math.floor(getCps(state, now) * 60));
+    const baseAmount = Math.max(13, Math.floor(state.goblins * 0.1), Math.floor(getCps(state, now) * 60));
+    const amount = Math.floor(baseAmount * getMoonlitBloodFactor(state));
     reward = { type: 'goblins', amount, label: 'Mooncap Clutch' };
     next = {
       ...next,
@@ -98,21 +103,23 @@ export function clickMooncap(state: GameState, now: number): MooncapClickResult 
       lifetimeGoblins: next.lifetimeGoblins + amount,
     };
   } else if (roll < 0.82) {
+    const duration = Math.round(77_000 * getMoonlitBloodFactor(state));
     const buff = {
       id: 'moon_frenzy' as const,
       multiplier: 7,
       startedAt: now,
-      expiresAt: now + 77_000,
+      expiresAt: now + duration,
       target: 'cps' as const,
     };
     reward = { type: 'buff', buff, label: 'Moon Frenzy' };
     next = { ...next, buffs: [...next.buffs.filter(({ id }) => id !== buff.id), buff] };
   } else {
+    const duration = Math.round(13_000 * getMoonlitBloodFactor(state));
     const buff = {
       id: 'hatching_fever' as const,
       multiplier: 25,
       startedAt: now,
-      expiresAt: now + 13_000,
+      expiresAt: now + duration,
       target: 'click' as const,
     };
     reward = { type: 'buff', buff, label: 'Hatching Fever' };

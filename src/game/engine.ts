@@ -183,11 +183,13 @@ export function performPrestigeReset(state: GameState, now = state.lastUpdateAt)
   const gained = getPrestigeShardGain(ticked);
   if (gained <= 0) return { state: ticked, success: false, amount: 0 };
   const startingGoblins = getPermanentRank(ticked, 'starter_clutch') * 50;
+  const startingBuildings = createEmptyBuildings();
+  startingBuildings.brood_matron = getPermanentRank(ticked, 'heirloom_matrons');
   let next: GameState = {
     ...ticked,
     goblins: startingGoblins,
     runGoblins: startingGoblins,
-    buildings: createEmptyBuildings(),
+    buildings: startingBuildings,
     purchasedUpgrades: {},
     buffs: [],
     prestige: {

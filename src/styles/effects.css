@@ -22,6 +22,15 @@
   100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
 }
 @keyframes prestige-confirm-scan { from { background-position: 0 0; } to { background-position: 0 32px; } }
+@keyframes prestige-bloodline-scan { from { background-position: 0 0; } to { background-position: 0 28px; } }
+@keyframes prestige-perk-enter {
+  from { opacity: 0; transform: translateY(5px); filter: brightness(1.25); }
+  to { opacity: 1; transform: translateY(0); filter: brightness(1); }
+}
+@keyframes prestige-perk-ready {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.18); }
+}
 @keyframes sevenfold-pill-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.22); } }
 @keyframes sevenfold-pill-sweep { 0%, 35% { transform: translateX(-130%); } 70%, 100% { transform: translateX(140%); } }
 @keyframes sevenfold-field-spin { to { transform: rotate(360deg); } }

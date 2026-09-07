@@ -12,12 +12,14 @@ describe('save system', () => {
     state.buildings.warren_den = 3;
     state.statistics.lifetimeProducedByBuilding.warren_den = 678.5;
     state.purchasedUpgrades.sharpened_nails = true;
+    state.prestige.permanentUpgrades.founders_legacy = 2;
     const loaded = deserializeGame(serializeGame(state, 10_000), 10_000);
     expect(loaded.migratedFrom).toBeNull();
     expect(loaded.state.goblins).toBe(1234.5);
     expect(loaded.state.buildings.warren_den).toBe(3);
     expect(loaded.state.statistics.lifetimeProducedByBuilding.warren_den).toBe(678.5);
     expect(loaded.state.purchasedUpgrades.sharpened_nails).toBe(true);
+    expect(loaded.state.prestige.permanentUpgrades.founders_legacy).toBe(2);
     expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
   });
 
@@ -40,6 +42,7 @@ describe('save system', () => {
     expect(loaded.state.prestige.shards).toBe(3);
     expect(loaded.state.prestige.totalShardsEarned).toBe(3);
     expect(loaded.state.statistics.lifetimeProducedByBuilding.brood_matron).toBe(0);
+    expect(loaded.state.prestige.permanentUpgrades.founders_legacy).toBeUndefined();
     expect(loaded.warnings[0]).toContain('migrated');
   });
 

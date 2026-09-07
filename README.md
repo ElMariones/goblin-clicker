@@ -8,6 +8,10 @@ An original goblin-themed incremental clicker built for the browser. Spawn gobli
 
 ![Expansion production telemetry](docs/screenshots/expansion-hover.png)
 
+![Expansion mastery progression](docs/screenshots/expansion-mastery.png)
+
+![Ancestral bloodline perks](docs/screenshots/ancestral-perks.png)
+
 ![Draggable Warren research tree](docs/screenshots/research-tree.png)
 
 ![Responsive mobile view](docs/screenshots/mobile.png)

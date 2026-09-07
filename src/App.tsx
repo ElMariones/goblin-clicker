@@ -7,6 +7,7 @@ import {
   GameShell,
   Icon,
   MoonDial,
+  MoonDialModal,
   PrestigeModal,
   ResourceHeader,
   SettingsModal,
@@ -41,7 +42,7 @@ import './App.css';
 const SAVE_KEY = 'goblin-clicker.save';
 const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'goblin-clicker.save.v1'] as const;
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | null;
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
@@ -595,13 +596,8 @@ function App() {
     <MoonDial
       charge={game.mooncap.lunarCharge}
       maxCharge={MAX_LUNAR_CHARGE}
-      bias={game.mooncap.nextFamilyBias}
-      canHasten={!game.mooncap.active && game.mooncap.nextSpawnAt > now + 8_000}
-      canExtend={canExtendMoon}
-      onHasten={() => operateMoonDial({ type: 'hasten' }, t('moonDial.hastenMessage'))}
-      onExtend={() => operateMoonDial({ type: 'extend' }, t('moonDial.extendMessage'))}
-      onBias={(family) => operateMoonDial({ type: 'bias', family }, t('moonDial.biasMessage', { family: familyLabels[family] }))}
-      labels={{ title: t('moonDial.title'), charge: t('moonDial.charge'), hasten: t('moonDial.hasten'), extend: t('moonDial.extend'), bias: t('moonDial.bias'), family: familyLabels }}
+      onOpen={() => setModal('moonDial')}
+      labels={{ title: t('moonDial.title'), charge: t('moonDial.charge') }}
     />
   }>
     <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
@@ -674,6 +670,19 @@ function App() {
       onClaim={collectContract}
       onClose={() => setModal(null)}
       labels={{ title: t('contract.title'), subtitle: t('contract.subtitle'), progress: t('contract.progress'), reward: t('contract.reward'), claim: t('contract.claim'), working: t('contract.working'), complete: t('contract.complete') }}
+    />
+    <MoonDialModal
+      open={modal === 'moonDial'}
+      charge={game.mooncap.lunarCharge}
+      maxCharge={MAX_LUNAR_CHARGE}
+      bias={game.mooncap.nextFamilyBias}
+      canHasten={!game.mooncap.active && game.mooncap.nextSpawnAt > now + 8_000}
+      canExtend={canExtendMoon}
+      onHasten={() => operateMoonDial({ type: 'hasten' }, t('moonDial.hastenMessage'))}
+      onExtend={() => operateMoonDial({ type: 'extend' }, t('moonDial.extendMessage'))}
+      onBias={(family) => operateMoonDial({ type: 'bias', family }, t('moonDial.biasMessage', { family: familyLabels[family] }))}
+      onClose={() => setModal(null)}
+      labels={{ title: t('moonDial.title'), charge: t('moonDial.charge'), hasten: t('moonDial.hasten'), extend: t('moonDial.extend'), bias: t('moonDial.bias'), family: familyLabels }}
     />
     <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onClose={() => setModal(null)} />
     <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} toggles={[

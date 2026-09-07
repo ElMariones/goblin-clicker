@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BUILDINGS } from './content';
 import { CONTRACT_KINDS, generateContract, getContractProgress, getContractRewardAmount, isContractComplete } from './contracts';
 import { claimContract } from './engine';
+import { getBaseCps, getClickPower } from './math';
 import { createInitialGameState } from './state';
 
 describe('warren contracts', () => {
@@ -71,5 +72,75 @@ describe('warren contracts', () => {
     expect(claimed.success).toBe(false);
     expect(claimed.reward).toBe(0);
     expect(claimed.state.contracts.active.quick?.id).toBe(quickId);
+  });
+
+  it('keeps click-focused quick contracts meaningful instead of becoming one-tap farms', () => {
+    const state = createInitialGameState(1_000, 12);
+    state.lifetimeGoblins = 10_000_000_000;
+    state.runGoblins = 2_000_000_000;
+    state.buildings.brood_matron = 100;
+    state.buildings.mushroom_nursery = 75;
+    state.prestige.permanentUpgrades.stronger_spawn = 5;
+    state.purchasedUpgrades.sharpened_nails = true;
+    state.purchasedUpgrades.riotous_birthing = true;
+
+    const stableClickPower = getClickPower({ ...state, buffs: [] });
+    const contract = generateContract(state, 'quick', 3, 1_000);
+    expect(contract.objective.type).toBe('manualBorn');
+    if (contract.objective.type !== 'manualBorn') throw new Error('Expected manual contract');
+    const clicksRequired = contract.objective.amount / stableClickPower;
+    expect(clicksRequired).toBeGreaterThanOrEqual(24);
+    expect(clicksRequired).toBeLessThanOrEqual(91);
+
+    const reward = getContractRewardAmount(state, contract);
+    expect(reward).toBeLessThanOrEqual(Math.max(12, Math.floor(getBaseCps(state) * 10)));
+  });
+
+  it('keeps idle-production Grand Directives net-positive but subordinate to normal progression', () => {
+    const state = createInitialGameState(1_000, 12);
+    state.lifetimeGoblins = 100_000_000;
+    state.runGoblins = 5_000_000;
+    state.goblins = 1_000_000;
+    state.buildings.brood_matron = 80;
+    state.buildings.mushroom_nursery = 60;
+    state.buildings.warren_den = 40;
+    state.buildings.bog_hatchery = 20;
+
+    const contract = generateContract(state, 'directive', 1, 1_000);
+    expect(contract.objective.type).toBe('runGoblins');
+    if (contract.objective.type !== 'runGoblins') throw new Error('Expected production directive');
+    const cps = getBaseCps(state);
+    const requiredProduction = contract.objective.target - state.runGoblins;
+    expect(requiredProduction).toBeGreaterThanOrEqual(cps * 900);
+    const normalReward = getContractRewardAmount(state, contract);
+    expect(normalReward).toBeLessThanOrEqual(Math.floor(requiredProduction * 0.27) + 1);
+
+    state.contracts.oracleBoost = 2;
+    const oracleReward = getContractRewardAmount(state, contract);
+    expect(oracleReward).toBeLessThanOrEqual(Math.floor(requiredProduction * 0.54) + 1);
+  });
+
+  it('keeps quartermaster objectives as bounded breadth investments across progression', () => {
+    for (const owned of [0, 9, 24, 49, 99, 199]) {
+      const state = createInitialGameState(1_000, 12);
+      state.lifetimeGoblins = 1_000_000_000_000;
+      for (const building of BUILDINGS) state.buildings[building.id] = owned;
+      const contract = generateContract(state, 'quartermaster', 2, 1_000);
+      expect(contract.objective.type).toBe('buildingOwned');
+      if (contract.objective.type !== 'buildingOwned') throw new Error('Expected building contract');
+      const step = contract.objective.target - state.buildings[contract.objective.buildingId];
+      expect(step).toBeGreaterThan(0);
+      expect(step).toBeLessThanOrEqual(24);
+    }
+  });
+
+  it('does not inflate rewards from temporary frenzy strategies', () => {
+    const state = createInitialGameState(1_000, 12);
+    state.buildings.brood_matron = 100;
+    state.buildings.mushroom_nursery = 60;
+    const contract = generateContract(state, 'quick', 3, 1_000);
+    const baseReward = getContractRewardAmount(state, contract);
+    state.buffs.push({ id: 'moon_frenzy', multiplier: 7, startedAt: 500, expiresAt: 5_000, target: 'cps' });
+    expect(getContractRewardAmount(state, contract)).toBe(baseReward);
   });
 });

@@ -1,19 +1,19 @@
 import { BUILDINGS, EXPANSION_MASTERY_LEVELS } from './content';
-import { getBaseCps, getReachedExpansionMasteryLevels } from './math';
+import { getBaseCps, getClickPower, getReachedExpansionMasteryLevels } from './math';
 import type { BuildingId, ContractInstance, ContractKind, ContractObjective, GameState } from './types';
 
 export const CONTRACT_KINDS: readonly ContractKind[] = ['quick', 'quartermaster', 'directive'] as const;
 
 const REWARD_SECONDS: Record<ContractKind, number> = {
-  quick: 35,
-  quartermaster: 150,
-  directive: 600,
+  quick: 10,
+  quartermaster: 60,
+  directive: 240,
 };
 
 const REWARD_FLOORS: Record<ContractKind, number> = {
-  quick: 25,
-  quartermaster: 125,
-  directive: 500,
+  quick: 12,
+  quartermaster: 75,
+  directive: 300,
 };
 
 function availableBuildingIds(state: GameState): BuildingId[] {
@@ -37,7 +37,12 @@ function generateObjective(state: GameState, kind: ContractKind, sequence: numbe
     if (sequence % 3 === 1 && totalBuildings >= 5) {
       return { type: 'mooncapCatches', start: state.statistics.goldenEventsClicked, amount: 1 };
     }
-    const scale = Math.max(18, Math.min(240, Math.ceil(Math.log10(state.lifetimeGoblins + 10) * 14)));
+    // Manual contracts measure goblins born rather than click count. Scale the
+    // target by stable (non-temporary-buff) click power so click-focused builds
+    // still need a short burst of deliberate play instead of one late-game tap.
+    const desiredClicks = Math.max(24, Math.min(90, Math.ceil(18 + Math.log10(state.lifetimeGoblins + 10) * 8)));
+    const stableClickPower = getClickPower({ ...state, buffs: [] });
+    const scale = Math.max(24, Math.ceil(stableClickPower * desiredClicks));
     return { type: 'manualBorn', start: state.statistics.manuallyBorn, amount: scale };
   }
 
@@ -57,7 +62,11 @@ function generateObjective(state: GameState, kind: ContractKind, sequence: numbe
     return { type: 'masteryCount', tier: 'established', target: Math.min(available.length, Math.max(2, mastered + 1)) };
   }
   const baseCps = getBaseCps(state);
-  const target = Math.ceil(Math.max(state.runGoblins * 1.5, state.runGoblins + Math.max(500, baseCps * 600)));
+  // Grand Directives are intended as a medium session goal. Their normal
+  // payout is at most ~27% of the baseline production workload (and ~54% with
+  // the strongest Oracle boost), keeping contracts helpful without replacing
+  // the core expansion economy.
+  const target = Math.ceil(Math.max(state.runGoblins * 1.35, state.runGoblins + Math.max(1_000, baseCps * 900)));
   return { type: 'runGoblins', target };
 }
 

@@ -114,7 +114,12 @@
 .effects-off .spawn-pit--sevenfold .spawn-target { animation: none; }
 .effects-off .contract-giver,
 .effects-off .contract-giver--ready,
-.effects-off .moon-dial__charge i,
+.effects-off .moon-dial,
+.effects-off .moon-dial::before,
+.effects-off .moon-dial::after,
+.effects-off .moon-dial__orbit,
+.effects-off .moon-dial__orbit i,
+.effects-off .moon-dial-panel__charges i,
 .effects-off .contract-giver-portrait img,
 .effects-off .contract-giver-portrait__scan,
 .effects-off .contract-order,

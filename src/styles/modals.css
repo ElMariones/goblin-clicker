@@ -124,7 +124,7 @@
   background-size: 6px 6px, 6px 6px, auto, auto;
 }
 .contract-giver-portrait::after { position: absolute; z-index: 4; inset: 0; content: ""; box-shadow: inset 0 0 56px rgba(0,0,0,.64); pointer-events: none; }
-.contract-giver-portrait img { position: absolute; z-index: 2; right: -14%; bottom: -5%; width: 126%; height: 112%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 25px 18px rgba(0,0,0,.72)) saturate(.78) contrast(1.17) brightness(.92) sepia(.04); animation: contract-portrait-enter 360ms steps(8, end) both; }
+.contract-giver-portrait img { position: absolute; z-index: 2; left: 50%; bottom: -5%; width: 116%; height: 112%; object-fit: contain; object-position: center bottom; transform: translateX(-50%); filter: drop-shadow(0 25px 18px rgba(0,0,0,.72)) saturate(.78) contrast(1.17) brightness(.92) sepia(.04); animation: contract-portrait-enter 360ms steps(8, end) both; }
 .contract-giver-portrait__scan { position: absolute; z-index: 3; inset: 0; opacity: .32; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(239,194,104,.05) 3px 4px); pointer-events: none; animation: contract-scan 4s linear infinite; }
 .contract-giver-portrait__badge { position: absolute; z-index: 5; bottom: 13px; left: 13px; padding: 4px 6px; border: 1px solid rgba(229,180,82,.28); color: #d3a753; background: rgba(18,14,7,.86); font-family: var(--font-pixel); font-size: 7px; font-weight: 850; letter-spacing: .15em; }
 .contract-order { position: relative; isolation: isolate; display: flex; min-width: 0; padding: 28px 30px 25px; overflow: hidden; flex-direction: column; animation: contract-sheet-in 220ms steps(7, end) both; }
@@ -157,6 +157,27 @@
 .contract-tab-progress { height: 3px; margin-top: auto; overflow: hidden; background: rgba(255,255,255,.04); }
 .contract-tab-progress i { display: block; height: 100%; background: #9ac855; }
 .contract-footer-stat { display: flex; padding: 0 14px 11px; align-items: center; justify-content: flex-end; gap: 5px; color: #8b8068; background: rgba(7,9,6,.86); font-family: var(--font-pixel); font-size: 7px; text-transform: uppercase; }
+
+.moon-dial-modal { border-color: rgba(125,211,228,.26); background: radial-gradient(circle at 50% 0%, rgba(70,169,190,.13), transparent 20rem), linear-gradient(180deg, #10201d, #07100f); }
+.moon-dial-modal .modal__icon { color: #9ee9f5; border-color: rgba(111,208,228,.24); background: rgba(55,142,160,.1); }
+.moon-dial-modal--full { border-color: rgba(169,236,249,.44); box-shadow: var(--shadow-lg), inset 0 0 34px rgba(86,202,225,.05), 0 0 30px rgba(91,218,242,.08); }
+.moon-dial-panel { display: grid; gap: 14px; }
+.moon-dial-panel__reservoir { display: grid; min-height: 122px; padding: 14px; grid-template-columns: 78px minmax(0,1fr) auto; align-items: center; gap: 14px; border: 1px solid rgba(113,202,220,.16); border-radius: 8px; background: radial-gradient(circle at 18% 50%, rgba(73,182,204,.12), transparent 9rem), rgba(8,18,20,.56); }
+.moon-dial-panel__moon { display: grid; width: 72px; height: 72px; place-items: center; border: 1px solid rgba(133,218,235,.22); border-radius: 50%; color: #a8edf7; background: radial-gradient(circle, rgba(87,189,209,.17), rgba(6,15,17,.84) 67%); box-shadow: inset 0 0 22px rgba(94,209,230,.07); }
+.moon-dial-panel__charges { display: grid; grid-template-columns: repeat(6, 14px); justify-content: center; gap: 9px; }
+.moon-dial-panel__charges i { width: 14px; height: 14px; border: 1px solid rgba(102,191,209,.2); border-radius: 50%; background: rgba(38,84,93,.26); }
+.moon-dial-panel__charges i.is-filled { border-color: rgba(155,235,250,.55); background: #70d2e5; box-shadow: 0 0 9px rgba(88,216,239,.28); animation: moon-charge-pulse 1.8s steps(8, end) infinite; }
+.moon-dial-panel__reservoir strong { color: #a9eaf4; font-family: var(--font-display); font-size: 20px; font-variant-numeric: tabular-nums; }
+.moon-dial-panel__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.moon-dial-panel button { display: inline-flex; min-height: 42px; padding: 9px 11px; align-items: center; justify-content: center; gap: 7px; border: 1px solid rgba(113,201,220,.18); border-radius: 5px; color: #a7dfe8; background: rgba(49,119,133,.08); font-family: var(--font-pixel); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.moon-dial-panel button:hover:not(:disabled) { border-color: rgba(135,222,239,.4); color: #c6f4fa; background: rgba(62,148,166,.14); box-shadow: 0 0 18px rgba(86,205,228,.06); }
+.moon-dial-panel button:disabled { opacity: .3; filter: saturate(.45); }
+.moon-dial-panel button small { margin-left: auto; color: #6e9fa7; font-size: 7px; }
+.moon-dial-panel__bias { padding-top: 2px; }
+.moon-dial-panel__bias > span { display: block; margin-bottom: 6px; color: #6f9fa7; font-family: var(--font-pixel); font-size: 7px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.moon-dial-panel__bias > div { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+.moon-dial-panel__bias button { justify-content: space-between; text-align: start; }
+.moon-dial-panel__bias button.is-active { border-color: rgba(210,171,255,.46); color: #dfbdff; background: rgba(126,75,161,.15); box-shadow: inset 0 0 13px rgba(197,137,238,.05); }
 
 .prestige-hero {
   position: relative;
@@ -512,7 +533,7 @@
   .upgrade-grid, .achievement-grid { grid-template-columns: 1fr; }
   .contract-terminal { min-height: 0; grid-template-columns: 132px minmax(0,1fr); }
   .contract-giver-portrait { min-height: 440px; }
-  .contract-giver-portrait img { right: -30%; width: 160%; }
+  .contract-giver-portrait img { left: 50%; width: 138%; }
   .contract-order { min-height: 440px; padding: 20px 17px; }
   .prestige-hero { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); }
   .prestige-hero__line { display: none; }
@@ -534,7 +555,11 @@
   .achievement-progress__track { grid-column: 1 / -1; grid-row: 2; }
   .contract-terminal { display: block; }
   .contract-giver-portrait { min-height: 190px; border-inline-end: 0; border-bottom: 1px solid rgba(219,171,78,.18); }
-  .contract-giver-portrait img { right: -3%; bottom: -48%; width: 74%; height: 168%; object-position: right bottom; }
+  .contract-giver-portrait img { left: 50%; bottom: -48%; width: 74%; height: 168%; object-position: center bottom; }
+  .moon-dial-panel__reservoir { grid-template-columns: 62px minmax(0,1fr); }
+  .moon-dial-panel__moon { width: 58px; height: 58px; }
+  .moon-dial-panel__reservoir strong { grid-column: 1 / -1; justify-self: end; margin-top: -8px; }
+  .moon-dial-panel__actions, .moon-dial-panel__bias > div { grid-template-columns: 1fr; }
   .contract-order { min-height: 430px; padding: 18px 14px; }
   .contract-tabs { grid-template-columns: 1fr; }
   .contract-tabs button { min-height: 56px; }

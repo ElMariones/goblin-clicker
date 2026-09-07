@@ -4,6 +4,7 @@ import { useI18n, getLanguageMeta, localizedName } from '../i18n';
 import { EXPEDITION_COPY } from '../i18n/expeditions';
 import { formatDuration, formatNumber } from '../utils/format';
 import mapArt from '../images/surface-expeditions.webp';
+import expeditionGiverArt from '../images/expedition.png';
 import { Icon, type IconName } from './Icon';
 import { Modal } from './Modal';
 import '../styles/expeditions.css';
@@ -14,14 +15,17 @@ const icons: Record<ExpeditionDestination, IconName> = { mine: 'hammer', ruins: 
 export function ExpeditionEntry({ state, onOpen }: { state: GameState; onOpen: () => void }) {
   const { language } = useI18n();
   const c = EXPEDITION_COPY[language];
+  const locale = getLanguageMeta(language).locale;
   const unlocked = isExpeditionUnlocked(state) || !!state.expeditions.active;
   const ready = state.expeditions.active && state.lastUpdateAt >= state.expeditions.active.endsAt;
-  return <section className={`expedition-entry${ready ? ' expedition-entry--ready' : ''}`}>
-    <img src={mapArt} alt="" />
-    <div><h2>{c.title}</h2><p>{!unlocked ? c.locked : ready ? c.ready : state.expeditions.active ? c.traveling : c.subtitle}</p>
-      <button type="button" className="panel-primary-button" onClick={onOpen} disabled={!unlocked}><Icon name={unlocked ? 'burrow' : 'lock'} size={16} />{c.open}</button>
-    </div>
-  </section>;
+  const remaining = state.expeditions.active && !ready ? formatDuration(state.expeditions.active.endsAt - state.lastUpdateAt, locale) : null;
+  const detail = !unlocked ? c.locked : ready ? c.ready : remaining ? `${remaining} · ${c.traveling}` : c.open;
+  return <button type="button" className={`expedition-giver${ready ? ' expedition-giver--ready' : state.expeditions.active ? ' expedition-giver--active' : ''}`}
+    onClick={onOpen} disabled={!unlocked} aria-label={`${c.open}. ${detail}`}>
+    <span className="expedition-giver__signal" aria-hidden="true" />
+    <span className="expedition-giver__copy"><strong>{c.title}</strong><small>{detail}</small></span>
+    <img src={expeditionGiverArt} alt="" draggable={false} />
+  </button>;
 }
 
 interface Props {

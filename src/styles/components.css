@@ -670,6 +670,19 @@
 .shop-card__meta { display: flex; align-items: center; gap: 6px; color: var(--moss); font-family: var(--font-pixel); font-size: 10px; font-weight: 700; }
 .shop-card__meta > span { display: inline-flex; align-items: center; gap: 3px; }
 .shop-card__badge, .tier-badge { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; color: var(--ink-muted); background: rgba(255,255,255,.025); font-family: var(--font-pixel); font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.shop-card--expedition-held { background: linear-gradient(90deg, rgba(225, 165, 69, .07), rgba(255,255,255,.006) 62%); box-shadow: inset 3px 0 0 rgba(225,165,69,.35); }
+.shop-card--expedition-held:hover { background: linear-gradient(90deg, rgba(225, 165, 69, .1), rgba(255,255,255,.018) 62%); }
+[dir="rtl"] .shop-card--expedition-held { background: linear-gradient(270deg, rgba(225, 165, 69, .07), rgba(255,255,255,.006) 62%); box-shadow: inset -3px 0 0 rgba(225,165,69,.35); }
+[dir="rtl"] .shop-card--expedition-held:hover { background: linear-gradient(270deg, rgba(225, 165, 69, .1), rgba(255,255,255,.018) 62%); }
+.shop-card--expedition-held .shop-card__art { filter: saturate(.72) brightness(.88); }
+.shop-card__expedition-hold { display: inline-flex; width: fit-content; max-width: 100%; margin-top: 2px; padding: 3px 5px; align-items: center; gap: 4px; border: 1px solid rgba(225,165,69,.24); border-radius: 3px; color: #e2b867; background: rgba(98,63,17,.16); font-family: var(--font-pixel); font-size: 7px; font-weight: 800; letter-spacing: .025em; line-height: 1.25; text-transform: uppercase; }
+.shop-card__expedition-hold svg { flex: 0 0 auto; }
+.shop-card__expedition-hold strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shop-card__details-expedition { display: flex; margin-top: 7px; padding: 6px 7px; align-items: flex-start; gap: 5px; border: 1px solid rgba(225,165,69,.2); color: #ddb363; background: rgba(94,60,16,.13); }
+.shop-card__details-expedition svg { flex: 0 0 auto; margin-top: 1px; }
+.shop-card__details-expedition span { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.shop-card__details-expedition strong { font-family: var(--font-pixel); font-size: 7px; text-transform: uppercase; }
+.shop-card__details-expedition small { color: var(--ink-muted); font-size: 7px; line-height: 1.35; }
 .shop-card--has-details { isolation: isolate; }
 .shop-card--has-details:focus-visible {
   z-index: 3;

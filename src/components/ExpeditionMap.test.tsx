@@ -4,6 +4,7 @@ import { I18nProvider, SUPPORTED_LANGUAGES } from '../i18n';
 import { EXPEDITION_COPY } from '../i18n/expeditions';
 import { createInitialGameState, startExpedition, tickGame } from '../game';
 import { ExpeditionEntry, ExpeditionMap } from './ExpeditionMap';
+import { ShopCard } from './ShopCard';
 
 const noop = () => undefined;
 describe('expedition presentation', () => {
@@ -23,6 +24,24 @@ describe('expedition presentation', () => {
   it('explains the unlock gate for fresh players', () => {
     const html = renderToStaticMarkup(<ExpeditionEntry state={createInitialGameState(1000)} onOpen={noop} />);
     expect(html).toContain('Build a War Camp'); expect(html).toContain('disabled');
+  });
+  it('renders the mirrored expedition giver with a live trip timer and ready state', () => {
+    const state = createInitialGameState(1000); state.buildings.war_camp = 1;
+    const active = startExpedition(state, { destination: 'mine', crew: 'keepers', band: 'short', complication: false });
+    const traveling = renderToStaticMarkup(<ExpeditionEntry state={active} onOpen={noop} />);
+    expect(traveling).toContain('expedition-giver--active');
+    expect(traveling).toContain('5m 0s · Crew on the trail');
+    expect(traveling).toContain('<img');
+    const ready = renderToStaticMarkup(<ExpeditionEntry state={tickGame(active, active.expeditions.active!.endsAt)} onOpen={noop} />);
+    expect(ready).toContain('expedition-giver--ready');
+    expect(ready).toContain('Crew returned');
+  });
+  it('makes diverted expansion production visually explicit', () => {
+    const html = renderToStaticMarkup(<ShopCard id="war_camp" name="War Camp" description="Test" ownedLabel="4" priceLabel="10" productionLabel="85" canAfford onBuy={noop}
+      productionHold={{ label: '15% held for expedition', detail: 'Diverted until return.' }} />);
+    expect(html).toContain('shop-card--expedition-held');
+    expect(html).toContain('15% held for expedition');
+    expect(html).toContain('Diverted until return.');
   });
   it('shows a recall while traveling, then an accessible claim and restored production at arrival', () => {
     const s = createInitialGameState(1000); s.buildings.war_camp = 1;

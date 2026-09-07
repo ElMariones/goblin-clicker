@@ -114,6 +114,8 @@
 .effects-off .spawn-pit--sevenfold .spawn-target { animation: none; }
 .effects-off .contract-giver,
 .effects-off .contract-giver--ready,
+.effects-off .expedition-giver,
+.effects-off .expedition-giver--ready,
 .effects-off .moon-dial,
 .effects-off .moon-dial::before,
 .effects-off .moon-dial::after,

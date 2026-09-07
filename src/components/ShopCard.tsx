@@ -41,9 +41,10 @@ export interface ShopCardProps {
   canAfford: boolean; onBuy: (id: string) => void; onSell?: (id: string) => void; locked?: boolean; badge?: string; artSrc?: string; buyAmountLabel?: string;
   productionDetails?: ShopCardProductionDetails;
   mastery?: ShopCardMasteryDetails;
+  productionHold?: { label: string; detail?: string };
 }
 
-export function ShopCard({ id, name, description, ownedLabel, priceLabel, productionLabel, canAfford, onBuy, onSell, locked = false, badge, artSrc, buyAmountLabel, productionDetails, mastery }: ShopCardProps) {
+export function ShopCard({ id, name, description, ownedLabel, priceLabel, productionLabel, canAfford, onBuy, onSell, locked = false, badge, artSrc, buyAmountLabel, productionDetails, mastery, productionHold }: ShopCardProps) {
   const { t } = useI18n();
   const buyLabel = buyAmountLabel ?? t('shop.buy', { count: 1 });
   const detailId = `shop-production-${id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
@@ -56,13 +57,14 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
   const masteryTierClass = masteryDetails ? ` shop-card__owned--${masteryDetails.tierId}` : '';
   return (
     <article
-      className={`shop-card${locked ? ' shop-card--locked' : ''}${canAfford ? ' shop-card--affordable' : ''}${hasHoverDetails ? ' shop-card--has-details' : ''}`}
+      className={`shop-card${locked ? ' shop-card--locked' : ''}${canAfford ? ' shop-card--affordable' : ''}${hasHoverDetails ? ' shop-card--has-details' : ''}${productionHold ? ' shop-card--expedition-held' : ''}`}
     >
       <div className="shop-card__art" aria-hidden="true">{artSrc ? <img src={artSrc} alt="" /> : <Icon name={locked ? 'lock' : 'brood'} size={28} />}</div>
       <div className="shop-card__body">
         <div className="shop-card__topline"><h3>{name}</h3><span className={`shop-card__owned${masteryTierClass}`} aria-label={t('shop.owned', { count: ownedLabel })}>{ownedLabel}</span></div>
         <p>{description}</p>
         <div className="shop-card__meta"><span><Icon name="cps" size={14} /> {productionLabel}/s</span>{badge && <span className="shop-card__badge">{badge}</span>}</div>
+        {productionHold && <div className="shop-card__expedition-hold" title={productionHold.detail} aria-label={`${productionHold.label}${productionHold.detail ? `. ${productionHold.detail}` : ''}`}><Icon name="hourglass" size={12} /><strong>{productionHold.label}</strong></div>}
       </div>
       {hasHoverDetails && (
         <div className="shop-card__details" id={detailId} role="tooltip">
@@ -81,6 +83,7 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
               <div><dt>{labels?.lifetimeProduced ?? 'Lifetime output'}</dt><dd>{details.lifetimeProduced}</dd></div>
             </dl>
           )}
+          {productionHold && <div className="shop-card__details-expedition"><Icon name="hourglass" size={11} /><span><strong>{productionHold.label}</strong>{productionHold.detail && <small>{productionHold.detail}</small>}</span></div>}
           {masteryDetails && (
             <div className="shop-card__details-mastery">
               <div className="shop-card__details-mastery-line">

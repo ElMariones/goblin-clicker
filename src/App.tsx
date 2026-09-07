@@ -596,6 +596,7 @@ function App() {
   const canExtendMoon = activeBuffs.some((buff) => buff.id === 'moon_frenzy' || buff.id === 'hatching_fever' || buff.id === 'eclipse');
   const musicMuted = settings.musicMuted || settings.musicVolume <= 0;
   const expeditionReservation = getExpeditionReservation(game, now);
+  const expeditionHeldPercent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(expeditionReservation);
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
@@ -609,10 +610,9 @@ function App() {
         <div><dt>{t('ledger.manual')}</dt><dd>{fmtNumber(game.statistics.manuallyBorn)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
         <div><dt>{t('ledger.baseProduction')}</dt><dd>{fmtNumber(baseCps)}/s</dd></div><div><dt>{t('ledger.bestProduction')}</dt><dd>{fmtNumber(game.statistics.highestCps)}/s</dd></div>
       </dl>
-      {expeditionReservation > 0 && <p className="panel-copy">{EXPEDITION_COPY[language].reserve}: −{fmtNumber(cps * expeditionReservation / (1 - expeditionReservation))}/s ({fmtInteger(expeditionReservation * 100)}%)</p>}
+      {expeditionReservation > 0 && <p className="panel-copy">{EXPEDITION_COPY[language].reserve}: −{fmtNumber(cps * expeditionReservation / (1 - expeditionReservation))}/s ({expeditionHeldPercent})</p>}
       {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className={`buff-pill${buff.id === 'moon_frenzy' ? ' buff-pill--sevenfold' : buff.id === 'eclipse' ? ' buff-pill--eclipse' : ''}`} key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : buff.id === 'hatching_fever' ? t('buff.hatchingFever') : t('buff.eclipse')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
     </SidePanel>
-    <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
     <SidePanel title={t('research.title')} eyebrow={t('research.eyebrow')} action={availableUpgrades > 0 ? <span className="notification-badge">{fmtInteger(availableUpgrades)}</span> : undefined}>
       <p className="panel-copy">{t('research.copy')}</p><button className="panel-primary-button" type="button" onClick={() => setModal('upgrades')}><Icon name="sparkles" size={16} /> {t('research.open')} <Icon name="chevron" size={14} /></button>
     </SidePanel>
@@ -622,7 +622,9 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} contractGiver={
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} expeditionGiver={
+    <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
+  } contractGiver={
     <button className={`contract-giver${readyContracts > 0 ? ' contract-giver--ready' : ''}`} type="button" onClick={() => setModal('contracts')} aria-label={t('contract.openAria')}>
       <span className="contract-giver__signal" aria-hidden="true" />
       <img src={gameArt.missionGiver} alt="" draggable={false} />
@@ -664,7 +666,10 @@ function App() {
       const masteryTranslationKey = masteryLevel ? `shop.mastery.${masteryLevel.id}` as TranslationKey : 'shop.mastery.unranked';
       const nextMasteryTranslationKey = nextMasteryLevel ? `shop.mastery.${nextMasteryLevel.id}` as TranslationKey : undefined;
       const name = localizedName(language, 'building', building.id, building.name);
-      return <ShopCard key={building.id} id={building.id} name={locked ? t('shop.lockedName') : name} description={locked ? t('shop.lockedDescription') : language === 'en' ? building.description : t('content.buildingDescription')} ownedLabel={fmtInteger(owned)} priceLabel={locked ? '—' : fmtNumber(cost)} productionLabel={locked ? '—' : fmtNumber(unitProduction)} productionDetails={locked ? undefined : {
+      return <ShopCard key={building.id} id={building.id} name={locked ? t('shop.lockedName') : name} description={locked ? t('shop.lockedDescription') : language === 'en' ? building.description : t('content.buildingDescription')} ownedLabel={fmtInteger(owned)} priceLabel={locked ? '—' : fmtNumber(cost)} productionLabel={locked ? '—' : fmtNumber(unitProduction)} productionHold={!locked && owned > 0 && expeditionReservation > 0 ? {
+        label: `${expeditionHeldPercent} ${EXPEDITION_COPY[language].held}`,
+        detail: EXPEDITION_COPY[language].heldDetail,
+      } : undefined} productionDetails={locked ? undefined : {
         perUnit: `${fmtNumber(unitProduction)}/s`,
         ownedTotal: `${fmtNumber(totalProduction)}/s`,
         shareOfTotal: `${fmtNumber(productionShare)}%`,

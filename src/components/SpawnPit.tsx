@@ -22,11 +22,12 @@ export interface SpawnPitProps {
   activityLevel?: 'dormant' | 'stirring' | 'busy' | 'overrun';
   className?: string;
   contractGiver?: ReactNode;
+  expeditionGiver?: ReactNode;
   moonDial?: ReactNode;
   children?: ReactNode;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, moonDial, children }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, children }: SpawnPitProps) {
   const { t } = useI18n();
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
@@ -60,6 +61,7 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
       </div>
 
       {moonDial}
+      {expeditionGiver}
       {contractGiver}
 
       {bonusEvent && (

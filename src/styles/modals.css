@@ -158,26 +158,102 @@
 .contract-tab-progress i { display: block; height: 100%; background: #9ac855; }
 .contract-footer-stat { display: flex; padding: 0 14px 11px; align-items: center; justify-content: flex-end; gap: 5px; color: #8b8068; background: rgba(7,9,6,.86); font-family: var(--font-pixel); font-size: 7px; text-transform: uppercase; }
 
-.moon-dial-modal { border-color: rgba(125,211,228,.26); background: radial-gradient(circle at 50% 0%, rgba(70,169,190,.13), transparent 20rem), linear-gradient(180deg, #10201d, #07100f); }
-.moon-dial-modal .modal__icon { color: #9ee9f5; border-color: rgba(111,208,228,.24); background: rgba(55,142,160,.1); }
-.moon-dial-modal--full { border-color: rgba(169,236,249,.44); box-shadow: var(--shadow-lg), inset 0 0 34px rgba(86,202,225,.05), 0 0 30px rgba(91,218,242,.08); }
-.moon-dial-panel { display: grid; gap: 14px; }
-.moon-dial-panel__reservoir { display: grid; min-height: 122px; padding: 14px; grid-template-columns: 78px minmax(0,1fr) auto; align-items: center; gap: 14px; border: 1px solid rgba(113,202,220,.16); border-radius: 8px; background: radial-gradient(circle at 18% 50%, rgba(73,182,204,.12), transparent 9rem), rgba(8,18,20,.56); }
-.moon-dial-panel__moon { display: grid; width: 72px; height: 72px; place-items: center; border: 1px solid rgba(133,218,235,.22); border-radius: 50%; color: #a8edf7; background: radial-gradient(circle, rgba(87,189,209,.17), rgba(6,15,17,.84) 67%); box-shadow: inset 0 0 22px rgba(94,209,230,.07); }
-.moon-dial-panel__charges { display: grid; grid-template-columns: repeat(6, 14px); justify-content: center; gap: 9px; }
-.moon-dial-panel__charges i { width: 14px; height: 14px; border: 1px solid rgba(102,191,209,.2); border-radius: 50%; background: rgba(38,84,93,.26); }
-.moon-dial-panel__charges i.is-filled { border-color: rgba(155,235,250,.55); background: #70d2e5; box-shadow: 0 0 9px rgba(88,216,239,.28); animation: moon-charge-pulse 1.8s steps(8, end) infinite; }
-.moon-dial-panel__reservoir strong { color: #a9eaf4; font-family: var(--font-display); font-size: 20px; font-variant-numeric: tabular-nums; }
-.moon-dial-panel__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.moon-dial-panel button { display: inline-flex; min-height: 42px; padding: 9px 11px; align-items: center; justify-content: center; gap: 7px; border: 1px solid rgba(113,201,220,.18); border-radius: 5px; color: #a7dfe8; background: rgba(49,119,133,.08); font-family: var(--font-pixel); font-size: 8px; font-weight: 800; text-transform: uppercase; }
-.moon-dial-panel button:hover:not(:disabled) { border-color: rgba(135,222,239,.4); color: #c6f4fa; background: rgba(62,148,166,.14); box-shadow: 0 0 18px rgba(86,205,228,.06); }
-.moon-dial-panel button:disabled { opacity: .3; filter: saturate(.45); }
-.moon-dial-panel button small { margin-left: auto; color: #6e9fa7; font-size: 7px; }
-.moon-dial-panel__bias { padding-top: 2px; }
-.moon-dial-panel__bias > span { display: block; margin-bottom: 6px; color: #6f9fa7; font-family: var(--font-pixel); font-size: 7px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.moon-dial-panel__bias > div { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
-.moon-dial-panel__bias button { justify-content: space-between; text-align: start; }
-.moon-dial-panel__bias button.is-active { border-color: rgba(210,171,255,.46); color: #dfbdff; background: rgba(126,75,161,.15); box-shadow: inset 0 0 13px rgba(197,137,238,.05); }
+.moon-dial-modal {
+  width: min(100%, 690px);
+  border-color: rgba(133,219,235,.29);
+  background:
+    linear-gradient(rgba(130,222,239,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(130,222,239,.014) 1px, transparent 1px),
+    radial-gradient(circle at 50% -12%, rgba(87,204,225,.2), transparent 23rem),
+    radial-gradient(circle at 90% 70%, rgba(157,92,220,.08), transparent 19rem),
+    linear-gradient(180deg, #0d1b1b, #060c0d 76%);
+  background-size: 7px 7px, 7px 7px, auto, auto, auto;
+}
+.moon-dial-modal .modal__header { border-bottom-color: rgba(118,210,229,.15); background: linear-gradient(180deg, rgba(105,207,226,.055), transparent); }
+.moon-dial-modal .modal__icon { color: #b7f5ff; border-color: rgba(122,220,239,.3); background: radial-gradient(circle, rgba(82,187,207,.2), rgba(38,104,117,.08)); box-shadow: 0 0 21px rgba(74,203,229,.08), inset 0 0 14px rgba(128,230,247,.04); }
+.moon-dial-modal--full { border-color: rgba(181,242,252,.5); box-shadow: var(--shadow-lg), inset 0 0 42px rgba(92,213,235,.065), 0 0 35px rgba(93,222,246,.11); }
+.moon-dial-panel { display: grid; gap: 15px; }
+.moon-dial-panel__reservoir {
+  position: relative;
+  display: grid;
+  min-height: 146px;
+  padding: 17px 18px;
+  grid-template-columns: 100px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(124,216,235,.2);
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(136,226,242,.028) 3px 4px),
+    radial-gradient(circle at 13% 50%, rgba(77,195,218,.18), transparent 11rem),
+    linear-gradient(105deg, rgba(15,39,43,.78), rgba(7,17,19,.72));
+  box-shadow: inset 0 0 34px rgba(72,186,207,.045), 0 8px 22px rgba(0,0,0,.17);
+}
+.moon-dial-panel__reservoir::after { position: absolute; right: -32px; top: -58px; width: 170px; height: 170px; border: 1px dashed rgba(123,215,234,.08); border-radius: 50%; content: ""; pointer-events: none; animation: ring-spin 30s steps(60,end) infinite; }
+.moon-dial-panel__lunar-core { position: relative; display: grid; width: 96px; height: 96px; place-items: center; }
+.moon-dial-panel__orbit-ring { position: absolute; inset: 1px; border: 1px dashed rgba(143,230,246,.27); border-radius: 50%; box-shadow: 0 0 20px rgba(91,210,233,.08); animation: ring-spin 17s steps(36,end) infinite; }
+.moon-dial-panel__orbit-ring::before, .moon-dial-panel__orbit-ring::after { position: absolute; width: 6px; height: 6px; border-radius: 50%; content: ""; background: #79d8e9; box-shadow: 0 0 9px rgba(95,220,243,.55); }
+.moon-dial-panel__orbit-ring::before { top: 7px; left: 17px; }
+.moon-dial-panel__orbit-ring::after { right: 9px; bottom: 18px; }
+.moon-dial-panel__moon { display: grid; width: 72px; height: 72px; place-items: center; border: 1px solid rgba(144,229,245,.3); border-radius: 50%; color: #bcf6ff; background: radial-gradient(circle, rgba(93,208,229,.22), rgba(8,22,24,.9) 67%); box-shadow: 0 0 27px rgba(86,205,228,.1), inset 0 0 22px rgba(103,218,238,.08); animation: moon-reservoir-breathe 2.5s steps(12,end) infinite; }
+.moon-dial-panel__charge-readout { display: flex; min-width: 0; flex-direction: column; }
+.moon-dial-panel__charge-readout > span { color: #78b8c4; font-family: var(--font-pixel); font-size: 8px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+.moon-dial-panel__charge-readout > strong { margin: 1px 0 8px; color: #d1f9ff; font-family: var(--font-display); font-size: 33px; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 0 18px rgba(98,218,239,.12); }
+.moon-dial-panel__charge-readout > strong small { color: #6d9ca5; font-size: 17px; font-weight: 600; }
+.moon-dial-panel__charges { display: grid; grid-template-columns: repeat(6, minmax(18px, 1fr)); max-width: 282px; gap: 6px; }
+.moon-dial-panel__charges i { height: 8px; border: 1px solid rgba(105,198,215,.2); border-radius: 1px; background: rgba(37,88,97,.3); box-shadow: inset 0 0 6px rgba(0,0,0,.25); }
+.moon-dial-panel__charges i.is-filled { border-color: rgba(157,238,252,.68); background: linear-gradient(90deg, #4bbbcf, #9ceafa); box-shadow: 0 0 10px rgba(88,216,239,.32), inset 0 1px 0 rgba(230,253,255,.18); animation: moon-charge-pulse 1.8s steps(8, end) infinite; }
+.moon-dial-panel__state { position: relative; z-index: 1; display: inline-flex; padding: 6px 8px; align-items: center; gap: 5px; border: 1px solid rgba(119,199,215,.15); border-radius: 3px; color: #75adb8; background: rgba(29,82,91,.1); font-family: var(--font-pixel); font-size: 7px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+.moon-dial-panel__state.is-full { border-color: rgba(166,239,251,.37); color: #bdf4fc; background: rgba(72,174,193,.13); box-shadow: 0 0 16px rgba(93,218,240,.08); animation: moon-full-status 1.25s steps(8,end) infinite; }
+.moon-dial-panel__section-heading { display: grid; grid-template-columns: auto minmax(20px,1fr) auto; align-items: center; gap: 9px; min-width: 0; color: #79aeb7; font-family: var(--font-pixel); font-size: 7px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.moon-dial-panel__section-heading i { height: 1px; background: linear-gradient(90deg, rgba(116,202,219,.2), transparent); }
+.moon-dial-panel__section-heading small { color: #567f87; font-size: 6.5px; letter-spacing: .04em; }
+.moon-dial-panel__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: -6px; }
+.moon-dial-panel .moon-action { display: grid; min-height: 66px; padding: 10px 12px; grid-template-columns: 38px minmax(0,1fr); align-items: center; gap: 10px; border: 1px solid rgba(113,201,220,.18); border-radius: 5px; color: #a7dfe8; background: linear-gradient(120deg, rgba(48,121,135,.11), rgba(23,66,75,.05)); text-align: start; transition: transform 140ms var(--ease-out), border-color 140ms ease, background 140ms ease, box-shadow 140ms ease; }
+.moon-dial-panel .moon-action:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(139,229,244,.42); background: rgba(61,151,168,.15); box-shadow: 0 8px 20px rgba(0,0,0,.16), 0 0 19px rgba(86,205,228,.07); }
+.moon-action__icon { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(124,213,231,.21); border-radius: 50%; color: #9de6f2; background: rgba(41,111,125,.12); box-shadow: inset 0 0 13px rgba(108,218,237,.035); }
+.moon-action__copy { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.moon-action__copy strong { color: #c2eef5; font-family: var(--font-display); font-size: 12px; font-weight: 720; text-transform: none; }
+.moon-action__copy small { color: #6699a2; font-family: var(--font-pixel); font-size: 6.5px; font-weight: 800; text-transform: uppercase; }
+.moon-action--extend .moon-action__icon { color: #d6b8f4; border-color: rgba(194,143,238,.2); background: rgba(105,57,139,.09); }
+.moon-dial-panel button:disabled { opacity: .34; filter: saturate(.42); }
+.moon-dial-panel__bias { display: grid; gap: 7px; }
+.moon-dial-panel__families { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.moon-dial-panel .moon-family {
+  --family-rgb: 126, 218, 235;
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 82px;
+  padding: 7px 9px 7px 7px;
+  grid-template-columns: 66px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--family-rgb), .19);
+  border-radius: 5px;
+  color: #b7dfe5;
+  background: linear-gradient(115deg, rgba(var(--family-rgb), .09), rgba(5,12,13,.3) 70%);
+  text-align: start;
+  transition: transform 140ms var(--ease-out), border-color 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+.moon-dial-panel .moon-family::after { position: absolute; inset: 0; content: ""; opacity: .2; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(var(--family-rgb), .05) 3px 4px); pointer-events: none; }
+.moon-dial-panel .moon-family:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(var(--family-rgb), .47); box-shadow: 0 8px 21px rgba(0,0,0,.18), 0 0 20px rgba(var(--family-rgb), .075); filter: brightness(1.07); }
+.moon-family__art { position: relative; z-index: 1; display: grid; width: 66px; height: 66px; place-items: center; border-radius: 50%; }
+.moon-family__art img { display: block; width: 100%; height: 100%; object-fit: contain; filter: saturate(1.08) brightness(1.04) drop-shadow(0 0 7px rgba(var(--family-rgb), .23)); transition: transform 150ms var(--ease-spring), filter 150ms ease; }
+.moon-family:hover:not(:disabled) .moon-family__art img { transform: scale(1.08) rotate(-2deg); filter: saturate(1.2) brightness(1.11) drop-shadow(0 0 10px rgba(var(--family-rgb), .35)); }
+.moon-family__copy { position: relative; z-index: 1; display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.moon-family__copy strong { color: #d5edf0; font-family: var(--font-display); font-size: 12px; line-height: 1.1; }
+.moon-family__copy small { display: -webkit-box; overflow: hidden; color: #799399; font-size: 7.5px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.moon-family__cost { position: relative; z-index: 1; align-self: start; padding: 3px 4px; color: rgba(var(--family-rgb), .76); font-family: var(--font-pixel); font-size: 7px; font-weight: 850; }
+.moon-family--clutch { --family-rgb: 190, 231, 94; }
+.moon-family--frenzy { --family-rgb: 119, 255, 68; background: linear-gradient(115deg, rgba(94,255,64,.12), rgba(204,0,255,.07) 56%, rgba(5,12,13,.3)); }
+.moon-family--frenzy .moon-family__art img { filter: saturate(1.34) contrast(1.09) brightness(1.13) drop-shadow(0 0 8px rgba(106,255,67,.45)) drop-shadow(0 0 12px rgba(219,0,255,.25)); }
+.moon-family--blood { --family-rgb: 255, 82, 91; }
+.moon-family--oracle { --family-rgb: 201, 133, 255; }
+.moon-dial-panel .moon-family.is-active { border-color: rgba(var(--family-rgb), .62); opacity: 1; filter: none; background-color: rgba(var(--family-rgb), .08); box-shadow: 0 0 22px rgba(var(--family-rgb), .11), inset 0 0 19px rgba(var(--family-rgb), .05); }
+.moon-dial-panel .moon-family.is-active::before { position: absolute; z-index: 2; top: 5px; right: 5px; width: 6px; height: 6px; border: 1px solid rgba(var(--family-rgb), .82); background: rgb(var(--family-rgb)); box-shadow: 0 0 8px rgba(var(--family-rgb), .45); content: ""; transform: rotate(45deg); }
 
 .prestige-hero {
   position: relative;
@@ -671,10 +747,11 @@
   .contract-terminal { display: block; }
   .contract-giver-portrait { min-height: 190px; border-inline-end: 0; border-bottom: 1px solid rgba(219,171,78,.18); }
   .contract-giver-portrait img { left: 50%; bottom: -48%; width: 74%; height: 168%; object-position: center bottom; }
-  .moon-dial-panel__reservoir { grid-template-columns: 62px minmax(0,1fr); }
-  .moon-dial-panel__moon { width: 58px; height: 58px; }
-  .moon-dial-panel__reservoir strong { grid-column: 1 / -1; justify-self: end; margin-top: -8px; }
-  .moon-dial-panel__actions, .moon-dial-panel__bias > div { grid-template-columns: 1fr; }
+  .moon-dial-panel__reservoir { grid-template-columns: 76px minmax(0,1fr); padding: 13px; gap: 12px; }
+  .moon-dial-panel__lunar-core { width: 72px; height: 72px; }
+  .moon-dial-panel__moon { width: 56px; height: 56px; }
+  .moon-dial-panel__state { grid-column: 1 / -1; width: fit-content; justify-self: end; }
+  .moon-dial-panel__actions, .moon-dial-panel__families { grid-template-columns: 1fr; }
   .contract-order { min-height: 430px; padding: 18px 14px; }
   .contract-tabs { grid-template-columns: 1fr; }
   .contract-tabs button { min-height: 56px; }
@@ -701,6 +778,16 @@
 .effects-off .cosmetics-hero__preview img,
 .effects-off .cosmetic-card__scan,
 .effects-off .spawn-target__goblin { animation: none; }
+.reduce-motion .moon-dial-panel__reservoir::after,
+.reduce-motion .moon-dial-panel__orbit-ring,
+.reduce-motion .moon-dial-panel__moon,
+.reduce-motion .moon-dial-panel__charges i,
+.reduce-motion .moon-dial-panel__state,
+.effects-off .moon-dial-panel__reservoir::after,
+.effects-off .moon-dial-panel__orbit-ring,
+.effects-off .moon-dial-panel__moon,
+.effects-off .moon-dial-panel__charges i,
+.effects-off .moon-dial-panel__state { animation: none; }
 .reduce-motion .prestige-perk,
 .reduce-motion .prestige-perk__progress-track > i,
 .effects-off .prestige-perk,

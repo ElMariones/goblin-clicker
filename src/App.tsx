@@ -764,7 +764,24 @@ function App() {
       onExtend={() => operateMoonDial({ type: 'extend' }, t('moonDial.extendMessage'))}
       onBias={(family) => operateMoonDial({ type: 'bias', family }, t('moonDial.biasMessage', { family: familyLabels[family] }))}
       onClose={() => setModal(null)}
-      labels={{ title: t('moonDial.title'), charge: t('moonDial.charge'), hasten: t('moonDial.hasten'), extend: t('moonDial.extend'), bias: t('moonDial.bias'), family: familyLabels }}
+      labels={{
+        title: t('moonDial.title'),
+        charge: t('moonDial.charge'),
+        hasten: t('moonDial.hasten'),
+        extend: t('moonDial.extend'),
+        bias: t('moonDial.bias'),
+        actions: t('moonDial.actions'),
+        tuning: t('moonDial.tuning'),
+        full: t('moonDial.full'),
+        ready: t('moonDial.ready'),
+        family: familyLabels,
+        familyDetail: {
+          clutch: t('mooncap.clutchcapDetail'),
+          frenzy: t('mooncap.frenzycapDetail'),
+          blood: t('mooncap.bloodcapDetail'),
+          oracle: t('mooncap.oraclecapDetail'),
+        },
+      }}
     />
     <CosmeticsModal open={modal === 'cosmetics'} currencyLabel={fmtInteger(game.prestige.shards)} cosmetics={cosmeticViews} onPurchase={buyCosmetic} onEquip={equipGoblinCosmetic} onClose={() => setModal(null)} />
     <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onOpenCosmetics={() => setModal('cosmetics')} onClose={() => setModal(null)} />

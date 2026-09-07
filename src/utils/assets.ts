@@ -23,7 +23,11 @@ import goblinRedCap from '../images/goblins/goblin_red_cap.webp';
 import goblinRoundGlasses from '../images/goblins/goblin_round_glasses.webp';
 import goblinSteampunkGoggles from '../images/goblins/goblin_steampunk_goggles.webp';
 import goblinWizard from '../images/goblins/goblin_wizard.webp';
-import type { CosmeticId } from '../game/types';
+import bloodcap from '../images/bloodcap.webp';
+import clutchcap from '../images/clutchcap.webp';
+import frenzycap from '../images/frenzycap.webp';
+import oraclecap from '../images/oraclecap.webp';
+import type { CosmeticId, MooncapFamily } from '../game/types';
 
 export function publicAsset(path: string): string {
   const cleanPath = path.replace(/^\/+/, '');
@@ -62,6 +66,13 @@ export const cosmeticArt: Readonly<Record<CosmeticId, string>> = {
   king: goblinKing,
   druid: goblinDruid,
   punk: goblinPunk,
+};
+
+export const mooncapArt: Readonly<Record<MooncapFamily, string>> = {
+  clutch: clutchcap,
+  frenzy: frenzycap,
+  blood: bloodcap,
+  oracle: oraclecap,
 };
 
 export function goblinCosmeticArt(id: CosmeticId | null): string {

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { gameArt } from '../utils/assets';
+import { gameArt, mooncapArt } from '../utils/assets';
 import { useI18n } from '../i18n';
 import { Icon } from './Icon';
 
@@ -66,9 +66,19 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
       {contractGiver}
 
       {bonusEvent && (
-        <button className={`omen-event${bonusEvent.tone ? ` omen-event--${bonusEvent.tone}` : ''}`} type="button" onClick={bonusEvent.onClaim} aria-label={t('spawn.claim', { name: bonusEvent.label })}>
-          <span className="omen-event__icon"><Icon name="sparkles" /></span>
-          <span><strong>{bonusEvent.label}</strong>{bonusEvent.detail && <small>{bonusEvent.detail}</small>}</span>
+        <button
+          className={`omen-event${bonusEvent.tone ? ` omen-event--${bonusEvent.tone}` : ''}`}
+          type="button"
+          onClick={bonusEvent.onClaim}
+          aria-label={t('spawn.claim', { name: bonusEvent.label })}
+          title={bonusEvent.detail ? `${bonusEvent.label} — ${bonusEvent.detail}` : bonusEvent.label}
+        >
+          <span className="omen-event__aura" aria-hidden="true" />
+          {bonusEvent.tone
+            ? <img src={mooncapArt[bonusEvent.tone]} alt="" draggable={false} />
+            : <span className="omen-event__fallback" aria-hidden="true"><Icon name="sparkles" /></span>}
+          <span className="omen-event__spark omen-event__spark--one" aria-hidden="true" />
+          <span className="omen-event__spark omen-event__spark--two" aria-hidden="true" />
         </button>
       )}
     </div>

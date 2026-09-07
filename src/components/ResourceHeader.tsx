@@ -1,5 +1,6 @@
-import { Icon, type IconName } from './Icon';
 import { publicAsset } from '../utils/assets';
+import { useI18n } from '../i18n';
+import { Icon, type IconName } from './Icon';
 
 export interface ResourceStat {
   id: string;
@@ -19,56 +20,31 @@ export interface ResourceHeaderProps {
   onOpenSettings?: () => void;
 }
 
-export function ResourceHeader({
-  title = 'Brood & Burrow',
-  subtitle = 'Goblin Reproduction Directorate',
-  stats,
-  onOpenAchievements,
-  onOpenPrestige,
-  onOpenSettings,
-}: ResourceHeaderProps) {
+export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onOpenPrestige, onOpenSettings }: ResourceHeaderProps) {
+  const { t } = useI18n();
   return (
     <div className="resource-header">
       <div className="resource-header__brand">
         <img src={publicAsset('assets/goblin-broodmark.svg')} alt="" className="resource-header__mark" />
         <div>
-          <div className="resource-header__eyebrow">{subtitle}</div>
-          <h1 className="resource-header__title">{title}</h1>
+          <div className="resource-header__eyebrow">{subtitle ?? t('brand.subtitle')}</div>
+          <h1 className="resource-header__title">{title ?? 'Brood & Burrow'}</h1>
         </div>
       </div>
 
-      <dl className="resource-header__stats" aria-label="Brood resources">
+      <dl className="resource-header__stats" aria-label={t('aria.resources')}>
         {stats.map((stat) => (
-          <div
-            className={`resource-stat${stat.accent ? ' resource-stat--accent' : ''}`}
-            key={stat.id}
-            title={stat.title}
-          >
-            <dt>
-              <Icon name={stat.icon ?? 'brood'} size={16} />
-              {stat.label}
-            </dt>
+          <div className={`resource-stat${stat.accent ? ' resource-stat--accent' : ''}`} key={stat.id} title={stat.title}>
+            <dt><Icon name={stat.icon ?? 'brood'} size={16} />{stat.label}</dt>
             <dd>{stat.value}</dd>
           </div>
         ))}
       </dl>
 
-      <nav className="resource-header__actions" aria-label="Game menus">
-        {onOpenAchievements && (
-          <button className="icon-button" type="button" onClick={onOpenAchievements} aria-label="Achievements" title="Achievements">
-            <Icon name="trophy" />
-          </button>
-        )}
-        {onOpenPrestige && (
-          <button className="icon-button icon-button--prestige" type="button" onClick={onOpenPrestige} aria-label="Prestige" title="Prestige">
-            <Icon name="crown" />
-          </button>
-        )}
-        {onOpenSettings && (
-          <button className="icon-button" type="button" onClick={onOpenSettings} aria-label="Settings" title="Settings">
-            <Icon name="settings" />
-          </button>
-        )}
+      <nav className="resource-header__actions" aria-label={t('aria.menus')}>
+        {onOpenAchievements && <button className="icon-button" type="button" onClick={onOpenAchievements} aria-label={t('aria.achievements')} title={t('aria.achievements')}><Icon name="trophy" /></button>}
+        {onOpenPrestige && <button className="icon-button icon-button--prestige" type="button" onClick={onOpenPrestige} aria-label={t('aria.prestige')} title={t('aria.prestige')}><Icon name="crown" /></button>}
+        {onOpenSettings && <button className="icon-button" type="button" onClick={onOpenSettings} aria-label={t('aria.settings')} title={t('aria.settings')}><Icon name="settings" /></button>}
       </nav>
     </div>
   );

@@ -4,9 +4,16 @@ All notable user-visible changes to Brood & Burrow should be documented here.
 
 The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and intends to use semantic versioning once public builds begin.
 
-## [Unreleased]
+## [1.1.0] - 2026-09-07
 
-No unreleased changes yet.
+### Added
+
+- Full UI localization framework with English, Spanish, Simplified Chinese, French, German, Arabic, and Turkish.
+- Automatic first-run language detection from the browser/system language, with English fallback.
+- Persistent manual language selector in Warren Settings.
+- Localized building, upgrade, achievement, prestige, Mooncap, save, offline-progress, and accessibility text.
+- Locale-aware dates, durations, and number formatting.
+- Right-to-left document direction and layout polish for Arabic.
 
 ## [1.0.0] - 2026-09-07
 

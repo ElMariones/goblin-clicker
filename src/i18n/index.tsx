@@ -1,0 +1,395 @@
+import { createContext, useContext, type ReactNode } from 'react';
+
+export const SUPPORTED_LANGUAGES = ['en', 'es', 'zh', 'fr', 'de', 'ar', 'tr'] as const;
+export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number];
+
+export const LANGUAGE_OPTIONS: readonly { code: LanguageCode; label: string; locale: string; dir: 'ltr' | 'rtl' }[] = [
+  { code: 'en', label: 'English', locale: 'en-US', dir: 'ltr' },
+  { code: 'es', label: 'Español', locale: 'es-ES', dir: 'ltr' },
+  { code: 'zh', label: '简体中文', locale: 'zh-CN', dir: 'ltr' },
+  { code: 'fr', label: 'Français', locale: 'fr-FR', dir: 'ltr' },
+  { code: 'de', label: 'Deutsch', locale: 'de-DE', dir: 'ltr' },
+  { code: 'ar', label: 'العربية', locale: 'ar', dir: 'rtl' },
+  { code: 'tr', label: 'Türkçe', locale: 'tr-TR', dir: 'ltr' },
+] as const;
+
+const EN = {
+  'app.title': 'Brood & Burrow — Goblin Incremental',
+  'brand.subtitle': 'Goblin Reproduction Directorate',
+  'aria.resources': 'Brood resources',
+  'aria.menus': 'Game menus',
+  'aria.achievements': 'Achievements',
+  'aria.prestige': 'Prestige',
+  'aria.settings': 'Settings',
+  'aria.goblinOperations': 'Goblin operations',
+  'aria.broodPit': 'Brood pit',
+  'aria.denShop': 'Den shop',
+  'aria.notifications': 'Notifications',
+  'aria.close': 'Close {title}',
+  'aria.dismiss': 'Dismiss {title}',
+  'header.goblins': 'Goblins',
+  'header.perSecond': 'Per second',
+  'header.ancestral': 'Ancestral',
+  'header.ancestralTitle': 'Permanent Ancestral Cunning',
+  'ledger.title': 'Warren Ledger',
+  'ledger.eyebrow': 'Live census',
+  'ledger.thisCycle': 'This cycle',
+  'ledger.allTime': 'All-time brood',
+  'ledger.manual': 'Manual spawns',
+  'ledger.structures': 'Structures',
+  'ledger.baseProduction': 'Base production',
+  'ledger.bestProduction': 'Best production',
+  'research.title': 'Warren Innovations',
+  'research.eyebrow': 'Research',
+  'research.copy': 'Turn mushrooms, stolen tools, and questionable rituals into permanent gains for this brood cycle.',
+  'research.open': 'Open research',
+  'bloodline.title': 'The Bloodline',
+  'bloodline.eyebrow': 'Great Migration',
+  'bloodline.cunning': 'Cunning',
+  'bloodline.migrations': '{count} migrations completed',
+  'bloodline.copy': 'Abandon a mature warren to preserve Ancestral Cunning and invest it in permanent bloodline perks.',
+  'bloodline.ready': 'Migration ready · +{gain}',
+  'bloodline.view': 'View bloodline',
+  'status.ancient': 'The bloodline remembers every tunnel.',
+  'status.returned': 'An old instinct guides the new brood.',
+  'status.million': 'The mountain trembles beneath tiny feet.',
+  'status.tenThousand': 'Every tunnel is full. Dig faster.',
+  'status.hundred': 'The warren has become a proper industry.',
+  'status.one': 'The brood no longer needs constant supervision.',
+  'status.clicks': 'Something in the dark has learned the rhythm.',
+  'status.start': 'The brood stirs below…',
+  'buff.moonFrenzy': 'Moon Frenzy',
+  'buff.hatchingFever': 'Hatching Fever',
+  'spawn.kicker': 'Deep Warren · Spawn Chamber',
+  'spawn.population': 'Goblin population',
+  'spawn.perSecond': '/ sec',
+  'spawn.button': 'Spawn',
+  'spawn.each': 'Each spawn',
+  'spawn.aria': 'Spawn a goblin. Current click power: {power}',
+  'spawn.claim': 'Claim {name}',
+  'mooncap.wild': 'Wild Mooncap',
+  'mooncap.detail': 'Catch it before it sinks back into the moss',
+  'mooncap.clutch': 'Mooncap Clutch',
+  'mooncap.clutchMessage': 'The cap bursts into +{amount} goblins.',
+  'mooncap.cpsMessage': 'Production ×{multiplier} for {duration}.',
+  'mooncap.clickMessage': 'Manual spawning ×{multiplier} for {duration}.',
+  'shop.eyebrow': 'Den Quartermaster',
+  'shop.title': 'Warren Expansion',
+  'shop.subtitle': 'Spend brood to automate the horde.',
+  'shop.purchaseQuantity': 'Purchase quantity',
+  'shop.max': 'Max',
+  'shop.footer': 'Prices rise 15% for each structure owned. Sell returns a portion of its value.',
+  'shop.lockedName': 'Uncharted Warren',
+  'shop.lockedDescription': 'Expand the previous tier to discover what lies deeper.',
+  'shop.buy': 'Buy {count}',
+  'shop.buyMax': 'Buy Max',
+  'shop.sell': 'Sell',
+  'shop.owned': '{count} owned',
+  'shop.buyAria': '{action} {name} for {price}',
+  'shop.sellAria': 'Sell {name}',
+  'shop.badgeEstablished': 'Established',
+  'shop.badgeVeteran': 'Veteran',
+  'shop.badgeHorde': 'Horde',
+  'upgrade.title': 'Warren Innovations',
+  'upgrade.subtitle': 'Permanent improvements for this brood cycle.',
+  'upgrade.researchedSummary': '{done} / {total} researched',
+  'upgrade.researched': 'Researched',
+  'upgrade.unknown': 'Unknown',
+  'upgrade.common': 'Common',
+  'upgrade.veteran': 'Veteran',
+  'upgrade.available': '{amount} goblins available',
+  'upgrade.purchased': 'Warren innovation purchased.',
+  'upgrade.genericDescription': 'A practical improvement that lasts until the next Great Migration.',
+  'upgrade.effectClick': 'Manual spawning ×{multiplier}',
+  'upgrade.effectAll': 'All production ×{multiplier}',
+  'upgrade.effectBuilding': '{name} ×{multiplier}',
+  'upgrade.effectCps': 'Clicks gain +{percent}% of base CPS',
+  'achievement.title': 'Hoard of Deeds',
+  'achievement.subtitle': 'Milestones whispered about in every tunnel.',
+  'achievement.completion': '{percent}% achievement completion',
+  'achievement.unlockedCount': '{done} / {total} unlocked',
+  'achievement.secret': 'A secret deed remains buried.',
+  'achievement.unlockedAt': 'Unlocked {date}',
+  'achievement.toastTitle': 'Deed unlocked: {name}',
+  'achievement.lifetime': 'Bring {amount} goblins into the world across all warrens.',
+  'achievement.clicks': 'Spawn goblins manually {amount} times.',
+  'achievement.building': 'Own {amount} {name}.',
+  'achievement.cps': 'Reach {amount} goblins per second.',
+  'achievement.mooncaps': 'Catch {amount} Mooncap events.',
+  'achievement.migrations': 'Complete {amount} Great Migrations.',
+  'achievement.allBuildings': 'Own at least {amount} of every structure.',
+  'prestige.title': 'Found a New Warren',
+  'prestige.subtitle': 'Abandon this den. Carry ancestral cunning into the next brood.',
+  'prestige.cunning': 'Ancestral cunning',
+  'prestige.permanentCurrency': 'Permanent currency',
+  'prestige.resetNow': 'Reset now for',
+  'prestige.begin': 'Begin New Warren',
+  'prestige.whatResets': 'What resets?',
+  'prestige.resetInfo': 'Your current goblins, buildings, and cycle upgrades. Permanent ancestral perks and achievements remain.',
+  'prestige.bloodline': 'Bloodline',
+  'prestige.perks': 'Ancestral Perks',
+  'prestige.maxed': 'Maxed',
+  'prestige.requirementReady': 'Ancestral Cunning waiting in this cycle',
+  'prestige.requirementLocked': 'Grow the all-time brood to reveal new Cunning',
+  'prestige.confirm': 'Begin a new warren for {gain} Ancestral Cunning? Current goblins, buildings and cycle upgrades will reset.',
+  'prestige.toastTitle': 'A new warren begins',
+  'prestige.toastMessage': '+{gain} Ancestral Cunning carried in the bloodline.',
+  'settings.title': 'Warren Settings',
+  'settings.subtitle': 'Tune the den to your liking.',
+  'settings.language': 'Language',
+  'settings.languageDescription': 'Automatically follows your browser or system language until you choose one here.',
+  'settings.sound': 'Warren sounds',
+  'settings.soundDescription': 'Procedural click, purchase, achievement, and event sounds.',
+  'settings.effects': 'Spawn effects',
+  'settings.effectsDescription': 'Floating numbers and extra visual feedback while clicking.',
+  'settings.reducedMotion': 'Reduced motion',
+  'settings.reducedMotionDescription': 'Disable decorative rotation, hovering, and pulsing animations.',
+  'settings.persistence': 'Persistence',
+  'settings.saveData': 'Save Data',
+  'settings.export': 'Export save',
+  'settings.import': 'Import save',
+  'settings.erase': 'Erase this warren',
+  'settings.eraseDescription': 'Deletes local progress and starts from the beginning.',
+  'settings.hardReset': 'Hard reset',
+  'settings.autosaveReady': 'Autosave ready',
+  'settings.saved': 'Saved',
+  'settings.autosaved': 'Autosaved',
+  'settings.saveFailed': 'Save failed',
+  'settings.imported': 'Imported',
+  'settings.exportTitle': 'Save exported',
+  'settings.exportMessage': 'Keep the file somewhere safe from rival warrens.',
+  'settings.importTitle': 'Warren restored',
+  'settings.importMessage': 'Imported save data is now active.',
+  'settings.importFailedTitle': 'Import failed',
+  'settings.importFailedMessage': 'The selected file was not a valid save.',
+  'settings.resetConfirm1': 'Erase ALL progress, achievements, ancestral perks, and statistics? This cannot be undone.',
+  'settings.resetConfirm2': 'Final warning: this permanently destroys the local warren save. Continue?',
+  'settings.resetTitle': 'Warren erased',
+  'settings.resetMessage': 'The caves are quiet again.',
+  'save.notice': 'Save notice',
+  'save.storageUnavailable': 'Browser storage is unavailable. This session can be played, but automatic persistence may not work.',
+  'save.unreadable': 'Your previous save could not be read, so a fresh warren was started.',
+  'offline.title': 'The warren worked while you were away',
+  'offline.message': '+{amount} goblins from offline production.',
+  'common.goblins': 'goblins',
+  'content.buildingDescription': 'Produces goblins automatically and expands the growing warren.',
+} as const;
+
+export type TranslationKey = keyof typeof EN;
+type TemplateValues = Record<string, string | number>;
+
+const ES: Partial<Record<TranslationKey, string>> = {
+  'app.title': 'Brood & Burrow — Incremental de goblins', 'brand.subtitle': 'Dirección de Reproducción Goblin',
+  'aria.resources': 'Recursos de la prole', 'aria.menus': 'Menús del juego', 'aria.achievements': 'Logros', 'aria.prestige': 'Prestigio', 'aria.settings': 'Ajustes', 'aria.goblinOperations': 'Operaciones goblin', 'aria.broodPit': 'Foso de cría', 'aria.denShop': 'Tienda de la madriguera', 'aria.notifications': 'Notificaciones', 'aria.close': 'Cerrar {title}', 'aria.dismiss': 'Descartar {title}',
+  'header.goblins': 'Goblins', 'header.perSecond': 'Por segundo', 'header.ancestral': 'Ancestral', 'header.ancestralTitle': 'Astucia Ancestral permanente',
+  'ledger.title': 'Libro de la Madriguera', 'ledger.eyebrow': 'Censo en vivo', 'ledger.thisCycle': 'Este ciclo', 'ledger.allTime': 'Prole total', 'ledger.manual': 'Apariciones manuales', 'ledger.structures': 'Estructuras', 'ledger.baseProduction': 'Producción base', 'ledger.bestProduction': 'Mejor producción',
+  'research.title': 'Innovaciones de la Madriguera', 'research.eyebrow': 'Investigación', 'research.copy': 'Convierte setas, herramientas robadas y rituales dudosos en mejoras permanentes para este ciclo.', 'research.open': 'Abrir investigación',
+  'bloodline.title': 'El Linaje', 'bloodline.eyebrow': 'Gran Migración', 'bloodline.cunning': 'Astucia', 'bloodline.migrations': '{count} migraciones completadas', 'bloodline.copy': 'Abandona una madriguera madura para conservar Astucia Ancestral e invertirla en ventajas permanentes del linaje.', 'bloodline.ready': 'Migración lista · +{gain}', 'bloodline.view': 'Ver linaje',
+  'status.ancient': 'El linaje recuerda cada túnel.', 'status.returned': 'Un viejo instinto guía a la nueva prole.', 'status.million': 'La montaña tiembla bajo miles de pequeños pies.', 'status.tenThousand': 'Todos los túneles están llenos. Cava más rápido.', 'status.hundred': 'La madriguera ya es toda una industria.', 'status.one': 'La prole ya no necesita vigilancia constante.', 'status.clicks': 'Algo en la oscuridad ha aprendido el ritmo.', 'status.start': 'La prole se agita ahí abajo…',
+  'buff.moonFrenzy': 'Frenesí Lunar', 'buff.hatchingFever': 'Fiebre de Eclosión',
+  'spawn.kicker': 'Madriguera Profunda · Cámara de Cría', 'spawn.population': 'Población goblin', 'spawn.perSecond': '/ s', 'spawn.button': 'Crear', 'spawn.each': 'Cada creación', 'spawn.aria': 'Crear un goblin. Potencia actual: {power}', 'spawn.claim': 'Recoger {name}',
+  'mooncap.wild': 'Seta Lunar Salvaje', 'mooncap.detail': 'Atrápala antes de que vuelva a hundirse en el musgo', 'mooncap.clutch': 'Nidada Lunar', 'mooncap.clutchMessage': 'La seta estalla en +{amount} goblins.', 'mooncap.cpsMessage': 'Producción ×{multiplier} durante {duration}.', 'mooncap.clickMessage': 'Creación manual ×{multiplier} durante {duration}.',
+  'shop.eyebrow': 'Intendente de la Madriguera', 'shop.title': 'Expansión de la Madriguera', 'shop.subtitle': 'Gasta prole para automatizar la horda.', 'shop.purchaseQuantity': 'Cantidad de compra', 'shop.max': 'Máx.', 'shop.footer': 'Los precios suben un 15% por cada estructura poseída. Vender devuelve una parte de su valor.', 'shop.lockedName': 'Madriguera Inexplorada', 'shop.lockedDescription': 'Amplía el nivel anterior para descubrir qué hay más profundo.', 'shop.buy': 'Comprar {count}', 'shop.buyMax': 'Comprar máx.', 'shop.sell': 'Vender', 'shop.owned': '{count} en propiedad', 'shop.buyAria': '{action} {name} por {price}', 'shop.sellAria': 'Vender {name}', 'shop.badgeEstablished': 'Consolidado', 'shop.badgeVeteran': 'Veterano', 'shop.badgeHorde': 'Horda',
+  'upgrade.title': 'Innovaciones de la Madriguera', 'upgrade.subtitle': 'Mejoras permanentes durante este ciclo de cría.', 'upgrade.researchedSummary': '{done} / {total} investigadas', 'upgrade.researched': 'Investigado', 'upgrade.unknown': 'Desconocido', 'upgrade.common': 'Común', 'upgrade.veteran': 'Veterano', 'upgrade.available': '{amount} goblins disponibles', 'upgrade.purchased': 'Innovación adquirida.', 'upgrade.genericDescription': 'Una mejora práctica que dura hasta la próxima Gran Migración.', 'upgrade.effectClick': 'Creación manual ×{multiplier}', 'upgrade.effectAll': 'Toda la producción ×{multiplier}', 'upgrade.effectBuilding': '{name} ×{multiplier}', 'upgrade.effectCps': 'Los clics obtienen +{percent}% de la producción base',
+  'achievement.title': 'Tesoro de Hazañas', 'achievement.subtitle': 'Hitos de los que se susurra en cada túnel.', 'achievement.completion': '{percent}% de logros completados', 'achievement.unlockedCount': '{done} / {total} desbloqueados', 'achievement.secret': 'Una hazaña secreta sigue enterrada.', 'achievement.unlockedAt': 'Desbloqueado {date}', 'achievement.toastTitle': 'Hazaña desbloqueada: {name}', 'achievement.lifetime': 'Trae {amount} goblins al mundo entre todas las madrigueras.', 'achievement.clicks': 'Crea goblins manualmente {amount} veces.', 'achievement.building': 'Posee {amount} de {name}.', 'achievement.cps': 'Alcanza {amount} goblins por segundo.', 'achievement.mooncaps': 'Atrapa {amount} eventos de Seta Lunar.', 'achievement.migrations': 'Completa {amount} Grandes Migraciones.', 'achievement.allBuildings': 'Posee al menos {amount} de cada estructura.',
+  'prestige.title': 'Fundar una Nueva Madriguera', 'prestige.subtitle': 'Abandona este cubil. Lleva la astucia ancestral a la siguiente prole.', 'prestige.cunning': 'Astucia ancestral', 'prestige.permanentCurrency': 'Moneda permanente', 'prestige.resetNow': 'Reinicia ahora por', 'prestige.begin': 'Comenzar Nueva Madriguera', 'prestige.whatResets': '¿Qué se reinicia?', 'prestige.resetInfo': 'Tus goblins actuales, edificios y mejoras de ciclo. Las ventajas ancestrales y los logros permanecen.', 'prestige.bloodline': 'Linaje', 'prestige.perks': 'Ventajas Ancestrales', 'prestige.maxed': 'Máximo', 'prestige.requirementReady': 'Astucia Ancestral esperando en este ciclo', 'prestige.requirementLocked': 'Aumenta la prole total para revelar nueva Astucia', 'prestige.confirm': '¿Fundar una nueva madriguera por {gain} de Astucia Ancestral? Se reiniciarán goblins, edificios y mejoras de ciclo.', 'prestige.toastTitle': 'Comienza una nueva madriguera', 'prestige.toastMessage': '+{gain} de Astucia Ancestral llevada en el linaje.',
+  'settings.title': 'Ajustes de la Madriguera', 'settings.subtitle': 'Ajusta el cubil a tu gusto.', 'settings.language': 'Idioma', 'settings.languageDescription': 'Sigue automáticamente el idioma del navegador o del sistema hasta que elijas uno aquí.', 'settings.sound': 'Sonidos de la madriguera', 'settings.soundDescription': 'Sonidos procedurales para clics, compras, logros y eventos.', 'settings.effects': 'Efectos de creación', 'settings.effectsDescription': 'Números flotantes y respuesta visual adicional al hacer clic.', 'settings.reducedMotion': 'Movimiento reducido', 'settings.reducedMotionDescription': 'Desactiva rotaciones, flotaciones y pulsos decorativos.', 'settings.persistence': 'Persistencia', 'settings.saveData': 'Datos de guardado', 'settings.export': 'Exportar partida', 'settings.import': 'Importar partida', 'settings.erase': 'Borrar esta madriguera', 'settings.eraseDescription': 'Elimina el progreso local y empieza desde cero.', 'settings.hardReset': 'Reinicio total', 'settings.autosaveReady': 'Autoguardado listo', 'settings.saved': 'Guardado', 'settings.autosaved': 'Autoguardado', 'settings.saveFailed': 'Error al guardar', 'settings.imported': 'Importado', 'settings.exportTitle': 'Partida exportada', 'settings.exportMessage': 'Guarda el archivo lejos de madrigueras rivales.', 'settings.importTitle': 'Madriguera restaurada', 'settings.importMessage': 'Los datos importados ya están activos.', 'settings.importFailedTitle': 'Error al importar', 'settings.importFailedMessage': 'El archivo seleccionado no es una partida válida.', 'settings.resetConfirm1': '¿Borrar TODO el progreso, logros, ventajas ancestrales y estadísticas? No se puede deshacer.', 'settings.resetConfirm2': 'Último aviso: esto destruye permanentemente la partida local. ¿Continuar?', 'settings.resetTitle': 'Madriguera borrada', 'settings.resetMessage': 'Las cuevas vuelven a estar en silencio.',
+  'save.notice': 'Aviso de guardado', 'save.storageUnavailable': 'El almacenamiento del navegador no está disponible. Puedes jugar esta sesión, pero el guardado automático podría no funcionar.', 'save.unreadable': 'No se pudo leer tu partida anterior, así que se inició una madriguera nueva.', 'offline.title': 'La madriguera trabajó mientras estabas fuera', 'offline.message': '+{amount} goblins de producción sin conexión.', 'common.goblins': 'goblins', 'content.buildingDescription': 'Produce goblins automáticamente y amplía la madriguera creciente.',
+};
+
+const ZH: Partial<Record<TranslationKey, string>> = {
+  'app.title': 'Brood & Burrow — 哥布林增量游戏', 'brand.subtitle': '哥布林繁衍管理局',
+  'aria.resources': '族群资源', 'aria.menus': '游戏菜单', 'aria.achievements': '成就', 'aria.prestige': '转生', 'aria.settings': '设置', 'aria.goblinOperations': '哥布林运营', 'aria.broodPit': '繁育坑', 'aria.denShop': '巢穴商店', 'aria.notifications': '通知', 'aria.close': '关闭{title}', 'aria.dismiss': '忽略{title}',
+  'header.goblins': '哥布林', 'header.perSecond': '每秒', 'header.ancestral': '祖传', 'header.ancestralTitle': '永久祖传狡黠',
+  'ledger.title': '巢穴账簿', 'ledger.eyebrow': '实时统计', 'ledger.thisCycle': '本轮', 'ledger.allTime': '历史族群', 'ledger.manual': '手动繁衍', 'ledger.structures': '建筑', 'ledger.baseProduction': '基础产量', 'ledger.bestProduction': '最高产量',
+  'research.title': '巢穴革新', 'research.eyebrow': '研究', 'research.copy': '把蘑菇、偷来的工具和可疑仪式变成本轮永久有效的提升。', 'research.open': '打开研究',
+  'bloodline.title': '血脉', 'bloodline.eyebrow': '大迁徙', 'bloodline.cunning': '狡黠', 'bloodline.migrations': '已完成 {count} 次迁徙', 'bloodline.copy': '放弃成熟巢穴，保留祖传狡黠，并投入永久血脉增益。', 'bloodline.ready': '可迁徙 · +{gain}', 'bloodline.view': '查看血脉',
+  'status.ancient': '血脉记得每一条隧道。', 'status.returned': '古老本能正在引导新的族群。', 'status.million': '无数小脚让整座山都在颤抖。', 'status.tenThousand': '每条隧道都满了。快挖！', 'status.hundred': '巢穴已经成了一套真正的产业。', 'status.one': '族群已经不需要时刻盯着了。', 'status.clicks': '黑暗里的某种东西学会了这个节奏。', 'status.start': '下方的族群开始骚动……',
+  'buff.moonFrenzy': '月之狂热', 'buff.hatchingFever': '孵化热潮',
+  'spawn.kicker': '深层巢穴 · 繁育室', 'spawn.population': '哥布林人口', 'spawn.perSecond': '/ 秒', 'spawn.button': '繁衍', 'spawn.each': '每次繁衍', 'spawn.aria': '繁衍一个哥布林。当前点击力量：{power}', 'spawn.claim': '收取{name}',
+  'mooncap.wild': '野生月帽菇', 'mooncap.detail': '在它沉回苔藓前抓住它', 'mooncap.clutch': '月帽菌窝', 'mooncap.clutchMessage': '月帽菇炸出了 +{amount} 个哥布林。', 'mooncap.cpsMessage': '产量 ×{multiplier}，持续 {duration}。', 'mooncap.clickMessage': '手动繁衍 ×{multiplier}，持续 {duration}。',
+  'shop.eyebrow': '巢穴军需官', 'shop.title': '扩建巢穴', 'shop.subtitle': '消耗族群，让大军自动增长。', 'shop.purchaseQuantity': '购买数量', 'shop.max': '最大', 'shop.footer': '每拥有一个同类建筑，价格上涨 15%。出售可返还部分价值。', 'shop.lockedName': '未知巢穴', 'shop.lockedDescription': '先扩建上一层，才能发现更深处的东西。', 'shop.buy': '购买 {count}', 'shop.buyMax': '尽量购买', 'shop.sell': '出售', 'shop.owned': '拥有 {count}', 'shop.buyAria': '{action}{name}，价格 {price}', 'shop.sellAria': '出售{name}', 'shop.badgeEstablished': '成型', 'shop.badgeVeteran': '老练', 'shop.badgeHorde': '大军',
+  'upgrade.title': '巢穴革新', 'upgrade.subtitle': '本轮族群周期内持续生效的强化。', 'upgrade.researchedSummary': '已研究 {done} / {total}', 'upgrade.researched': '已研究', 'upgrade.unknown': '未知', 'upgrade.common': '普通', 'upgrade.veteran': '老练', 'upgrade.available': '可用 {amount} 个哥布林', 'upgrade.purchased': '已购得巢穴革新。', 'upgrade.genericDescription': '一项实用改进，会持续到下一次大迁徙。', 'upgrade.effectClick': '手动繁衍 ×{multiplier}', 'upgrade.effectAll': '全部产量 ×{multiplier}', 'upgrade.effectBuilding': '{name} ×{multiplier}', 'upgrade.effectCps': '点击额外获得基础每秒产量的 {percent}%',
+  'achievement.title': '功绩宝库', 'achievement.subtitle': '每条隧道都在传颂的里程碑。', 'achievement.completion': '成就完成度 {percent}%', 'achievement.unlockedCount': '已解锁 {done} / {total}', 'achievement.secret': '一项秘密功绩仍埋在地下。', 'achievement.unlockedAt': '{date} 解锁', 'achievement.toastTitle': '解锁功绩：{name}', 'achievement.lifetime': '在所有巢穴中累计诞生 {amount} 个哥布林。', 'achievement.clicks': '手动繁衍 {amount} 次。', 'achievement.building': '拥有 {amount} 个{name}。', 'achievement.cps': '达到每秒 {amount} 个哥布林。', 'achievement.mooncaps': '抓住 {amount} 次月帽菇事件。', 'achievement.migrations': '完成 {amount} 次大迁徙。', 'achievement.allBuildings': '每种建筑至少拥有 {amount} 个。',
+  'prestige.title': '建立新巢穴', 'prestige.subtitle': '放弃此地，把祖传狡黠带给下一代。', 'prestige.cunning': '祖传狡黠', 'prestige.permanentCurrency': '永久货币', 'prestige.resetNow': '现在重置可获得', 'prestige.begin': '开始新巢穴', 'prestige.whatResets': '哪些会重置？', 'prestige.resetInfo': '当前哥布林、建筑与本轮升级会重置。永久祖传增益与成就会保留。', 'prestige.bloodline': '血脉', 'prestige.perks': '祖传增益', 'prestige.maxed': '已满级', 'prestige.requirementReady': '本轮已有祖传狡黠等待继承', 'prestige.requirementLocked': '扩大历史族群以获得新的狡黠', 'prestige.confirm': '要用本轮换取 {gain} 点祖传狡黠并建立新巢穴吗？哥布林、建筑和本轮升级都会重置。', 'prestige.toastTitle': '新巢穴开始了', 'prestige.toastMessage': '血脉继承了 +{gain} 点祖传狡黠。',
+  'settings.title': '巢穴设置', 'settings.subtitle': '按你的喜好调整巢穴。', 'settings.language': '语言', 'settings.languageDescription': '在你手动选择前，会自动跟随浏览器或系统语言。', 'settings.sound': '巢穴音效', 'settings.soundDescription': '点击、购买、成就和事件的程序化音效。', 'settings.effects': '繁衍特效', 'settings.effectsDescription': '点击时显示浮动数字和额外视觉反馈。', 'settings.reducedMotion': '减少动态效果', 'settings.reducedMotionDescription': '关闭装饰性旋转、漂浮和脉动动画。', 'settings.persistence': '存档', 'settings.saveData': '存档数据', 'settings.export': '导出存档', 'settings.import': '导入存档', 'settings.erase': '清除这个巢穴', 'settings.eraseDescription': '删除本地进度并从头开始。', 'settings.hardReset': '彻底重置', 'settings.autosaveReady': '自动保存已就绪', 'settings.saved': '已保存', 'settings.autosaved': '已自动保存', 'settings.saveFailed': '保存失败', 'settings.imported': '已导入', 'settings.exportTitle': '存档已导出', 'settings.exportMessage': '把文件放在敌对巢穴找不到的地方。', 'settings.importTitle': '巢穴已恢复', 'settings.importMessage': '导入的存档现已生效。', 'settings.importFailedTitle': '导入失败', 'settings.importFailedMessage': '所选文件不是有效存档。', 'settings.resetConfirm1': '清除全部进度、成就、祖传增益和统计数据？此操作无法撤销。', 'settings.resetConfirm2': '最后警告：这会永久销毁本地存档。继续吗？', 'settings.resetTitle': '巢穴已清空', 'settings.resetMessage': '洞穴再次安静下来。',
+  'save.notice': '存档提示', 'save.storageUnavailable': '浏览器存储不可用。本次仍可游玩，但自动保存可能失效。', 'save.unreadable': '无法读取旧存档，因此已开始一个新巢穴。', 'offline.title': '你离开时，巢穴仍在工作', 'offline.message': '离线生产了 +{amount} 个哥布林。', 'common.goblins': '哥布林', 'content.buildingDescription': '自动生产哥布林，并继续扩张不断成长的巢穴。',
+};
+
+const FR: Partial<Record<TranslationKey, string>> = {
+  'app.title': 'Brood & Burrow — Jeu incrémental gobelin', 'brand.subtitle': 'Direction de la Reproduction Gobeline',
+  'aria.resources': 'Ressources de la couvée', 'aria.menus': 'Menus du jeu', 'aria.achievements': 'Succès', 'aria.prestige': 'Prestige', 'aria.settings': 'Paramètres', 'aria.goblinOperations': 'Opérations gobelines', 'aria.broodPit': 'Fosse à couvée', 'aria.denShop': 'Boutique du terrier', 'aria.notifications': 'Notifications', 'aria.close': 'Fermer {title}', 'aria.dismiss': 'Masquer {title}',
+  'header.goblins': 'Gobelins', 'header.perSecond': 'Par seconde', 'header.ancestral': 'Ancestral', 'header.ancestralTitle': 'Ruse Ancestrale permanente',
+  'ledger.title': 'Registre du Terrier', 'ledger.eyebrow': 'Recensement en direct', 'ledger.thisCycle': 'Ce cycle', 'ledger.allTime': 'Couvée totale', 'ledger.manual': 'Naissances manuelles', 'ledger.structures': 'Structures', 'ledger.baseProduction': 'Production de base', 'ledger.bestProduction': 'Meilleure production',
+  'research.title': 'Innovations du Terrier', 'research.eyebrow': 'Recherche', 'research.copy': 'Transformez champignons, outils volés et rituels douteux en gains durables pour ce cycle.', 'research.open': 'Ouvrir la recherche',
+  'bloodline.title': 'La Lignée', 'bloodline.eyebrow': 'Grande Migration', 'bloodline.cunning': 'Ruse', 'bloodline.migrations': '{count} migrations accomplies', 'bloodline.copy': 'Abandonnez un terrier mature pour préserver la Ruse Ancestrale et investir dans des avantages permanents de lignée.', 'bloodline.ready': 'Migration prête · +{gain}', 'bloodline.view': 'Voir la lignée',
+  'status.ancient': 'La lignée se souvient de chaque tunnel.', 'status.returned': 'Un vieil instinct guide la nouvelle couvée.', 'status.million': 'La montagne tremble sous de minuscules pieds.', 'status.tenThousand': 'Tous les tunnels sont pleins. Creusez plus vite.', 'status.hundred': 'Le terrier est devenu une véritable industrie.', 'status.one': 'La couvée n’a plus besoin d’une surveillance constante.', 'status.clicks': 'Quelque chose dans l’ombre a appris le rythme.', 'status.start': 'La couvée s’agite en dessous…',
+  'buff.moonFrenzy': 'Frénésie Lunaire', 'buff.hatchingFever': 'Fièvre d’Éclosion',
+  'spawn.kicker': 'Terrier Profond · Chambre de Couvée', 'spawn.population': 'Population gobeline', 'spawn.perSecond': '/ s', 'spawn.button': 'Faire naître', 'spawn.each': 'Chaque naissance', 'spawn.aria': 'Faire naître un gobelin. Puissance actuelle : {power}', 'spawn.claim': 'Récupérer {name}',
+  'mooncap.wild': 'Champilune Sauvage', 'mooncap.detail': 'Attrapez-le avant qu’il ne replonge dans la mousse', 'mooncap.clutch': 'Couvée Lunaire', 'mooncap.clutchMessage': 'Le champilune éclate en +{amount} gobelins.', 'mooncap.cpsMessage': 'Production ×{multiplier} pendant {duration}.', 'mooncap.clickMessage': 'Naissance manuelle ×{multiplier} pendant {duration}.',
+  'shop.eyebrow': 'Intendant du Terrier', 'shop.title': 'Expansion du Terrier', 'shop.subtitle': 'Dépensez la couvée pour automatiser la horde.', 'shop.purchaseQuantity': 'Quantité d’achat', 'shop.max': 'Max', 'shop.footer': 'Les prix augmentent de 15 % pour chaque structure possédée. La vente rembourse une partie de sa valeur.', 'shop.lockedName': 'Terrier Inexploré', 'shop.lockedDescription': 'Développez le niveau précédent pour découvrir ce qui se cache plus bas.', 'shop.buy': 'Acheter {count}', 'shop.buyMax': 'Acheter max', 'shop.sell': 'Vendre', 'shop.owned': '{count} possédés', 'shop.buyAria': '{action} {name} pour {price}', 'shop.sellAria': 'Vendre {name}', 'shop.badgeEstablished': 'Établi', 'shop.badgeVeteran': 'Vétéran', 'shop.badgeHorde': 'Horde',
+  'upgrade.title': 'Innovations du Terrier', 'upgrade.subtitle': 'Améliorations durables pour ce cycle de couvée.', 'upgrade.researchedSummary': '{done} / {total} recherchées', 'upgrade.researched': 'Recherchée', 'upgrade.unknown': 'Inconnue', 'upgrade.common': 'Commune', 'upgrade.veteran': 'Vétéran', 'upgrade.available': '{amount} gobelins disponibles', 'upgrade.purchased': 'Innovation du terrier achetée.', 'upgrade.genericDescription': 'Une amélioration pratique qui dure jusqu’à la prochaine Grande Migration.', 'upgrade.effectClick': 'Naissance manuelle ×{multiplier}', 'upgrade.effectAll': 'Toute la production ×{multiplier}', 'upgrade.effectBuilding': '{name} ×{multiplier}', 'upgrade.effectCps': 'Les clics gagnent +{percent}% de la production de base',
+  'achievement.title': 'Trésor des Exploits', 'achievement.subtitle': 'Des jalons dont on murmure dans chaque tunnel.', 'achievement.completion': '{percent}% des succès accomplis', 'achievement.unlockedCount': '{done} / {total} débloqués', 'achievement.secret': 'Un exploit secret reste enfoui.', 'achievement.unlockedAt': 'Débloqué le {date}', 'achievement.toastTitle': 'Exploit débloqué : {name}', 'achievement.lifetime': 'Faites naître {amount} gobelins au total dans tous les terriers.', 'achievement.clicks': 'Faites naître manuellement des gobelins {amount} fois.', 'achievement.building': 'Possédez {amount} {name}.', 'achievement.cps': 'Atteignez {amount} gobelins par seconde.', 'achievement.mooncaps': 'Attrapez {amount} événements Champilune.', 'achievement.migrations': 'Accomplissez {amount} Grandes Migrations.', 'achievement.allBuildings': 'Possédez au moins {amount} de chaque structure.',
+  'prestige.title': 'Fonder un Nouveau Terrier', 'prestige.subtitle': 'Abandonnez ce repaire. Emportez la ruse ancestrale vers la prochaine couvée.', 'prestige.cunning': 'Ruse ancestrale', 'prestige.permanentCurrency': 'Monnaie permanente', 'prestige.resetNow': 'Réinitialiser pour', 'prestige.begin': 'Commencer un Nouveau Terrier', 'prestige.whatResets': 'Qu’est-ce qui repart à zéro ?', 'prestige.resetInfo': 'Vos gobelins, bâtiments et améliorations du cycle. Les avantages ancestraux permanents et les succès restent.', 'prestige.bloodline': 'Lignée', 'prestige.perks': 'Avantages Ancestraux', 'prestige.maxed': 'Maximum', 'prestige.requirementReady': 'Ruse Ancestrale disponible dans ce cycle', 'prestige.requirementLocked': 'Agrandissez la couvée totale pour révéler plus de Ruse', 'prestige.confirm': 'Fonder un nouveau terrier pour {gain} de Ruse Ancestrale ? Les gobelins, bâtiments et améliorations du cycle seront réinitialisés.', 'prestige.toastTitle': 'Un nouveau terrier commence', 'prestige.toastMessage': '+{gain} de Ruse Ancestrale transmise par la lignée.',
+  'settings.title': 'Paramètres du Terrier', 'settings.subtitle': 'Réglez le repaire à votre goût.', 'settings.language': 'Langue', 'settings.languageDescription': 'Suit automatiquement la langue du navigateur ou du système jusqu’à ce que vous en choisissiez une ici.', 'settings.sound': 'Sons du terrier', 'settings.soundDescription': 'Sons procéduraux pour les clics, achats, succès et événements.', 'settings.effects': 'Effets de naissance', 'settings.effectsDescription': 'Nombres flottants et retours visuels supplémentaires au clic.', 'settings.reducedMotion': 'Animations réduites', 'settings.reducedMotionDescription': 'Désactive les rotations, flottements et pulsations décoratives.', 'settings.persistence': 'Sauvegarde', 'settings.saveData': 'Données de sauvegarde', 'settings.export': 'Exporter', 'settings.import': 'Importer', 'settings.erase': 'Effacer ce terrier', 'settings.eraseDescription': 'Supprime la progression locale et recommence depuis le début.', 'settings.hardReset': 'Réinitialisation totale', 'settings.autosaveReady': 'Sauvegarde auto prête', 'settings.saved': 'Sauvegardé', 'settings.autosaved': 'Sauvegarde auto', 'settings.saveFailed': 'Échec de sauvegarde', 'settings.imported': 'Importé', 'settings.exportTitle': 'Sauvegarde exportée', 'settings.exportMessage': 'Gardez ce fichier loin des terriers rivaux.', 'settings.importTitle': 'Terrier restauré', 'settings.importMessage': 'Les données importées sont maintenant actives.', 'settings.importFailedTitle': 'Échec de l’import', 'settings.importFailedMessage': 'Le fichier sélectionné n’est pas une sauvegarde valide.', 'settings.resetConfirm1': 'Effacer TOUTE la progression, les succès, avantages ancestraux et statistiques ? Action irréversible.', 'settings.resetConfirm2': 'Dernier avertissement : ceci détruit définitivement la sauvegarde locale. Continuer ?', 'settings.resetTitle': 'Terrier effacé', 'settings.resetMessage': 'Les cavernes sont à nouveau silencieuses.',
+  'save.notice': 'Avis de sauvegarde', 'save.storageUnavailable': 'Le stockage du navigateur est indisponible. La session reste jouable, mais la sauvegarde automatique peut ne pas fonctionner.', 'save.unreadable': 'Votre ancienne sauvegarde n’a pas pu être lue ; un nouveau terrier a été créé.', 'offline.title': 'Le terrier a travaillé pendant votre absence', 'offline.message': '+{amount} gobelins produits hors ligne.', 'common.goblins': 'gobelins', 'content.buildingDescription': 'Produit automatiquement des gobelins et agrandit le terrier en croissance.',
+};
+
+const DE: Partial<Record<TranslationKey, string>> = {
+  'app.title': 'Brood & Burrow — Goblin-Inkrementalspiel', 'brand.subtitle': 'Direktion für Goblin-Vermehrung',
+  'aria.resources': 'Brutressourcen', 'aria.menus': 'Spielmenüs', 'aria.achievements': 'Erfolge', 'aria.prestige': 'Prestige', 'aria.settings': 'Einstellungen', 'aria.goblinOperations': 'Goblin-Betrieb', 'aria.broodPit': 'Brutgrube', 'aria.denShop': 'Bau-Laden', 'aria.notifications': 'Benachrichtigungen', 'aria.close': '{title} schließen', 'aria.dismiss': '{title} ausblenden',
+  'header.goblins': 'Goblins', 'header.perSecond': 'Pro Sekunde', 'header.ancestral': 'Ahnenkraft', 'header.ancestralTitle': 'Permanente Ahnenlist',
+  'ledger.title': 'Bau-Buch', 'ledger.eyebrow': 'Live-Zählung', 'ledger.thisCycle': 'Dieser Zyklus', 'ledger.allTime': 'Gesamtbrut', 'ledger.manual': 'Manuelle Brut', 'ledger.structures': 'Strukturen', 'ledger.baseProduction': 'Grundproduktion', 'ledger.bestProduction': 'Beste Produktion',
+  'research.title': 'Bau-Innovationen', 'research.eyebrow': 'Forschung', 'research.copy': 'Verwandle Pilze, gestohlene Werkzeuge und fragwürdige Rituale in dauerhafte Vorteile für diesen Brutzyklus.', 'research.open': 'Forschung öffnen',
+  'bloodline.title': 'Die Blutlinie', 'bloodline.eyebrow': 'Große Wanderung', 'bloodline.cunning': 'List', 'bloodline.migrations': '{count} Wanderungen abgeschlossen', 'bloodline.copy': 'Verlasse einen reifen Bau, bewahre Ahnenlist und investiere sie in dauerhafte Blutlinienvorteile.', 'bloodline.ready': 'Wanderung bereit · +{gain}', 'bloodline.view': 'Blutlinie ansehen',
+  'status.ancient': 'Die Blutlinie erinnert sich an jeden Tunnel.', 'status.returned': 'Ein alter Instinkt führt die neue Brut.', 'status.million': 'Der Berg bebt unter winzigen Füßen.', 'status.tenThousand': 'Jeder Tunnel ist voll. Schneller graben.', 'status.hundred': 'Der Bau ist zu einer echten Industrie geworden.', 'status.one': 'Die Brut braucht keine ständige Aufsicht mehr.', 'status.clicks': 'Etwas in der Dunkelheit hat den Rhythmus gelernt.', 'status.start': 'Die Brut regt sich in der Tiefe…',
+  'buff.moonFrenzy': 'Mondraserei', 'buff.hatchingFever': 'Schlupffieber',
+  'spawn.kicker': 'Tiefer Bau · Brutkammer', 'spawn.population': 'Goblin-Bevölkerung', 'spawn.perSecond': '/ Sek.', 'spawn.button': 'Brüten', 'spawn.each': 'Jede Brut', 'spawn.aria': 'Einen Goblin brüten. Aktuelle Klickstärke: {power}', 'spawn.claim': '{name} einsammeln',
+  'mooncap.wild': 'Wilder Mondpilz', 'mooncap.detail': 'Fang ihn, bevor er zurück ins Moos sinkt', 'mooncap.clutch': 'Mondpilz-Gelege', 'mooncap.clutchMessage': 'Der Mondpilz platzt in +{amount} Goblins.', 'mooncap.cpsMessage': 'Produktion ×{multiplier} für {duration}.', 'mooncap.clickMessage': 'Manuelle Brut ×{multiplier} für {duration}.',
+  'shop.eyebrow': 'Bau-Quartiermeister', 'shop.title': 'Bau-Erweiterung', 'shop.subtitle': 'Gib Brut aus, um die Horde zu automatisieren.', 'shop.purchaseQuantity': 'Kaufmenge', 'shop.max': 'Max', 'shop.footer': 'Preise steigen pro besessener Struktur um 15 %. Verkauf erstattet einen Teil des Werts.', 'shop.lockedName': 'Unerforschter Bau', 'shop.lockedDescription': 'Erweitere die vorherige Stufe, um tiefere Bereiche zu entdecken.', 'shop.buy': '{count} kaufen', 'shop.buyMax': 'Maximum kaufen', 'shop.sell': 'Verkaufen', 'shop.owned': '{count} im Besitz', 'shop.buyAria': '{action}: {name} für {price}', 'shop.sellAria': '{name} verkaufen', 'shop.badgeEstablished': 'Etabliert', 'shop.badgeVeteran': 'Veteran', 'shop.badgeHorde': 'Horde',
+  'upgrade.title': 'Bau-Innovationen', 'upgrade.subtitle': 'Dauerhafte Verbesserungen für diesen Brutzyklus.', 'upgrade.researchedSummary': '{done} / {total} erforscht', 'upgrade.researched': 'Erforscht', 'upgrade.unknown': 'Unbekannt', 'upgrade.common': 'Gewöhnlich', 'upgrade.veteran': 'Veteran', 'upgrade.available': '{amount} Goblins verfügbar', 'upgrade.purchased': 'Bau-Innovation gekauft.', 'upgrade.genericDescription': 'Eine praktische Verbesserung, die bis zur nächsten Großen Wanderung anhält.', 'upgrade.effectClick': 'Manuelle Brut ×{multiplier}', 'upgrade.effectAll': 'Gesamte Produktion ×{multiplier}', 'upgrade.effectBuilding': '{name} ×{multiplier}', 'upgrade.effectCps': 'Klicks erhalten +{percent}% der Grundproduktion',
+  'achievement.title': 'Hort der Taten', 'achievement.subtitle': 'Meilensteine, von denen jeder Tunnel flüstert.', 'achievement.completion': '{percent}% Erfolgskomplettierung', 'achievement.unlockedCount': '{done} / {total} freigeschaltet', 'achievement.secret': 'Eine geheime Tat bleibt vergraben.', 'achievement.unlockedAt': 'Freigeschaltet {date}', 'achievement.toastTitle': 'Tat freigeschaltet: {name}', 'achievement.lifetime': 'Bringe über alle Baue hinweg {amount} Goblins zur Welt.', 'achievement.clicks': 'Brüte {amount}-mal manuell Goblins.', 'achievement.building': 'Besitze {amount} × {name}.', 'achievement.cps': 'Erreiche {amount} Goblins pro Sekunde.', 'achievement.mooncaps': 'Fange {amount} Mondpilz-Ereignisse.', 'achievement.migrations': 'Schließe {amount} Große Wanderungen ab.', 'achievement.allBuildings': 'Besitze mindestens {amount} jeder Struktur.',
+  'prestige.title': 'Neuen Bau Gründen', 'prestige.subtitle': 'Verlasse diesen Bau. Trage die Ahnenlist in die nächste Brut.', 'prestige.cunning': 'Ahnenlist', 'prestige.permanentCurrency': 'Permanente Währung', 'prestige.resetNow': 'Jetzt zurücksetzen für', 'prestige.begin': 'Neuen Bau Beginnen', 'prestige.whatResets': 'Was wird zurückgesetzt?', 'prestige.resetInfo': 'Aktuelle Goblins, Gebäude und Zyklus-Upgrades. Permanente Ahnenvorteile und Erfolge bleiben.', 'prestige.bloodline': 'Blutlinie', 'prestige.perks': 'Ahnenvorteile', 'prestige.maxed': 'Maximum', 'prestige.requirementReady': 'Ahnenlist wartet in diesem Zyklus', 'prestige.requirementLocked': 'Vergrößere die Gesamtbrut, um neue List zu enthüllen', 'prestige.confirm': 'Einen neuen Bau für {gain} Ahnenlist gründen? Goblins, Gebäude und Zyklus-Upgrades werden zurückgesetzt.', 'prestige.toastTitle': 'Ein neuer Bau beginnt', 'prestige.toastMessage': '+{gain} Ahnenlist wird in der Blutlinie weitergetragen.',
+  'settings.title': 'Bau-Einstellungen', 'settings.subtitle': 'Passe den Bau nach deinem Geschmack an.', 'settings.language': 'Sprache', 'settings.languageDescription': 'Folgt automatisch der Browser- oder Systemsprache, bis du hier eine auswählst.', 'settings.sound': 'Bau-Geräusche', 'settings.soundDescription': 'Prozedurale Klick-, Kauf-, Erfolgs- und Ereignisgeräusche.', 'settings.effects': 'Brut-Effekte', 'settings.effectsDescription': 'Schwebende Zahlen und zusätzliches visuelles Feedback beim Klicken.', 'settings.reducedMotion': 'Reduzierte Bewegung', 'settings.reducedMotionDescription': 'Deaktiviert dekorative Rotation, Schweben und Pulsieren.', 'settings.persistence': 'Speicherung', 'settings.saveData': 'Speicherdaten', 'settings.export': 'Spielstand exportieren', 'settings.import': 'Spielstand importieren', 'settings.erase': 'Diesen Bau löschen', 'settings.eraseDescription': 'Löscht lokalen Fortschritt und beginnt von vorn.', 'settings.hardReset': 'Komplett zurücksetzen', 'settings.autosaveReady': 'Autospeichern bereit', 'settings.saved': 'Gespeichert', 'settings.autosaved': 'Automatisch gespeichert', 'settings.saveFailed': 'Speichern fehlgeschlagen', 'settings.imported': 'Importiert', 'settings.exportTitle': 'Spielstand exportiert', 'settings.exportMessage': 'Bewahre die Datei sicher vor rivalisierenden Bauen auf.', 'settings.importTitle': 'Bau wiederhergestellt', 'settings.importMessage': 'Die importierten Daten sind jetzt aktiv.', 'settings.importFailedTitle': 'Import fehlgeschlagen', 'settings.importFailedMessage': 'Die ausgewählte Datei ist kein gültiger Spielstand.', 'settings.resetConfirm1': 'ALLE Fortschritte, Erfolge, Ahnenvorteile und Statistiken löschen? Dies kann nicht rückgängig gemacht werden.', 'settings.resetConfirm2': 'Letzte Warnung: Der lokale Spielstand wird dauerhaft zerstört. Fortfahren?', 'settings.resetTitle': 'Bau gelöscht', 'settings.resetMessage': 'Die Höhlen sind wieder still.',
+  'save.notice': 'Speicherhinweis', 'save.storageUnavailable': 'Browserspeicher ist nicht verfügbar. Diese Sitzung ist spielbar, aber automatisches Speichern funktioniert möglicherweise nicht.', 'save.unreadable': 'Der vorherige Spielstand konnte nicht gelesen werden; ein neuer Bau wurde begonnen.', 'offline.title': 'Der Bau arbeitete während deiner Abwesenheit weiter', 'offline.message': '+{amount} Goblins aus Offline-Produktion.', 'common.goblins': 'Goblins', 'content.buildingDescription': 'Produziert automatisch Goblins und erweitert den wachsenden Bau.',
+};
+
+const AR: Partial<Record<TranslationKey, string>> = {
+  'app.title': 'Brood & Burrow — لعبة غوبلن تراكمية', 'brand.subtitle': 'مديرية تكاثر الغوبلن',
+  'aria.resources': 'موارد السرب', 'aria.menus': 'قوائم اللعبة', 'aria.achievements': 'الإنجازات', 'aria.prestige': 'الهيبة', 'aria.settings': 'الإعدادات', 'aria.goblinOperations': 'عمليات الغوبلن', 'aria.broodPit': 'حفرة السرب', 'aria.denShop': 'متجر الوكر', 'aria.notifications': 'الإشعارات', 'aria.close': 'إغلاق {title}', 'aria.dismiss': 'إخفاء {title}',
+  'header.goblins': 'غوبلن', 'header.perSecond': 'في الثانية', 'header.ancestral': 'سَلَفي', 'header.ancestralTitle': 'دهاء الأجداد الدائم',
+  'ledger.title': 'سجل الوكر', 'ledger.eyebrow': 'إحصاء مباشر', 'ledger.thisCycle': 'هذه الدورة', 'ledger.allTime': 'السرب الكلي', 'ledger.manual': 'ولادات يدوية', 'ledger.structures': 'منشآت', 'ledger.baseProduction': 'الإنتاج الأساسي', 'ledger.bestProduction': 'أفضل إنتاج',
+  'research.title': 'ابتكارات الوكر', 'research.eyebrow': 'البحث', 'research.copy': 'حوّل الفطر والأدوات المسروقة والطقوس المشبوهة إلى مكاسب ثابتة لهذه الدورة.', 'research.open': 'فتح البحث',
+  'bloodline.title': 'السلالة', 'bloodline.eyebrow': 'الهجرة الكبرى', 'bloodline.cunning': 'دهاء', 'bloodline.migrations': 'اكتملت {count} هجرات', 'bloodline.copy': 'اترك وكرًا ناضجًا لتحفظ دهاء الأجداد وتستثمره في مزايا دائمة للسلالة.', 'bloodline.ready': 'الهجرة جاهزة · +{gain}', 'bloodline.view': 'عرض السلالة',
+  'status.ancient': 'السلالة تتذكر كل نفق.', 'status.returned': 'غريزة قديمة تقود السرب الجديد.', 'status.million': 'الجبل يرتجف تحت أقدام صغيرة لا تحصى.', 'status.tenThousand': 'كل الأنفاق ممتلئة. احفر أسرع.', 'status.hundred': 'أصبح الوكر صناعة حقيقية.', 'status.one': 'لم يعد السرب يحتاج مراقبة مستمرة.', 'status.clicks': 'شيء في الظلام تعلّم الإيقاع.', 'status.start': 'السرب يتحرك في الأعماق…',
+  'buff.moonFrenzy': 'هيجان القمر', 'buff.hatchingFever': 'حمّى الفقس',
+  'spawn.kicker': 'الوكر العميق · حجرة السرب', 'spawn.population': 'عدد الغوبلن', 'spawn.perSecond': '/ ث', 'spawn.button': 'ولادة', 'spawn.each': 'كل ولادة', 'spawn.aria': 'ولادة غوبلن. قوة النقر الحالية: {power}', 'spawn.claim': 'اجمع {name}',
+  'mooncap.wild': 'فطر قمري بري', 'mooncap.detail': 'أمسكه قبل أن يغوص عائدًا في الطحلب', 'mooncap.clutch': 'حضنة قمرية', 'mooncap.clutchMessage': 'انفجر الفطر إلى +{amount} غوبلن.', 'mooncap.cpsMessage': 'الإنتاج ×{multiplier} لمدة {duration}.', 'mooncap.clickMessage': 'الولادة اليدوية ×{multiplier} لمدة {duration}.',
+  'shop.eyebrow': 'أمين مؤن الوكر', 'shop.title': 'توسعة الوكر', 'shop.subtitle': 'أنفق من السرب لأتمتة الحشد.', 'shop.purchaseQuantity': 'كمية الشراء', 'shop.max': 'الأقصى', 'shop.footer': 'ترتفع الأسعار 15٪ لكل منشأة مملوكة. يعيد البيع جزءًا من القيمة.', 'shop.lockedName': 'وكر مجهول', 'shop.lockedDescription': 'وسّع المستوى السابق لاكتشاف ما يكمن أعمق.', 'shop.buy': 'شراء {count}', 'shop.buyMax': 'شراء الأقصى', 'shop.sell': 'بيع', 'shop.owned': 'تملك {count}', 'shop.buyAria': '{action} {name} مقابل {price}', 'shop.sellAria': 'بيع {name}', 'shop.badgeEstablished': 'راسخ', 'shop.badgeVeteran': 'مخضرم', 'shop.badgeHorde': 'حشد',
+  'upgrade.title': 'ابتكارات الوكر', 'upgrade.subtitle': 'تحسينات دائمة خلال دورة السرب الحالية.', 'upgrade.researchedSummary': 'تم بحث {done} / {total}', 'upgrade.researched': 'مبحوث', 'upgrade.unknown': 'مجهول', 'upgrade.common': 'شائع', 'upgrade.veteran': 'مخضرم', 'upgrade.available': '{amount} غوبلن متاح', 'upgrade.purchased': 'تم شراء ابتكار للوكر.', 'upgrade.genericDescription': 'تحسين عملي يستمر حتى الهجرة الكبرى التالية.', 'upgrade.effectClick': 'الولادة اليدوية ×{multiplier}', 'upgrade.effectAll': 'كل الإنتاج ×{multiplier}', 'upgrade.effectBuilding': '{name} ×{multiplier}', 'upgrade.effectCps': 'النقرات تكسب +{percent}٪ من الإنتاج الأساسي',
+  'achievement.title': 'خزانة المآثر', 'achievement.subtitle': 'محطات يتناقلها الهمس في كل نفق.', 'achievement.completion': 'إكمال الإنجازات {percent}٪', 'achievement.unlockedCount': 'فُتح {done} / {total}', 'achievement.secret': 'ما زال إنجاز سري مدفونًا.', 'achievement.unlockedAt': 'فُتح في {date}', 'achievement.toastTitle': 'إنجاز جديد: {name}', 'achievement.lifetime': 'أحضر {amount} غوبلن إلى العالم عبر كل الأوكار.', 'achievement.clicks': 'أنشئ غوبلن يدويًا {amount} مرة.', 'achievement.building': 'امتلك {amount} من {name}.', 'achievement.cps': 'صل إلى {amount} غوبلن في الثانية.', 'achievement.mooncaps': 'أمسك {amount} أحداث فطر قمري.', 'achievement.migrations': 'أكمل {amount} هجرات كبرى.', 'achievement.allBuildings': 'امتلك ما لا يقل عن {amount} من كل منشأة.',
+  'prestige.title': 'تأسيس وكر جديد', 'prestige.subtitle': 'اترك هذا الوكر واحمل دهاء الأجداد إلى السرب التالي.', 'prestige.cunning': 'دهاء الأجداد', 'prestige.permanentCurrency': 'عملة دائمة', 'prestige.resetNow': 'أعد الضبط الآن مقابل', 'prestige.begin': 'ابدأ وكرًا جديدًا', 'prestige.whatResets': 'ما الذي سيُعاد؟', 'prestige.resetInfo': 'الغوبلن والمنشآت وترقيات الدورة الحالية. تبقى مزايا الأجداد والإنجازات.', 'prestige.bloodline': 'السلالة', 'prestige.perks': 'مزايا الأجداد', 'prestige.maxed': 'مكتمل', 'prestige.requirementReady': 'دهاء الأجداد ينتظر في هذه الدورة', 'prestige.requirementLocked': 'نمِّ السرب الكلي لكشف المزيد من الدهاء', 'prestige.confirm': 'تأسيس وكر جديد مقابل {gain} من دهاء الأجداد؟ ستُعاد الغوبلن والمنشآت وترقيات الدورة.', 'prestige.toastTitle': 'يبدأ وكر جديد', 'prestige.toastMessage': '+{gain} من دهاء الأجداد انتقل عبر السلالة.',
+  'settings.title': 'إعدادات الوكر', 'settings.subtitle': 'اضبط الوكر كما تحب.', 'settings.language': 'اللغة', 'settings.languageDescription': 'تتبع لغة المتصفح أو النظام تلقائيًا حتى تختار لغة هنا.', 'settings.sound': 'أصوات الوكر', 'settings.soundDescription': 'أصوات مولدة للنقر والشراء والإنجازات والأحداث.', 'settings.effects': 'مؤثرات الولادة', 'settings.effectsDescription': 'أرقام عائمة وردود بصرية إضافية أثناء النقر.', 'settings.reducedMotion': 'تقليل الحركة', 'settings.reducedMotionDescription': 'يعطل الدوران والتحويم والنبض الزخرفي.', 'settings.persistence': 'الحفظ', 'settings.saveData': 'بيانات الحفظ', 'settings.export': 'تصدير الحفظ', 'settings.import': 'استيراد الحفظ', 'settings.erase': 'مسح هذا الوكر', 'settings.eraseDescription': 'يحذف التقدم المحلي ويبدأ من البداية.', 'settings.hardReset': 'إعادة ضبط كاملة', 'settings.autosaveReady': 'الحفظ التلقائي جاهز', 'settings.saved': 'تم الحفظ', 'settings.autosaved': 'حفظ تلقائي', 'settings.saveFailed': 'فشل الحفظ', 'settings.imported': 'تم الاستيراد', 'settings.exportTitle': 'تم تصدير الحفظ', 'settings.exportMessage': 'احتفظ بالملف بعيدًا عن الأوكار المنافسة.', 'settings.importTitle': 'تم استعادة الوكر', 'settings.importMessage': 'بيانات الحفظ المستوردة نشطة الآن.', 'settings.importFailedTitle': 'فشل الاستيراد', 'settings.importFailedMessage': 'الملف المحدد ليس حفظًا صالحًا.', 'settings.resetConfirm1': 'مسح كل التقدم والإنجازات ومزايا الأجداد والإحصائيات؟ لا يمكن التراجع.', 'settings.resetConfirm2': 'تحذير أخير: سيؤدي هذا إلى تدمير الحفظ المحلي نهائيًا. متابعة؟', 'settings.resetTitle': 'تم مسح الوكر', 'settings.resetMessage': 'عادت الكهوف إلى الصمت.',
+  'save.notice': 'تنبيه الحفظ', 'save.storageUnavailable': 'تخزين المتصفح غير متاح. يمكنك اللعب في هذه الجلسة، لكن الحفظ التلقائي قد لا يعمل.', 'save.unreadable': 'تعذر قراءة الحفظ السابق، لذلك بدأ وكر جديد.', 'offline.title': 'واصل الوكر العمل أثناء غيابك', 'offline.message': '+{amount} غوبلن من الإنتاج دون اتصال.', 'common.goblins': 'غوبلن', 'content.buildingDescription': 'ينتج الغوبلن تلقائيًا ويوسع الوكر المتنامي.',
+};
+
+const TR: Partial<Record<TranslationKey, string>> = {
+  'app.title': 'Brood & Burrow — Goblin Artımlı Oyun', 'brand.subtitle': 'Goblin Üreme Müdürlüğü',
+  'aria.resources': 'Kuluçka kaynakları', 'aria.menus': 'Oyun menüleri', 'aria.achievements': 'Başarımlar', 'aria.prestige': 'Prestij', 'aria.settings': 'Ayarlar', 'aria.goblinOperations': 'Goblin operasyonları', 'aria.broodPit': 'Kuluçka çukuru', 'aria.denShop': 'İn dükkânı', 'aria.notifications': 'Bildirimler', 'aria.close': '{title} penceresini kapat', 'aria.dismiss': '{title} bildirimini kapat',
+  'header.goblins': 'Goblinler', 'header.perSecond': 'Saniyede', 'header.ancestral': 'Atasal', 'header.ancestralTitle': 'Kalıcı Atasal Kurnazlık',
+  'ledger.title': 'İn Defteri', 'ledger.eyebrow': 'Canlı sayım', 'ledger.thisCycle': 'Bu döngü', 'ledger.allTime': 'Toplam kuluçka', 'ledger.manual': 'Elle doğum', 'ledger.structures': 'Yapılar', 'ledger.baseProduction': 'Temel üretim', 'ledger.bestProduction': 'En iyi üretim',
+  'research.title': 'İn Yenilikleri', 'research.eyebrow': 'Araştırma', 'research.copy': 'Mantarları, çalıntı aletleri ve şüpheli ritüelleri bu döngü için kalıcı kazançlara dönüştür.', 'research.open': 'Araştırmayı aç',
+  'bloodline.title': 'Soy Hattı', 'bloodline.eyebrow': 'Büyük Göç', 'bloodline.cunning': 'Kurnazlık', 'bloodline.migrations': '{count} göç tamamlandı', 'bloodline.copy': 'Olgun bir ini terk et, Atasal Kurnazlığı koru ve kalıcı soy avantajlarına yatır.', 'bloodline.ready': 'Göç hazır · +{gain}', 'bloodline.view': 'Soy hattını gör',
+  'status.ancient': 'Soy hattı her tüneli hatırlıyor.', 'status.returned': 'Eski bir içgüdü yeni kuluçkaya yol gösteriyor.', 'status.million': 'Dağ minicik ayakların altında titriyor.', 'status.tenThousand': 'Her tünel dolu. Daha hızlı kaz.', 'status.hundred': 'İn artık gerçek bir sanayiye dönüştü.', 'status.one': 'Kuluçka artık sürekli gözetim istemiyor.', 'status.clicks': 'Karanlıktaki bir şey ritmi öğrendi.', 'status.start': 'Aşağıdaki kuluçka kıpırdanıyor…',
+  'buff.moonFrenzy': 'Ay Çılgınlığı', 'buff.hatchingFever': 'Çıkım Ateşi',
+  'spawn.kicker': 'Derin İn · Kuluçka Odası', 'spawn.population': 'Goblin nüfusu', 'spawn.perSecond': '/ sn', 'spawn.button': 'Doğur', 'spawn.each': 'Her doğum', 'spawn.aria': 'Bir goblin doğur. Geçerli tıklama gücü: {power}', 'spawn.claim': '{name} ödülünü al',
+  'mooncap.wild': 'Yabani Ay Mantarı', 'mooncap.detail': 'Tekrar yosuna gömülmeden yakala', 'mooncap.clutch': 'Ay Mantarı Kuluçkası', 'mooncap.clutchMessage': 'Mantar +{amount} gobline patladı.', 'mooncap.cpsMessage': 'Üretim {duration} boyunca ×{multiplier}.', 'mooncap.clickMessage': 'Elle doğum {duration} boyunca ×{multiplier}.',
+  'shop.eyebrow': 'İn Levazımcısı', 'shop.title': 'İn Genişletme', 'shop.subtitle': 'Sürüyü otomatikleştirmek için kuluçkayı harca.', 'shop.purchaseQuantity': 'Satın alma miktarı', 'shop.max': 'Maks.', 'shop.footer': 'Fiyatlar sahip olunan her yapı için %15 artar. Satış, değerin bir kısmını geri verir.', 'shop.lockedName': 'Keşfedilmemiş İn', 'shop.lockedDescription': 'Daha derini görmek için önceki katmanı genişlet.', 'shop.buy': '{count} satın al', 'shop.buyMax': 'Maksimum satın al', 'shop.sell': 'Sat', 'shop.owned': '{count} sahip', 'shop.buyAria': '{name}: {action}, fiyat {price}', 'shop.sellAria': '{name} sat', 'shop.badgeEstablished': 'Yerleşik', 'shop.badgeVeteran': 'Tecrübeli', 'shop.badgeHorde': 'Sürü',
+  'upgrade.title': 'İn Yenilikleri', 'upgrade.subtitle': 'Bu kuluçka döngüsü için kalıcı iyileştirmeler.', 'upgrade.researchedSummary': '{done} / {total} araştırıldı', 'upgrade.researched': 'Araştırıldı', 'upgrade.unknown': 'Bilinmiyor', 'upgrade.common': 'Yaygın', 'upgrade.veteran': 'Tecrübeli', 'upgrade.available': '{amount} goblin kullanılabilir', 'upgrade.purchased': 'İn yeniliği satın alındı.', 'upgrade.genericDescription': 'Bir sonraki Büyük Göçe kadar süren pratik bir geliştirme.', 'upgrade.effectClick': 'Elle doğum ×{multiplier}', 'upgrade.effectAll': 'Tüm üretim ×{multiplier}', 'upgrade.effectBuilding': '{name} ×{multiplier}', 'upgrade.effectCps': 'Tıklamalar temel üretimin +%{percent} kadarını kazanır',
+  'achievement.title': 'Marifet Hazinesi', 'achievement.subtitle': 'Her tünelde fısıldanan dönüm noktaları.', 'achievement.completion': 'Başarım tamamlama %{percent}', 'achievement.unlockedCount': '{done} / {total} açıldı', 'achievement.secret': 'Gizli bir marifet hâlâ gömülü.', 'achievement.unlockedAt': '{date} tarihinde açıldı', 'achievement.toastTitle': 'Marifet açıldı: {name}', 'achievement.lifetime': 'Tüm inlerde toplam {amount} goblin dünyaya getir.', 'achievement.clicks': '{amount} kez elle goblin doğur.', 'achievement.building': '{amount} adet {name} sahibi ol.', 'achievement.cps': 'Saniyede {amount} gobline ulaş.', 'achievement.mooncaps': '{amount} Ay Mantarı etkinliği yakala.', 'achievement.migrations': '{amount} Büyük Göç tamamla.', 'achievement.allBuildings': 'Her yapıdan en az {amount} tane bulundur.',
+  'prestige.title': 'Yeni Bir İn Kur', 'prestige.subtitle': 'Bu ini terk et. Atasal kurnazlığı sonraki kuluçkaya taşı.', 'prestige.cunning': 'Atasal kurnazlık', 'prestige.permanentCurrency': 'Kalıcı para birimi', 'prestige.resetNow': 'Şimdi sıfırla ve kazan', 'prestige.begin': 'Yeni İne Başla', 'prestige.whatResets': 'Neler sıfırlanır?', 'prestige.resetInfo': 'Mevcut goblinler, binalar ve döngü yükseltmeleri. Kalıcı atasal avantajlar ve başarımlar kalır.', 'prestige.bloodline': 'Soy hattı', 'prestige.perks': 'Atasal Avantajlar', 'prestige.maxed': 'Maksimum', 'prestige.requirementReady': 'Bu döngüde Atasal Kurnazlık bekliyor', 'prestige.requirementLocked': 'Yeni Kurnazlık için toplam kuluçkayı büyüt', 'prestige.confirm': '{gain} Atasal Kurnazlık karşılığında yeni bir in kurulsun mu? Goblinler, binalar ve döngü yükseltmeleri sıfırlanır.', 'prestige.toastTitle': 'Yeni bir in başlıyor', 'prestige.toastMessage': '+{gain} Atasal Kurnazlık soy hattına taşındı.',
+  'settings.title': 'İn Ayarları', 'settings.subtitle': 'İni istediğin gibi ayarla.', 'settings.language': 'Dil', 'settings.languageDescription': 'Buradan seçim yapana kadar tarayıcı veya sistem dilini otomatik olarak takip eder.', 'settings.sound': 'İn sesleri', 'settings.soundDescription': 'Tıklama, satın alma, başarım ve olaylar için prosedürel sesler.', 'settings.effects': 'Doğum efektleri', 'settings.effectsDescription': 'Tıklarken kayan sayılar ve ek görsel geri bildirim.', 'settings.reducedMotion': 'Azaltılmış hareket', 'settings.reducedMotionDescription': 'Dekoratif dönüş, süzülme ve nabız animasyonlarını kapatır.', 'settings.persistence': 'Kayıt', 'settings.saveData': 'Kayıt Verisi', 'settings.export': 'Kaydı dışa aktar', 'settings.import': 'Kaydı içe aktar', 'settings.erase': 'Bu ini sil', 'settings.eraseDescription': 'Yerel ilerlemeyi siler ve baştan başlar.', 'settings.hardReset': 'Tam sıfırlama', 'settings.autosaveReady': 'Otomatik kayıt hazır', 'settings.saved': 'Kaydedildi', 'settings.autosaved': 'Otomatik kaydedildi', 'settings.saveFailed': 'Kayıt başarısız', 'settings.imported': 'İçe aktarıldı', 'settings.exportTitle': 'Kayıt dışa aktarıldı', 'settings.exportMessage': 'Dosyayı rakip inlerden uzak, güvenli bir yerde tut.', 'settings.importTitle': 'İn geri yüklendi', 'settings.importMessage': 'İçe aktarılan kayıt artık etkin.', 'settings.importFailedTitle': 'İçe aktarma başarısız', 'settings.importFailedMessage': 'Seçilen dosya geçerli bir kayıt değil.', 'settings.resetConfirm1': 'TÜM ilerleme, başarımlar, atasal avantajlar ve istatistikler silinsin mi? Geri alınamaz.', 'settings.resetConfirm2': 'Son uyarı: yerel kayıt kalıcı olarak yok edilecek. Devam edilsin mi?', 'settings.resetTitle': 'İn silindi', 'settings.resetMessage': 'Mağaralar yeniden sessiz.',
+  'save.notice': 'Kayıt bildirimi', 'save.storageUnavailable': 'Tarayıcı depolaması kullanılamıyor. Bu oturum oynanabilir ancak otomatik kayıt çalışmayabilir.', 'save.unreadable': 'Önceki kayıt okunamadı; yeni bir in başlatıldı.', 'offline.title': 'Sen yokken in çalışmaya devam etti', 'offline.message': 'Çevrimdışı üretimden +{amount} goblin.', 'common.goblins': 'goblin', 'content.buildingDescription': 'Otomatik olarak goblin üretir ve büyüyen ini genişletir.',
+};
+
+const COPY: Record<LanguageCode, Partial<Record<TranslationKey, string>>> = { en: EN, es: ES, zh: ZH, fr: FR, de: DE, ar: AR, tr: TR };
+
+export function isLanguageCode(value: unknown): value is LanguageCode {
+  return typeof value === 'string' && (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
+}
+
+export function detectPreferredLanguage(): LanguageCode {
+  if (typeof navigator === 'undefined') return 'en';
+  const candidates = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const candidate of candidates) {
+    const code = candidate.toLowerCase().split('-')[0];
+    if (isLanguageCode(code)) return code;
+  }
+  return 'en';
+}
+
+export function getLanguageMeta(language: LanguageCode) {
+  return LANGUAGE_OPTIONS.find((option) => option.code === language) ?? LANGUAGE_OPTIONS[0];
+}
+
+export function translate(language: LanguageCode, key: TranslationKey, values: TemplateValues = {}): string {
+  const template = COPY[language][key] ?? EN[key];
+  return template.replace(/\{(\w+)\}/g, (_, token: string) => String(values[token] ?? `{${token}}`));
+}
+
+export function formatCompact(language: LanguageCode, value: number): string {
+  return new Intl.NumberFormat(getLanguageMeta(language).locale, {
+    notation: Math.abs(value) >= 1_000 ? 'compact' : 'standard',
+    maximumFractionDigits: Math.abs(value) >= 1_000 ? 1 : 0,
+  }).format(value);
+}
+
+const BUILDING_NAMES: Record<LanguageCode, Record<string, string>> = {
+  en: {},
+  es: { brood_matron: 'Matriarca de la Prole', mushroom_nursery: 'Vivero de Setas', warren_den: 'Guarida de la Madriguera', bog_hatchery: 'Criadero del Pantano', scrap_incubator: 'Incubadora de Chatarra', shaman_circle: 'Círculo de Chamanes', war_camp: 'Campamento de Guerra', moonspore_cavern: 'Caverna de Esporas Lunares', deepforge_vat: 'Cuba de Forja Profunda', goblin_gate: 'Puerta Goblin', wyrm_hoard: 'Tesoro del Wyrm', reality_burrow: 'Madriguera de la Realidad' },
+  zh: { brood_matron: '育群主母', mushroom_nursery: '蘑菇育儿圃', warren_den: '地穴窝巢', bog_hatchery: '沼泽孵化场', scrap_incubator: '废料孵化器', shaman_circle: '萨满法阵', war_camp: '战营', moonspore_cavern: '月孢洞窟', deepforge_vat: '深炉培育槽', goblin_gate: '哥布林之门', wyrm_hoard: '巨龙巢藏', reality_burrow: '现实地穴' },
+  fr: { brood_matron: 'Matrone de Couvée', mushroom_nursery: 'Pépinière à Champignons', warren_den: 'Antre du Terrier', bog_hatchery: 'Écloserie du Marais', scrap_incubator: 'Incubateur de Ferraille', shaman_circle: 'Cercle de Chamans', war_camp: 'Camp de Guerre', moonspore_cavern: 'Caverne aux Spores Lunaires', deepforge_vat: 'Cuve de Forge Profonde', goblin_gate: 'Porte Gobeline', wyrm_hoard: 'Trésor du Wyrm', reality_burrow: 'Terrier de Réalité' },
+  de: { brood_matron: 'Brutmatrone', mushroom_nursery: 'Pilzgärtnerei', warren_den: 'Bauhöhle', bog_hatchery: 'Sumpfbrüterei', scrap_incubator: 'Schrottinkubator', shaman_circle: 'Schamanenkreis', war_camp: 'Kriegslager', moonspore_cavern: 'Mondsporenhöhle', deepforge_vat: 'Tiefenschmiede-Bottich', goblin_gate: 'Goblin-Tor', wyrm_hoard: 'Wyrm-Hort', reality_burrow: 'Realitätsbau' },
+  ar: { brood_matron: 'أم السرب', mushroom_nursery: 'مشتل الفطر', warren_den: 'وكر الأنفاق', bog_hatchery: 'مفرخة المستنقع', scrap_incubator: 'حاضنة الخردة', shaman_circle: 'حلقة الشامان', war_camp: 'معسكر الحرب', moonspore_cavern: 'كهف الأبواغ القمرية', deepforge_vat: 'حوض الصهر العميق', goblin_gate: 'بوابة الغوبلن', wyrm_hoard: 'كنز التنين', reality_burrow: 'وكر الواقع' },
+  tr: { brood_matron: 'Kuluçka Anası', mushroom_nursery: 'Mantar Fidanlığı', warren_den: 'İn Yuvası', bog_hatchery: 'Bataklık Kuluçkahanesi', scrap_incubator: 'Hurda Kuluçka Makinesi', shaman_circle: 'Şaman Çemberi', war_camp: 'Savaş Kampı', moonspore_cavern: 'Ay Sporu Mağarası', deepforge_vat: 'Derin Ocak Kazanı', goblin_gate: 'Goblin Kapısı', wyrm_hoard: 'Ejder Hazinesi', reality_burrow: 'Gerçeklik İni' },
+};
+
+const UPGRADE_NAMES: Record<LanguageCode, Record<string, string>> = {
+  en: {},
+  es: { sharpened_nails:'Uñas Afiladas', midwife_whistles:'Silbatos de Comadrona', riotous_birthing:'Parto Tumultuoso', green_thumb:'Pulgar Verde', warren_accounting:'Contabilidad de Madriguera', grand_clutch_plan:'Gran Plan de Nidada', matron_stew:'Estofado de Matriarca', matron_union:'Sindicato de Matriarcas', richer_compost:'Compost Enriquecido', singing_fungus:'Hongo Cantor', double_bunks:'Literas Dobles', triple_bunks:'Literas Triples', warmer_mud:'Barro Más Cálido', royal_sludge:'Lodo Real', borrowed_bellows:'Fuelles Prestados', unsafe_pressure:'Presión Insegura', louder_rattles:'Sonajeros Más Fuertes', forbidden_chorus:'Coro Prohibido', mandatory_cuddles:'Abrazos Obligatorios', drill_sergeant_midwives:'Comadronas Sargento', silver_spores:'Esporas Plateadas', full_moon_farming:'Cultivo de Luna Llena', forge_runes:'Runas de Forja', molten_cradles:'Cunas Fundidas', hinge_grease:'Grasa para Bisagras', many_doors:'Muchas Puertas', warm_scale_blankets:'Mantas de Escamas Cálidas', borrowed_dragonfire:'Fuego de Dragón Prestado', wider_impossibility:'Imposibilidad Más Ancha', burrow_beyond:'Madriguera del Más Allá' },
+  zh: { sharpened_nails:'磨尖指甲', midwife_whistles:'助产哨', riotous_birthing:'喧闹繁育', green_thumb:'绿手指', warren_accounting:'巢穴会计', grand_clutch_plan:'宏伟育群计划', matron_stew:'主母炖汤', matron_union:'主母工会', richer_compost:'肥沃堆肥', singing_fungus:'歌唱菌', double_bunks:'双层床', triple_bunks:'三层床', warmer_mud:'暖泥', royal_sludge:'皇家淤泥', borrowed_bellows:'借来的风箱', unsafe_pressure:'危险加压', louder_rattles:'更响的骨铃', forbidden_chorus:'禁忌合唱', mandatory_cuddles:'强制抱抱', drill_sergeant_midwives:'教官助产婆', silver_spores:'银色孢子', full_moon_farming:'满月栽培', forge_runes:'锻炉符文', molten_cradles:'熔铸摇篮', hinge_grease:'铰链润滑脂', many_doors:'万门术', warm_scale_blankets:'暖鳞毯', borrowed_dragonfire:'借来的龙火', wider_impossibility:'拓宽不可能', burrow_beyond:'彼界地穴' },
+  fr: { sharpened_nails:'Ongles Aiguisés', midwife_whistles:'Sifflets de Sage-Femme', riotous_birthing:'Naissance Tumultueuse', green_thumb:'Main Verte', warren_accounting:'Comptabilité du Terrier', grand_clutch_plan:'Grand Plan de Couvée', matron_stew:'Ragoût de Matrone', matron_union:'Syndicat des Matrones', richer_compost:'Compost Enrichi', singing_fungus:'Champignon Chanteur', double_bunks:'Lits Superposés Doubles', triple_bunks:'Lits Superposés Triples', warmer_mud:'Boue Plus Chaude', royal_sludge:'Vase Royale', borrowed_bellows:'Soufflets Empruntés', unsafe_pressure:'Pression Dangereuse', louder_rattles:'Hochets Plus Forts', forbidden_chorus:'Chœur Interdit', mandatory_cuddles:'Câlins Obligatoires', drill_sergeant_midwives:'Sages-Femmes Sergents', silver_spores:'Spores Argentées', full_moon_farming:'Culture de Pleine Lune', forge_runes:'Runes de Forge', molten_cradles:'Berceaux Fondus', hinge_grease:'Graisse de Charnière', many_doors:'Mille Portes', warm_scale_blankets:'Couvertures d’Écailles Chaudes', borrowed_dragonfire:'Feu de Dragon Emprunté', wider_impossibility:'Impossible Élargi', burrow_beyond:'Terrier de l’Au-Delà' },
+  de: { sharpened_nails:'Geschärfte Nägel', midwife_whistles:'Hebammenpfeifen', riotous_birthing:'Tumultbrut', green_thumb:'Grüner Daumen', warren_accounting:'Bau-Buchhaltung', grand_clutch_plan:'Großer Gelegeplan', matron_stew:'Matrons Eintopf', matron_union:'Matrons Gewerkschaft', richer_compost:'Reicher Kompost', singing_fungus:'Singpilz', double_bunks:'Doppelstockbetten', triple_bunks:'Dreifachstockbetten', warmer_mud:'Wärmerer Schlamm', royal_sludge:'Königsschlick', borrowed_bellows:'Geliehene Blasebälge', unsafe_pressure:'Unsicherer Druck', louder_rattles:'Lautere Rasseln', forbidden_chorus:'Verbotener Chor', mandatory_cuddles:'Pflichtkuscheln', drill_sergeant_midwives:'Feldwebel-Hebammen', silver_spores:'Silbersporen', full_moon_farming:'Vollmondanbau', forge_runes:'Schmiederunen', molten_cradles:'Geschmolzene Wiegen', hinge_grease:'Scharnierfett', many_doors:'Viele Türen', warm_scale_blankets:'Warme Schuppendecken', borrowed_dragonfire:'Geliehenes Drachenfeuer', wider_impossibility:'Breitere Unmöglichkeit', burrow_beyond:'Bau Jenseits' },
+  ar: { sharpened_nails:'أظافر حادة', midwife_whistles:'صفارات القابلات', riotous_birthing:'ولادة صاخبة', green_thumb:'إبهام أخضر', warren_accounting:'محاسبة الوكر', grand_clutch_plan:'خطة الحضنة الكبرى', matron_stew:'حساء أم السرب', matron_union:'اتحاد الأمهات', richer_compost:'سماد أغنى', singing_fungus:'فطر مغنٍ', double_bunks:'أسرّة مزدوجة', triple_bunks:'أسرّة ثلاثية', warmer_mud:'طين أدفأ', royal_sludge:'وحل ملكي', borrowed_bellows:'منافخ مستعارة', unsafe_pressure:'ضغط خطير', louder_rattles:'خشخيشات أعلى', forbidden_chorus:'جوقة محرمة', mandatory_cuddles:'عناق إلزامي', drill_sergeant_midwives:'قابلات برتبة رقيب', silver_spores:'أبواغ فضية', full_moon_farming:'زراعة البدر', forge_runes:'رُقى الحدادة', molten_cradles:'مهود منصهرة', hinge_grease:'شحم المفصلات', many_doors:'أبواب كثيرة', warm_scale_blankets:'بطانيات حراشف دافئة', borrowed_dragonfire:'نار تنين مستعارة', wider_impossibility:'استحالة أوسع', burrow_beyond:'وكر ما وراء' },
+  tr: { sharpened_nails:'Bilenmiş Tırnaklar', midwife_whistles:'Ebe Düdükleri', riotous_birthing:'Gürültülü Doğum', green_thumb:'Yeşil Başparmak', warren_accounting:'İn Muhasebesi', grand_clutch_plan:'Büyük Kuluçka Planı', matron_stew:'Kuluçka Anası Yahnisi', matron_union:'Ana Birliği', richer_compost:'Zengin Kompost', singing_fungus:'Şarkıcı Mantar', double_bunks:'Çift Ranza', triple_bunks:'Üçlü Ranza', warmer_mud:'Daha Sıcak Çamur', royal_sludge:'Kraliyet Balçığı', borrowed_bellows:'Ödünç Körükler', unsafe_pressure:'Güvensiz Basınç', louder_rattles:'Daha Gür Çıngıraklar', forbidden_chorus:'Yasak Koro', mandatory_cuddles:'Zorunlu Sarılmalar', drill_sergeant_midwives:'Çavuş Ebeler', silver_spores:'Gümüş Sporlar', full_moon_farming:'Dolunay Tarımı', forge_runes:'Ocak Rünleri', molten_cradles:'Erimiş Beşikler', hinge_grease:'Menteşe Yağı', many_doors:'Çok Kapı', warm_scale_blankets:'Sıcak Pul Battaniyeleri', borrowed_dragonfire:'Ödünç Ejder Ateşi', wider_impossibility:'Daha Geniş İmkânsızlık', burrow_beyond:'Öte İn' },
+};
+
+const ACHIEVEMENT_NAMES: Record<LanguageCode, Record<string, string>> = {
+  en: {},
+  es: { first_clutch:'Primera Nidada', crowded_cave:'Cueva Abarrotada', green_tide:'Marea Verde', uncountable_horde:'Horda Incontable', finger_exercise:'Ejercicio de Dedos', calloused_chief:'Jefe Encallado', matron_house:'Casa de Matriarcas', fungus_farmer:'Cultivador de Hongos', landlord:'Casero de Madrigueras', bog_baron:'Barón del Pantano', scrap_tycoon:'Magnate de la Chatarra', moon_speaker:'Orador de la Luna', camp_commander:'Comandante de Campamento', spore_lord:'Señor de las Esporas', deep_smith:'Herrero Profundo', gatekeeper:'Guardián de la Puerta', wyrm_squatter:'Okupa de Wyrms', reality_problem:'Problema de Realidad', full_toolbox:'Caja Completa', industrial_horde:'Horda Industrial', steady_trickle:'Goteo Constante', breeding_machine:'Máquina de Cría', mooncap_nibbler:'Catador Lunar', mooncap_hunter:'Cazador Lunar', old_blood:'Sangre Antigua', ancestral_loop:'Bucle Ancestral' },
+  zh: { first_clutch:'第一窝', crowded_cave:'洞满为患', green_tide:'绿色浪潮', uncountable_horde:'不可计数的大军', finger_exercise:'手指热身', calloused_chief:'老茧酋长', matron_house:'主母之家', fungus_farmer:'菌菇农夫', landlord:'地穴房东', bog_baron:'沼泽男爵', scrap_tycoon:'废料大亨', moon_speaker:'月之代言者', camp_commander:'营地统帅', spore_lord:'孢子之主', deep_smith:'深炉铁匠', gatekeeper:'守门人', wyrm_squatter:'龙巢钉子户', reality_problem:'现实问题', full_toolbox:'全套工具', industrial_horde:'工业大军', steady_trickle:'稳定涓流', breeding_machine:'繁育机器', mooncap_nibbler:'月帽尝鲜者', mooncap_hunter:'月帽猎人', old_blood:'古老血脉', ancestral_loop:'祖传循环' },
+  fr: { first_clutch:'Première Couvée', crowded_cave:'Caverne Bondée', green_tide:'Marée Verte', uncountable_horde:'Horde Innombrable', finger_exercise:'Exercice des Doigts', calloused_chief:'Chef Calleux', matron_house:'Maison des Matrones', fungus_farmer:'Cultivateur de Champignons', landlord:'Propriétaire du Terrier', bog_baron:'Baron du Marais', scrap_tycoon:'Magnat de la Ferraille', moon_speaker:'Orateur de la Lune', camp_commander:'Commandant du Camp', spore_lord:'Seigneur des Spores', deep_smith:'Forgeron des Profondeurs', gatekeeper:'Gardien de la Porte', wyrm_squatter:'Squatteur de Wyrm', reality_problem:'Problème de Réalité', full_toolbox:'Boîte à Outils Complète', industrial_horde:'Horde Industrielle', steady_trickle:'Filet Régulier', breeding_machine:'Machine à Couvée', mooncap_nibbler:'Grignoteur de Champilune', mooncap_hunter:'Chasseur de Champilunes', old_blood:'Vieux Sang', ancestral_loop:'Boucle Ancestrale' },
+  de: { first_clutch:'Erstes Gelege', crowded_cave:'Überfüllte Höhle', green_tide:'Grüne Flut', uncountable_horde:'Unzählbare Horde', finger_exercise:'Fingerübung', calloused_chief:'Schwieliger Häuptling', matron_house:'Matrons Haus', fungus_farmer:'Pilzbauer', landlord:'Bau-Vermieter', bog_baron:'Sumpfbaron', scrap_tycoon:'Schrott-Tycoon', moon_speaker:'Mondsprecher', camp_commander:'Lagerkommandant', spore_lord:'Sporenfürst', deep_smith:'Tiefenschmied', gatekeeper:'Torwächter', wyrm_squatter:'Wyrm-Besetzer', reality_problem:'Realitätsproblem', full_toolbox:'Voller Werkzeugkasten', industrial_horde:'Industriehorde', steady_trickle:'Stetiges Rinnsal', breeding_machine:'Brutmaschine', mooncap_nibbler:'Mondpilz-Knabberer', mooncap_hunter:'Mondpilz-Jäger', old_blood:'Altes Blut', ancestral_loop:'Ahnenschleife' },
+  ar: { first_clutch:'الحضنة الأولى', crowded_cave:'كهف مكتظ', green_tide:'المد الأخضر', uncountable_horde:'حشد لا يُحصى', finger_exercise:'تمرين الأصابع', calloused_chief:'الزعيم المتصلب', matron_house:'بيت الأمهات', fungus_farmer:'مزارع الفطر', landlord:'مالك الوكر', bog_baron:'بارون المستنقع', scrap_tycoon:'قطب الخردة', moon_speaker:'متحدث القمر', camp_commander:'قائد المعسكر', spore_lord:'سيد الأبواغ', deep_smith:'حداد الأعماق', gatekeeper:'حارس البوابة', wyrm_squatter:'محتل عش التنين', reality_problem:'مشكلة الواقع', full_toolbox:'عدة كاملة', industrial_horde:'حشد صناعي', steady_trickle:'تدفق ثابت', breeding_machine:'آلة التكاثر', mooncap_nibbler:'متذوق الفطر القمري', mooncap_hunter:'صياد الفطر القمري', old_blood:'دم قديم', ancestral_loop:'حلقة الأجداد' },
+  tr: { first_clutch:'İlk Kuluçka', crowded_cave:'Tıklım Tıklım Mağara', green_tide:'Yeşil Dalga', uncountable_horde:'Sayısız Sürü', finger_exercise:'Parmak Egzersizi', calloused_chief:'Nasır Tutmuş Şef', matron_house:'Ana Evi', fungus_farmer:'Mantar Çiftçisi', landlord:'İn Ev Sahibi', bog_baron:'Bataklık Baronu', scrap_tycoon:'Hurda Patronu', moon_speaker:'Ay Sözcüsü', camp_commander:'Kamp Komutanı', spore_lord:'Spor Lordu', deep_smith:'Derin Demirci', gatekeeper:'Kapı Bekçisi', wyrm_squatter:'Ejder Yuvası İşgalcisi', reality_problem:'Gerçeklik Sorunu', full_toolbox:'Tam Takım', industrial_horde:'Endüstriyel Sürü', steady_trickle:'Düzenli Akış', breeding_machine:'Üreme Makinesi', mooncap_nibbler:'Ay Mantarı Tadımcısı', mooncap_hunter:'Ay Mantarı Avcısı', old_blood:'Eski Kan', ancestral_loop:'Atasal Döngü' },
+};
+
+const PERK_NAMES: Record<LanguageCode, Record<string, string>> = {
+  en: {},
+  es: { ancestral_fertility:'Fertilidad Ancestral', stronger_spawn:'Prole Más Fuerte', scavenger_memory:'Memoria de Carroñero', lucky_totem:'Tótem de la Suerte', deep_warrens:'Madrigueras Profundas', starter_clutch:'Nidada Inicial' },
+  zh: { ancestral_fertility:'祖传繁育力', stronger_spawn:'强壮新生', scavenger_memory:'拾荒记忆', lucky_totem:'幸运图腾', deep_warrens:'深层巢穴', starter_clutch:'起始小窝' },
+  fr: { ancestral_fertility:'Fertilité Ancestrale', stronger_spawn:'Couvée Renforcée', scavenger_memory:'Mémoire de Récupérateur', lucky_totem:'Totem Chanceux', deep_warrens:'Terriers Profonds', starter_clutch:'Couvée Initiale' },
+  de: { ancestral_fertility:'Ahnenfruchtbarkeit', stronger_spawn:'Stärkere Brut', scavenger_memory:'Plünderergedächtnis', lucky_totem:'Glückstotem', deep_warrens:'Tiefe Baue', starter_clutch:'Startgelege' },
+  ar: { ancestral_fertility:'خصوبة الأجداد', stronger_spawn:'سرب أقوى', scavenger_memory:'ذاكرة النهاب', lucky_totem:'طوطم الحظ', deep_warrens:'أوكار عميقة', starter_clutch:'حضنة البداية' },
+  tr: { ancestral_fertility:'Atasal Bereket', stronger_spawn:'Daha Güçlü Doğum', scavenger_memory:'Yağmacı Hafızası', lucky_totem:'Şans Totemi', deep_warrens:'Derin İnler', starter_clutch:'Başlangıç Kuluçkası' },
+};
+
+const PERK_DESCRIPTIONS: Record<LanguageCode, Record<string, string>> = {
+  en: {},
+  es: { ancestral_fertility:'+5% de producción global por rango.', stronger_spawn:'+10% de potencia de clic por rango.', scavenger_memory:'-1% al coste de edificios por rango.', lucky_totem:'Las Setas Lunares aparecen aproximadamente un 10% antes por rango.', deep_warrens:'+2 horas al límite de producción sin conexión por rango.', starter_clutch:'Empieza cada migración con 50 goblins por rango.' },
+  zh: { ancestral_fertility:'每级全局产量 +5%。', stronger_spawn:'每级点击力量 +10%。', scavenger_memory:'每级建筑成本 -1%。', lucky_totem:'每级让月帽菇大约提前 10% 出现。', deep_warrens:'每级离线生产上限 +2 小时。', starter_clutch:'每级让每次迁徙开局多 50 个哥布林。' },
+  fr: { ancestral_fertility:'+5 % de production globale par rang.', stronger_spawn:'+10 % de puissance de clic par rang.', scavenger_memory:'-1 % au coût des bâtiments par rang.', lucky_totem:'Les Champilunes apparaissent environ 10 % plus tôt par rang.', deep_warrens:'+2 heures de plafond de production hors ligne par rang.', starter_clutch:'Commence chaque migration avec 50 gobelins par rang.' },
+  de: { ancestral_fertility:'+5 % globale Produktion pro Rang.', stronger_spawn:'+10 % Klickstärke pro Rang.', scavenger_memory:'-1 % Gebäudekosten pro Rang.', lucky_totem:'Mondpilze erscheinen pro Rang etwa 10 % früher.', deep_warrens:'+2 Stunden Offline-Produktionslimit pro Rang.', starter_clutch:'Beginne jede Wanderung mit 50 Goblins pro Rang.' },
+  ar: { ancestral_fertility:'+5٪ للإنتاج العالمي لكل رتبة.', stronger_spawn:'+10٪ لقوة النقر لكل رتبة.', scavenger_memory:'-1٪ من تكلفة المباني لكل رتبة.', lucky_totem:'يظهر الفطر القمري أبكر بنحو 10٪ لكل رتبة.', deep_warrens:'+ساعتين إلى حد الإنتاج دون اتصال لكل رتبة.', starter_clutch:'ابدأ كل هجرة بـ50 غوبلن لكل رتبة.' },
+  tr: { ancestral_fertility:'Rütbe başına küresel üretim +%5.', stronger_spawn:'Rütbe başına tıklama gücü +%10.', scavenger_memory:'Rütbe başına bina maliyeti -%1.', lucky_totem:'Ay Mantarları rütbe başına yaklaşık %10 daha erken çıkar.', deep_warrens:'Rütbe başına çevrimdışı üretim sınırı +2 saat.', starter_clutch:'Her göçe rütbe başına 50 goblinle başla.' },
+};
+
+export function localizedName(language: LanguageCode, kind: 'building' | 'upgrade' | 'achievement' | 'perk', id: string, fallback: string): string {
+  const table = kind === 'building' ? BUILDING_NAMES : kind === 'upgrade' ? UPGRADE_NAMES : kind === 'achievement' ? ACHIEVEMENT_NAMES : PERK_NAMES;
+  return table[language][id] ?? fallback;
+}
+
+export function localizedPerkDescription(language: LanguageCode, id: string, fallback: string): string {
+  return PERK_DESCRIPTIONS[language][id] ?? fallback;
+}
+
+interface I18nValue { language: LanguageCode; t: (key: TranslationKey, values?: TemplateValues) => string }
+const I18nContext = createContext<I18nValue>({ language: 'en', t: (key, values) => translate('en', key, values) });
+
+export function I18nProvider({ language, children }: { language: LanguageCode; children: ReactNode }) {
+  return <I18nContext.Provider value={{ language, t: (key, values) => translate(language, key, values) }}>{children}</I18nContext.Provider>;
+}
+
+export function useI18n(): I18nValue {
+  return useContext(I18nContext);
+}

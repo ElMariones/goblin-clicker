@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useI18n } from '../i18n';
 
 export interface GameShellProps {
   header: ReactNode;
@@ -10,20 +11,15 @@ export interface GameShellProps {
 }
 
 export function GameShell({ header, left, center, right, overlay, className = '' }: GameShellProps) {
+  const { t } = useI18n();
   return (
     <div className={`game-frame ${className}`.trim()}>
       <div className="game-frame__ambient" aria-hidden="true" />
       <header className="game-frame__header">{header}</header>
       <main className="game-shell">
-        <aside className="game-shell__rail game-shell__rail--left" aria-label="Goblin operations">
-          {left}
-        </aside>
-        <section className="game-shell__stage" aria-label="Brood pit">
-          {center}
-        </section>
-        <aside className="game-shell__rail game-shell__rail--right" aria-label="Den shop">
-          {right}
-        </aside>
+        <aside className="game-shell__rail game-shell__rail--left" aria-label={t('aria.goblinOperations')}>{left}</aside>
+        <section className="game-shell__stage" aria-label={t('aria.broodPit')}>{center}</section>
+        <aside className="game-shell__rail game-shell__rail--right" aria-label={t('aria.denShop')}>{right}</aside>
       </main>
       <div className="game-overlay-root">{overlay}</div>
     </div>

@@ -1,7 +1,7 @@
 {
   "name": "@elmariones/goblin-clicker",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -30,9 +30,7 @@
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
   },
-  "description": "Goblin Hatchery — a polished incremental goblin reproduction clicker",
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "description": "Brood & Burrow — a polished incremental goblin reproduction clicker",
+  "engines": { "node": ">=22.12.0" },
   "license": "UNLICENSED"
 }

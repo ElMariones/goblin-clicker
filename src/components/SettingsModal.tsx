@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { LANGUAGE_OPTIONS, type LanguageCode, useI18n } from '../i18n';
 import { Icon } from './Icon';
 import { Modal } from './Modal';
@@ -6,11 +7,24 @@ export interface ToggleSetting { id: string; label: string; description: string;
 export interface SettingsModalProps {
   open: boolean; toggles: ToggleSetting[]; onToggle: (id: string, checked: boolean) => void;
   language: LanguageCode; onLanguageChange: (language: LanguageCode) => void;
-  onExportSave?: () => void; onImportSave?: () => void; onHardReset?: () => void; onClose: () => void; saveStatus?: string; versionLabel?: string;
+  onExportSave?: () => void; onImportSave?: (file: File) => void | Promise<void>; onHardReset?: () => void; onClose: () => void; saveStatus?: string; versionLabel?: string;
 }
 
 export function SettingsModal({ open, toggles, onToggle, language, onLanguageChange, onExportSave, onImportSave, onHardReset, onClose, saveStatus, versionLabel }: SettingsModalProps) {
   const { t } = useI18n();
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const chooseImportFile = () => importInputRef.current?.click();
+  const handleImportFile = async (file: File | undefined, input: HTMLInputElement) => {
+    if (!file || !onImportSave) return;
+    try {
+      // Keep the FileList alive until the async read has completed. Clearing a
+      // file input first can invalidate its backing File in some browsers.
+      await onImportSave(file);
+    } finally {
+      // Allow selecting the same backup again after either success or failure.
+      input.value = '';
+    }
+  };
   return (
     <Modal open={open} onClose={onClose} title={t('settings.title')} subtitle={t('settings.subtitle')} icon={<Icon name="settings" />}>
       <div className="settings-list">
@@ -28,7 +42,7 @@ export function SettingsModal({ open, toggles, onToggle, language, onLanguageCha
         ))}
       </div>
 
-      {(onExportSave || onImportSave) && <section className="settings-section"><div className="modal-section-heading"><div><span>{t('settings.persistence')}</span><h3>{t('settings.saveData')}</h3></div><small>{saveStatus ?? t('settings.autosaveReady')}</small></div><div className="settings-actions">{onExportSave && <button type="button" className="secondary-button" onClick={onExportSave}>{t('settings.export')}</button>}{onImportSave && <button type="button" className="secondary-button" onClick={onImportSave}>{t('settings.import')}</button>}</div></section>}
+      {(onExportSave || onImportSave) && <section className="settings-section"><div className="modal-section-heading"><div><span>{t('settings.persistence')}</span><h3>{t('settings.saveData')}</h3></div><small>{saveStatus ?? t('settings.autosaveReady')}</small></div><div className="settings-actions">{onExportSave && <button type="button" className="secondary-button" onClick={onExportSave}>{t('settings.export')}</button>}{onImportSave && <><input ref={importInputRef} type="file" accept=".json,.txt,application/json,text/plain" hidden onChange={(event) => void handleImportFile(event.target.files?.[0], event.currentTarget)} /><button type="button" className="secondary-button" onClick={chooseImportFile}>{t('settings.import')}</button></>}</div></section>}
 
       {onHardReset && <section className="settings-section settings-section--danger"><div><strong>{t('settings.erase')}</strong><p>{t('settings.eraseDescription')}</p></div><button type="button" className="danger-button" onClick={onHardReset}>{t('settings.hardReset')}</button></section>}
       {versionLabel && <p className="settings-version">Brood & Burrow · {versionLabel}</p>}

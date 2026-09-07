@@ -7,6 +7,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+const LEGACY_SAVE_KEYS = [
+  'goblins', 'totalGoblins', 'runGoblins', 'lifetimeGoblins', 'buildings',
+  'upgrades', 'purchasedUpgrades', 'prestige', 'prestigePoints', 'statistics',
+  'mooncap', 'totalClicks', 'lastSave', 'lastUpdateAt',
+] as const;
+
+function looksLikeLegacySave(value: Record<string, unknown>): boolean {
+  return LEGACY_SAVE_KEYS.some((key) => Object.prototype.hasOwnProperty.call(value, key));
+}
+
 function finiteNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
@@ -138,7 +148,18 @@ export function deserializeGame(serialized: string, now = Date.now()): Deseriali
   }
   if (!isRecord(parsed)) throw new Error('Save data must be a JSON object.');
 
-  const isEnvelope = parsed.schema === 'goblin-clicker-save' && isRecord(parsed.state);
+  const declaresCurrentSchema = parsed.schema === 'goblin-clicker-save';
+  if (declaresCurrentSchema && !isRecord(parsed.state)) {
+    throw new Error('Save file is missing a valid game state.');
+  }
+  if (!declaresCurrentSchema && Object.prototype.hasOwnProperty.call(parsed, 'schema')) {
+    throw new Error('Save file schema is not supported.');
+  }
+  if (!declaresCurrentSchema && !looksLikeLegacySave(parsed)) {
+    throw new Error('JSON file does not contain a recognized Goblin Clicker save.');
+  }
+
+  const isEnvelope = declaresCurrentSchema;
   const rawState = (isEnvelope ? parsed.state : parsed) as Record<string, unknown>;
   const declaredVersion = integer(isEnvelope ? parsed.version : rawState.version, 1);
   if (declaredVersion > CURRENT_SAVE_VERSION) {

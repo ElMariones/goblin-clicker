@@ -20,9 +20,9 @@ import {
 } from './components';
 import {
   ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimMooncap,
-  createInitialGameState, deserializeGame, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
+  createInitialGameState, deserializeGame, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
   getMaxAffordableBuildingCount, getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, hatchGoblin, isUpgradeUnlocked, performPrestigeReset,
-  purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, tickGame,
+  importGameSave, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, tickGame,
   type BuildingId, type GameState, type PermanentUpgradeId,
 } from './game';
 import { playSound } from './audio';
@@ -246,23 +246,49 @@ function App() {
   };
 
   const exportSave = () => {
-    const blob = new Blob([serializeGame(gameRef.current, Date.now())], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a');
-    anchor.href = url; anchor.download = `goblin-clicker-save-${new Date().toISOString().slice(0, 10)}.json`; anchor.click(); URL.revokeObjectURL(url);
-    addToast({ title: t('settings.exportTitle'), message: t('settings.exportMessage'), icon: 'settings', tone: 'success' });
+    const exportedAt = Date.now();
+    const snapshot = tickGame(gameRef.current, exportedAt);
+    commitGame(snapshot);
+    try {
+      const blob = new Blob([exportGameSave(snapshot, exportedAt)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `goblin-clicker-save-${new Date(exportedAt).toISOString().slice(0, 10)}.json`;
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+      // Some browsers do not begin reading a blob URL synchronously. Revoking it
+      // on the same tick can cancel an otherwise valid download.
+      window.setTimeout(() => { URL.revokeObjectURL(url); anchor.remove(); }, 1_000);
+      try { localStorage.setItem(SAVE_KEY, serializeGame(snapshot, exportedAt)); } catch { /* export itself still succeeded */ }
+      addToast({ title: t('settings.exportTitle'), message: t('settings.exportMessage'), icon: 'settings', tone: 'success' });
+    } catch (error) {
+      console.error('Export failed:', error);
+      addToast({ title: t('settings.saveFailed'), message: t('settings.saveFailed'), icon: 'settings' });
+    }
   };
 
-  const importSave = () => {
-    const input = document.createElement('input'); input.type = 'file'; input.accept = '.json,.txt,application/json,text/plain';
-    input.onchange = async () => {
-      const file = input.files?.[0]; if (!file) return;
-      try {
-        const imported = deserializeGame(await file.text(), Date.now()); const withOffline = applyOfflineProgress(imported.state, Date.now()); commitGame(withOffline.state);
-        previousAchievements.current = withOffline.state.unlockedAchievements; localStorage.setItem(SAVE_KEY, serializeGame(withOffline.state, Date.now()));
-        setSaveStatus(`${t('settings.imported')} ${new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`);
-        addToast({ title: t('settings.importTitle'), message: t('settings.importMessage'), icon: 'settings', tone: 'success' });
-      } catch (error) { addToast({ title: t('settings.importFailedTitle'), message: error instanceof Error && language === 'en' ? error.message : t('settings.importFailedMessage'), icon: 'settings' }); }
-    };
-    input.click();
+  const importSave = async (file: File) => {
+    try {
+      const importedAt = Date.now();
+      const imported = importGameSave(await file.text(), importedAt);
+      const withOffline = applyOfflineProgress(imported.state, importedAt);
+      commitGame(withOffline.state);
+      previousAchievements.current = withOffline.state.unlockedAchievements;
+      let persisted = true;
+      try { localStorage.setItem(SAVE_KEY, serializeGame(withOffline.state, importedAt)); }
+      catch (error) { persisted = false; console.error('Imported save could not be persisted:', error); }
+      setSaveStatus(persisted
+        ? `${t('settings.imported')} ${new Date(importedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`
+        : t('settings.saveFailed'));
+      setModal(null);
+      addToast({ title: t('settings.importTitle'), message: t('settings.importMessage'), icon: 'settings', tone: 'success' });
+      if (!persisted) addToast({ title: t('save.notice'), message: t('save.storageUnavailable'), icon: 'settings' });
+    } catch (error) {
+      console.error('Import failed:', error);
+      addToast({ title: t('settings.importFailedTitle'), message: error instanceof Error && language === 'en' ? error.message : t('settings.importFailedMessage'), icon: 'settings' });
+    }
   };
 
   const hardReset = () => {

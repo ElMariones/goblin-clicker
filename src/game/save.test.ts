@@ -59,9 +59,29 @@ describe('save system', () => {
   it('supports pretty portable export/import without changing state', () => {
     const state = createInitialGameState(10_000, 42);
     state.goblins = 77;
+    state.runGoblins = 123;
+    state.statistics.manuallyBorn = 17;
+    state.buildings.brood_matron = 4;
     const exported = exportGameSave(state, 10_000);
     expect(exported).toContain('\n  "schema"');
-    expect(importGameSave(exported, 10_000).state.goblins).toBe(77);
+    const imported = importGameSave(exported, 10_000).state;
+    expect(imported.goblins).toBe(77);
+    expect(imported.runGoblins).toBe(123);
+    expect(imported.statistics.manuallyBorn).toBe(17);
+    expect(imported.buildings.brood_matron).toBe(4);
+  });
+
+  it('rejects malformed save envelopes instead of silently resetting progress', () => {
+    expect(() => importGameSave(JSON.stringify({ schema: 'goblin-clicker-save', version: CURRENT_SAVE_VERSION }), 10_000))
+      .toThrow(/valid game state/);
+    expect(() => importGameSave(JSON.stringify({ schema: 'some-other-game', state: {} }), 10_000))
+      .toThrow(/schema is not supported/);
+  });
+
+  it('rejects unrelated JSON but still accepts recognizable legacy saves', () => {
+    expect(() => importGameSave(JSON.stringify({ hello: 'world', version: 1 }), 10_000))
+      .toThrow(/recognized Goblin Clicker save/);
+    expect(importGameSave(JSON.stringify({ version: 1, goblins: 12, totalGoblins: 30 }), 10_000).state.goblins).toBe(12);
   });
 
   it('rejects saves from unsupported future versions', () => {

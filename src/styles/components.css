@@ -108,6 +108,9 @@
 .icon-button:hover:not(:disabled) { border-color: var(--line-strong); color: var(--ink); background: var(--bg-hover); transform: translateY(-1px); }
 .icon-button:active:not(:disabled) { transform: translateY(0) scale(.97); }
 .icon-button--prestige { color: var(--prestige); border-color: rgba(210, 171, 255, .18); }
+.icon-button--music { color: #9edfeb; border-color: rgba(126, 202, 220, .16); }
+.icon-button--music:hover:not(:disabled) { border-color: rgba(137, 222, 238, .36); color: #caf6ff; background: rgba(75, 154, 171, .08); }
+.icon-button--music.is-muted { color: #776f68; border-color: rgba(148, 128, 109, .16); }
 
 .spawn-pit {
   position: relative;
@@ -507,7 +510,7 @@
 .moon-dial:hover { transform: translateY(-2px) scale(1.035); border-color: rgba(139,225,242,.42); color: #c0f5ff; box-shadow: 0 12px 31px rgba(0,0,0,.42), 0 0 20px rgba(89,210,233,.1), inset 0 0 22px rgba(80,191,216,.055); }
 .moon-dial:active { transform: scale(.95); }
 .moon-dial__moon { position: relative; z-index: 2; display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(145,220,235,.14); border-radius: 50%; background: radial-gradient(circle, rgba(82,179,199,.16), rgba(6,15,17,.82) 68%); box-shadow: inset 0 0 16px rgba(87,204,224,.055); }
-.moon-dial__orbit { position: absolute; inset: 5px; border: 1px dashed rgba(121,203,220,.13); border-radius: 50%; animation: moon-orbit-turn 18s steps(36, end) infinite; }
+.moon-dial__orbit { position: absolute; inset: 5px; border: 1px dashed rgba(121,203,220,.13); border-radius: 50%; }
 .moon-dial__orbit i { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px; border: 1px solid rgba(108,194,211,.24); border-radius: 50%; background: rgba(34,79,88,.34); box-shadow: 0 0 0 2px rgba(5,10,11,.72); }
 .moon-dial__orbit i:nth-child(1) { transform: rotate(0deg) translateY(-31px); }
 .moon-dial__orbit i:nth-child(2) { transform: rotate(60deg) translateY(-31px); }
@@ -894,7 +897,7 @@
 }
 
 @media (max-width: 430px) {
-  .resource-header__logo { width: 148px; }
+  .resource-header__logo { width: 118px; }
   .icon-button { width: 32px; height: 32px; }
   .shop-card { grid-template-columns: 54px minmax(0, 1fr); }
   .shop-card__art, .shop-card__art img { width: 54px; height: 54px; }

@@ -7,10 +7,11 @@ export interface ToggleSetting { id: string; label: string; description: string;
 export interface SettingsModalProps {
   open: boolean; toggles: ToggleSetting[]; onToggle: (id: string, checked: boolean) => void;
   language: LanguageCode; onLanguageChange: (language: LanguageCode) => void;
+  musicVolume: number; musicMuted: boolean; onMusicVolumeChange: (volume: number) => void;
   onExportSave?: () => void; onImportSave?: (file: File) => void | Promise<void>; onHardReset?: () => void; onClose: () => void; saveStatus?: string; versionLabel?: string;
 }
 
-export function SettingsModal({ open, toggles, onToggle, language, onLanguageChange, onExportSave, onImportSave, onHardReset, onClose, saveStatus, versionLabel }: SettingsModalProps) {
+export function SettingsModal({ open, toggles, onToggle, language, onLanguageChange, musicVolume, musicMuted, onMusicVolumeChange, onExportSave, onImportSave, onHardReset, onClose, saveStatus, versionLabel }: SettingsModalProps) {
   const { t } = useI18n();
   const importInputRef = useRef<HTMLInputElement>(null);
   const chooseImportFile = () => importInputRef.current?.click();
@@ -33,6 +34,13 @@ export function SettingsModal({ open, toggles, onToggle, language, onLanguageCha
           <select className="language-select" value={language} onChange={(event) => onLanguageChange(event.target.value as LanguageCode)} aria-label={t('settings.language')}>
             {LANGUAGE_OPTIONS.map((option) => <option key={option.code} value={option.code}>{option.label}</option>)}
           </select>
+        </label>
+        <label className="setting-row setting-row--volume">
+          <span><strong>{t('settings.musicVolume')}</strong><small>{t('settings.musicVolumeDescription')}</small></span>
+          <span className="volume-control">
+            <input type="range" min="0" max="1" step="0.01" value={musicVolume} onChange={(event) => onMusicVolumeChange(Number(event.target.value))} aria-label={t('settings.musicVolume')} />
+            <output>{musicMuted || musicVolume <= 0 ? t('settings.muted') : `${Math.round(musicVolume * 100)}%`}</output>
+          </span>
         </label>
         {toggles.map((setting) => (
           <label className={`setting-row${setting.disabled ? ' setting-row--disabled' : ''}`} key={setting.id}>

@@ -31,6 +31,7 @@ import {
   type BuildingId, type ContractKind, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
 import { playSound } from './audio';
+import { BackgroundMusicPlayer } from './music';
 import {
   I18nProvider, detectPreferredLanguage, formatCompact, getLanguageMeta, isLanguageCode, localizedName, localizedPerkDescription, translate,
   type LanguageCode, type TranslationKey,
@@ -46,7 +47,7 @@ type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contra
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
-interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; language: LanguageCode }
+interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; language: LanguageCode }
 type ResetEffect = 'prestige-vacuum' | null;
 
 const PERK_ICONS: Record<PermanentUpgradeId, IconName> = {
@@ -69,14 +70,17 @@ function loadSettings(): UiSettings {
     const legacy = JSON.parse(localStorage.getItem('goblin-clicker.settings.v1') ?? '{}') as Record<string, unknown>;
     const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') as Record<string, unknown>;
     const source = { ...legacy, ...parsed };
+    const musicVolume = typeof source.musicVolume === 'number' ? Math.max(0, Math.min(1, source.musicVolume)) : 0.32;
     return {
       sound: typeof source.sound === 'boolean' ? source.sound : true,
       effects: typeof source.effects === 'boolean' ? source.effects : true,
       reducedMotion: typeof source.reducedMotion === 'boolean' ? source.reducedMotion : (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false),
+      musicVolume,
+      musicMuted: typeof source.musicMuted === 'boolean' ? source.musicMuted : musicVolume === 0,
       language: isLanguageCode(source.language) ? source.language : fallbackLanguage,
     };
   } catch {
-    return { sound: true, effects: true, reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, language: fallbackLanguage };
+    return { sound: true, effects: true, reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, musicVolume: 0.32, musicMuted: false, language: fallbackLanguage };
   }
 }
 
@@ -127,6 +131,7 @@ function App() {
   const gameRef = useRef(game);
   const previousAchievements = useRef(game.unlockedAchievements);
   const bootToastShown = useRef(false);
+  const musicPlayerRef = useRef<BackgroundMusicPlayer | null>(null);
 
   const language = settings.language;
   const locale = getLanguageMeta(language).locale;
@@ -149,6 +154,19 @@ function App() {
   useEffect(() => {
     if (resetEffect) resetOverlayRef.current?.focus();
   }, [resetEffect]);
+  useEffect(() => {
+    const player = new BackgroundMusicPlayer();
+    musicPlayerRef.current = player;
+    player.mount();
+    return () => {
+      player.destroy();
+      musicPlayerRef.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    musicPlayerRef.current?.setVolume(settings.musicVolume);
+    musicPlayerRef.current?.setMuted(settings.musicMuted || settings.musicVolume <= 0);
+  }, [settings.musicMuted, settings.musicVolume]);
   const addToast = useCallback((toast: Omit<ToastView, 'id'>) => {
     const id = `toast-${Date.now()}-${toastSequence.current++}`;
     setToasts((current) => [...current.slice(-3), { ...toast, id }]);
@@ -227,6 +245,16 @@ function App() {
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
     catch { /* storage may reject writes in hardened/private modes */ }
   }, [settings]);
+
+  const toggleMusic = useCallback(() => {
+    setSettings((current) => current.musicVolume <= 0
+      ? { ...current, musicVolume: 0.32, musicMuted: false }
+      : { ...current, musicMuted: !current.musicMuted });
+  }, []);
+  const changeMusicVolume = useCallback((volume: number) => {
+    const next = Math.max(0, Math.min(1, Number.isFinite(volume) ? volume : 0));
+    setSettings((current) => ({ ...current, musicVolume: next, musicMuted: next === 0 }));
+  }, []);
 
   const now = game.lastUpdateAt;
   const cps = getCps(game, now);
@@ -562,11 +590,12 @@ function App() {
     clutch: t('mooncap.clutchcap'), frenzy: t('mooncap.frenzycap'), blood: t('mooncap.bloodcap'), oracle: t('mooncap.oraclecap'),
   };
   const canExtendMoon = activeBuffs.some((buff) => buff.id === 'moon_frenzy' || buff.id === 'hatching_fever' || buff.id === 'eclipse');
+  const musicMuted = settings.musicMuted || settings.musicVolume <= 0;
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
     { id: 'ancestry', label: t('header.ancestral'), value: fmtInteger(game.prestige.shards), icon: 'crown', title: t('header.ancestralTitle') },
-  ]} onOpenAchievements={() => setModal('achievements')} onOpenPrestige={() => setModal('prestige')} onOpenSettings={() => setModal('settings')} />;
+  ]} onOpenAchievements={() => setModal('achievements')} onOpenPrestige={() => setModal('prestige')} musicMuted={musicMuted} onToggleMusic={toggleMusic} onSkipMusic={() => musicPlayerRef.current?.skip()} onOpenSettings={() => setModal('settings')} />;
 
   const left = <div className="left-stack">
     <SidePanel title={t('ledger.title')} eyebrow={t('ledger.eyebrow')} action={<button className="mini-action" type="button" onClick={() => setModal('achievements')}><Icon name="trophy" size={14} /> {fmtInteger(unlockedAchievementCount)}</button>}>
@@ -685,7 +714,7 @@ function App() {
       labels={{ title: t('moonDial.title'), charge: t('moonDial.charge'), hasten: t('moonDial.hasten'), extend: t('moonDial.extend'), bias: t('moonDial.bias'), family: familyLabels }}
     />
     <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onClose={() => setModal(null)} />
-    <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} toggles={[
+    <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} musicVolume={settings.musicVolume} musicMuted={musicMuted} onMusicVolumeChange={changeMusicVolume} toggles={[
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },
       { id: 'reducedMotion', label: t('settings.reducedMotion'), description: t('settings.reducedMotionDescription'), checked: settings.reducedMotion },

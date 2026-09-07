@@ -510,6 +510,11 @@
 .setting-row strong { font-size: 12px; }
 .setting-row small { color: var(--ink-muted); font-size: 10px; line-height: 1.35; }
 .setting-row--disabled { opacity: .45; }
+.setting-row--volume { align-items: center; }
+.volume-control { display: grid; width: min(240px, 45%); grid-template-columns: minmax(110px, 1fr) 38px; align-items: center; gap: 9px; }
+.volume-control input[type="range"] { width: 100%; height: 18px; margin: 0; accent-color: var(--moss-bright); cursor: pointer; }
+.volume-control input[type="range"]:focus-visible { outline: 2px solid var(--moss-bright); outline-offset: 3px; border-radius: 3px; }
+.volume-control output { color: var(--ink-soft); font-family: var(--font-pixel); font-size: 8px; font-variant-numeric: tabular-nums; text-align: end; text-transform: uppercase; }
 .switch { position: relative; flex: 0 0 auto; }
 .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .switch__track { display: flex; width: 39px; height: 22px; align-items: center; padding: 2px; border: 1px solid var(--line-strong); border-radius: 99px; background: rgba(255,255,255,.05); transition: background 160ms ease, border-color 160ms ease; }
@@ -541,6 +546,11 @@
   .prestige-perk-grid { grid-template-columns: 1fr 1fr; }
   .prestige-modal--confirming .modal__body { min-height: 390px; }
   .prestige-confirm { padding: 28px 20px 24px; }
+}
+
+@media (max-width: 430px) {
+  .setting-row--volume { align-items: stretch; flex-direction: column; }
+  .volume-control { width: 100%; grid-template-columns: minmax(0, 1fr) 44px; }
 }
 
 @media (max-width: 480px) {

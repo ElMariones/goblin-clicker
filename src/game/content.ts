@@ -112,36 +112,36 @@ export const BUILDINGS = [
  */
 export const EXPANSION_MASTERY_LEVELS = [
   {
-    id: 'established', name: 'Established', threshold: 10, productionMultiplier: 1.2, networkCpsBonus: 0.005,
-    description: 'A permanent crew and stable routines take hold. ×1.20 expansion output and +0.5% all-warren production while this level is maintained.',
+    id: 'established', name: 'Established', threshold: 10, productionMultiplier: 1.25, networkCpsBonus: 0.006,
+    description: 'A permanent crew and stable routines take hold. ×1.25 expansion output and +0.6% all-warren production while this level is maintained.',
   },
   {
-    id: 'thriving', name: 'Thriving', threshold: 25, productionMultiplier: 1.25, networkCpsBonus: 0.0075,
-    description: 'The expansion becomes a dependable district. ×1.25 expansion output and another +0.75% all-warren production.',
+    id: 'thriving', name: 'Thriving', threshold: 25, productionMultiplier: 1.35, networkCpsBonus: 0.009,
+    description: 'The expansion becomes a dependable district. ×1.35 expansion output and another +0.9% all-warren production.',
   },
   {
-    id: 'veteran', name: 'Veteran', threshold: 50, productionMultiplier: 1.5, networkCpsBonus: 0.01,
-    description: 'Experienced crews teach every new clutch the shortcuts. ×1.50 expansion output and another +1% all-warren production.',
+    id: 'veteran', name: 'Veteran', threshold: 50, productionMultiplier: 2, networkCpsBonus: 0.015,
+    description: 'Experienced crews teach every new clutch the shortcuts. ×2 expansion output and another +1.5% all-warren production.',
   },
   {
-    id: 'renowned', name: 'Renowned', threshold: 100, productionMultiplier: 2, networkCpsBonus: 0.015,
-    description: 'The expansion becomes a model copied throughout the warrens. ×2 expansion output and another +1.5% all-warren production.',
+    id: 'renowned', name: 'Renowned', threshold: 100, productionMultiplier: 3, networkCpsBonus: 0.025,
+    description: 'The expansion becomes a model copied throughout the warrens. ×3 expansion output and another +2.5% all-warren production.',
   },
   {
-    id: 'elite', name: 'Elite', threshold: 150, productionMultiplier: 2, networkCpsBonus: 0.02,
-    description: 'Specialist crews turn repetition into doctrine. ×2 expansion output and another +2% all-warren production.',
+    id: 'elite', name: 'Elite', threshold: 150, productionMultiplier: 2, networkCpsBonus: 0.03,
+    description: 'Specialist crews turn repetition into doctrine. ×2 expansion output and another +3% all-warren production.',
   },
   {
-    id: 'legendary', name: 'Legendary', threshold: 200, productionMultiplier: 2.5, networkCpsBonus: 0.025,
-    description: 'Its methods become campfire legend and practical instruction. ×2.50 expansion output and another +2.5% all-warren production.',
+    id: 'legendary', name: 'Legendary', threshold: 200, productionMultiplier: 2.5, networkCpsBonus: 0.04,
+    description: 'Its methods become campfire legend and practical instruction. ×2.50 expansion output and another +4% all-warren production.',
   },
   {
-    id: 'ancestral', name: 'Ancestral', threshold: 250, productionMultiplier: 3, networkCpsBonus: 0.035,
-    description: 'Generations of accumulated craft turn the expansion into a bloodline institution. ×3 expansion output and another +3.5% all-warren production.',
+    id: 'ancestral', name: 'Ancestral', threshold: 250, productionMultiplier: 3, networkCpsBonus: 0.05,
+    description: 'Generations of accumulated craft turn the expansion into a bloodline institution. ×3 expansion output and another +5% all-warren production.',
   },
   {
-    id: 'mythic', name: 'Mythic', threshold: 300, productionMultiplier: 4, networkCpsBonus: 0.05,
-    description: 'The expansion is no longer merely productive; it defines how the entire horde works. ×4 expansion output and another +5% all-warren production.',
+    id: 'mythic', name: 'Mythic', threshold: 300, productionMultiplier: 4, networkCpsBonus: 0.07,
+    description: 'The expansion is no longer merely productive; it defines how the entire horde works. ×4 expansion output and another +7% all-warren production.',
   },
 ] as const satisfies readonly ExpansionMasteryLevelDefinition[];
 

@@ -21,6 +21,7 @@ import type {
 } from './types';
 
 const EPSILON = 1e-9;
+const MAX_MASTERY_VETERANCY_BONUS_PER_LEVEL = 0.18;
 
 export function getPermanentRank(state: GameState, id: PermanentUpgradeId): number {
   return Math.max(0, Math.floor(state.prestige.permanentUpgrades[id] ?? 0));
@@ -45,6 +46,19 @@ export function getNextExpansionMasteryLevel(state: GameState, buildingId: Build
 export function getExpansionMasteryProductionMultiplier(state: GameState, buildingId: BuildingId): number {
   const reached = getReachedExpansionMasteryLevels(state, buildingId);
   let multiplier = reached.reduce((current, level) => current * level.productionMultiplier, 1);
+
+  // Older expansion types need a little more help staying relevant because base
+  // CPS rises by orders of magnitude across the shop. Each reached mastery tier
+  // therefore adds a small veterancy factor that is strongest for Brood Matrons
+  // and tapers linearly to zero for the newest Reality Burrows. This keeps the
+  // 50/100 ownership breakpoints meaningful without inflating late buildings by
+  // the same amount and leaving production shares unchanged.
+  const buildingIndex = BUILDINGS.findIndex((building) => building.id === buildingId);
+  const oldestWeight = buildingIndex < 0 || BUILDINGS.length <= 1
+    ? 0
+    : (BUILDINGS.length - 1 - buildingIndex) / (BUILDINGS.length - 1);
+  multiplier *= (1 + oldestWeight * MAX_MASTERY_VETERANCY_BONUS_PER_LEVEL) ** reached.length;
+
   for (const effect of getPurchasedEffects(state)) {
     if (effect.type === 'masteryLevelMultiplier' && effect.buildingId === buildingId) {
       multiplier *= effect.multiplier ** reached.length;

@@ -43,15 +43,15 @@ describe('economy math', () => {
     state.purchasedUpgrades.matron_stew = true;
     state.purchasedUpgrades.green_thumb = true;
     state.prestige.permanentUpgrades.ancestral_fertility = 2;
-    // 10 Matrons: base 1/s × research 2 × Established 1.2 ×
-    // (Ancestral Fertility 1.1 × Green Thumb 1.1 × mastery network 1.005).
-    expect(getCps(state, 1_000)).toBeCloseTo(2.91852, 8);
+    // 10 Matrons: base 1/s × research 2 × Established/veterancy 1.475 ×
+    // (Ancestral Fertility 1.1 × Green Thumb 1.1 × mastery network 1.006).
+    expect(getCps(state, 1_000)).toBeCloseTo(3.590917, 8);
 
     state.buffs.push({ id: 'moon_frenzy', multiplier: 7, startedAt: 1_000, expiresAt: 5_000, target: 'cps' });
-    expect(getCps(state, 2_000)).toBeCloseTo(20.42964, 8);
-    expect(getBuildingUnitCps(state, 'brood_matron', 2_000)).toBeCloseTo(2.042964, 8);
-    expect(getBuildingCps(state, 'brood_matron', 2_000)).toBeCloseTo(20.42964, 8);
-    expect(getCps(state, 5_000)).toBeCloseTo(2.91852, 8);
+    expect(getCps(state, 2_000)).toBeCloseTo(25.136419, 8);
+    expect(getBuildingUnitCps(state, 'brood_matron', 2_000)).toBeCloseTo(2.5136419, 8);
+    expect(getBuildingCps(state, 'brood_matron', 2_000)).toBeCloseTo(25.136419, 8);
+    expect(getCps(state, 5_000)).toBeCloseTo(3.590917, 8);
   });
 
   it('starts clicking at one goblin and applies click upgrades deterministically', () => {
@@ -68,8 +68,9 @@ describe('economy math', () => {
     state.purchasedUpgrades.iron_fingertips = true;
     state.purchasedUpgrades.hatchery_command = true;
     state.purchasedUpgrades.twitch_of_creation = true;
-    // 100 Nurseries reach Renowned: 4.5× local mastery and +3.75% network CPS.
-    expect(getClickPower(state)).toBeCloseTo((1 + (100 * 4.5 * 1.0375) * 0.15) * 6, 8);
+    // 100 Nurseries reach Renowned: the stronger base tiers plus old-building
+    // veterancy produce 18.563684...× local mastery and +5.5% network CPS.
+    expect(getClickPower(state)).toBeCloseTo((1 + (100 * 18.56368411993716 * 1.055) * 0.15) * 6, 8);
   });
 
   it('derives eight expansion mastery levels from owned counts with cumulative local multipliers', () => {
@@ -81,26 +82,43 @@ describe('economy math', () => {
 
     state.buildings.brood_matron = 10;
     expect(getExpansionMasteryLevel(state, 'brood_matron')?.id).toBe('established');
-    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(1.2, 10);
+    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(1.475, 10);
+
+    state.buildings.brood_matron = 49;
+    const beforeVeteran = 49 * getExpansionMasteryProductionMultiplier(state, 'brood_matron');
+    state.buildings.brood_matron = 50;
+    const atVeteran = 50 * getExpansionMasteryProductionMultiplier(state, 'brood_matron');
+    expect(atVeteran / beforeVeteran).toBeGreaterThan(2.35);
 
     state.buildings.brood_matron = 100;
     expect(getExpansionMasteryLevel(state, 'brood_matron')?.id).toBe('renowned');
-    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(4.5, 10);
+    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(19.63012482, 8);
 
     state.buildings.brood_matron = 300;
     expect(getExpansionMasteryLevel(state, 'brood_matron')?.id).toBe('mythic');
     expect(getNextExpansionMasteryLevel(state, 'brood_matron')).toBeNull();
-    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(270, 10);
+    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(2283.5069656224, 8);
+  });
+
+  it('gives older expansions stronger mastery catch-up than late-game structures', () => {
+    const state = createInitialGameState(1_000, 123);
+    state.buildings.brood_matron = 100;
+    state.buildings.reality_burrow = 100;
+
+    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron')).toBeCloseTo(19.63012482, 8);
+    expect(getExpansionMasteryProductionMultiplier(state, 'reality_burrow')).toBeCloseTo(10.125, 10);
+    expect(getExpansionMasteryProductionMultiplier(state, 'brood_matron'))
+      .toBeGreaterThan(getExpansionMasteryProductionMultiplier(state, 'reality_burrow') * 1.9);
   });
 
   it('turns early expansion mastery into a global network bonus and amplifies it with Founders Legacy', () => {
     const state = createInitialGameState(1_000, 123);
-    state.buildings.brood_matron = 25; // Established + Thriving = 1.25%.
-    state.buildings.mushroom_nursery = 10; // Established = 0.5%.
-    expect(getExpansionMasteryNetworkBonus(state)).toBeCloseTo(0.0175, 10);
+    state.buildings.brood_matron = 25; // Established + Thriving = 1.5%.
+    state.buildings.mushroom_nursery = 10; // Established = 0.6%.
+    expect(getExpansionMasteryNetworkBonus(state)).toBeCloseTo(0.021, 10);
 
     state.prestige.permanentUpgrades.founders_legacy = 2; // +40% network strength.
-    expect(getExpansionMasteryNetworkBonus(state)).toBeCloseTo(0.0245, 10);
+    expect(getExpansionMasteryNetworkBonus(state)).toBeCloseTo(0.0294, 10);
   });
 
   it('caps migration-based Ancestral Momentum at 25 completed migrations', () => {

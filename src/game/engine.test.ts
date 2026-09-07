@@ -39,10 +39,11 @@ describe('game simulation', () => {
     state.buildings.brood_matron = 10; // 1/s total
     state.buildings.mushroom_nursery = 2; // 2/s total
     const next = tickGame(state, 2_000);
-    // Established Matrons gain ×1.2 locally and +0.5% to the global mastery network.
-    expect(next.goblins).toBeCloseTo(3.216, 8);
-    expect(next.statistics.lifetimeProducedByBuilding.brood_matron).toBeCloseTo(1.206, 8);
-    expect(next.statistics.lifetimeProducedByBuilding.mushroom_nursery).toBeCloseTo(2.01, 8);
+    // Established Matrons gain ×1.475 locally (base mastery + veterancy) and
+    // +0.6% to the global mastery network.
+    expect(next.goblins).toBeCloseTo(3.49585, 8);
+    expect(next.statistics.lifetimeProducedByBuilding.brood_matron).toBeCloseTo(1.48385, 8);
+    expect(next.statistics.lifetimeProducedByBuilding.mushroom_nursery).toBeCloseTo(2.012, 8);
   });
 
   it('purchases buildings atomically', () => {

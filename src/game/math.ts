@@ -234,7 +234,7 @@ export function getBuildingBaseCps(state: GameState, buildingId: BuildingId): nu
 
 /** Current per-unit output including active temporary CPS buffs. */
 export function getBuildingUnitCps(state: GameState, buildingId: BuildingId, now = state.lastUpdateAt): number {
-  return getBuildingUnitBaseCps(state, buildingId) * getActiveCpsMultiplier(state, now);
+  return getBuildingUnitBaseCps(state, buildingId) * getActiveCpsMultiplier(state, now) * (1 - getExpeditionReservation(state, now));
 }
 
 /** Current total output of all owned units of one building, including active temporary CPS buffs. */
@@ -251,7 +251,7 @@ export function getBaseCps(state: GameState): number {
 }
 
 export function getCps(state: GameState, now = state.lastUpdateAt): number {
-  return getBaseCps(state) * getActiveCpsMultiplier(state, now);
+  return getBaseCps(state) * getActiveCpsMultiplier(state, now) * (1 - getExpeditionReservation(state, now));
 }
 
 export function getClickPower(state: GameState, now = state.lastUpdateAt): number {
@@ -327,4 +327,10 @@ export function getNewlyUnlockedAchievements(state: GameState, now = state.lastU
   return ACHIEVEMENTS
     .filter((achievement) => !state.unlockedAchievements[achievement.id] && meetsAchievementCondition(state, achievement.condition, now))
     .map((achievement) => achievement.id);
+}
+
+/** Reservations end automatically at arrival, even before the haul is claimed. */
+export function getExpeditionReservation(state: GameState, now = state.lastUpdateAt): number {
+  const mission = state.expeditions.active;
+  return mission && now >= mission.startedAt && now < mission.endsAt ? mission.reservation : 0;
 }

@@ -199,7 +199,30 @@ export interface GameState {
   buffs: BuffInstance[];
   mooncap: MooncapEventState;
   contracts: ContractBoardState;
+  expeditions: ExpeditionState;
   statistics: GameStatistics;
+}
+
+export type ExpeditionDestination = 'mine' | 'ruins' | 'cellar';
+export type ExpeditionCrew = 'scouts' | 'haulers' | 'keepers';
+export type ExpeditionBand = 'short' | 'medium' | 'long';
+export interface ExpeditionPlan {
+  destination: ExpeditionDestination;
+  crew: ExpeditionCrew;
+  band: ExpeditionBand;
+  complication: boolean;
+}
+export interface ExpeditionMission extends ExpeditionPlan {
+  startedAt: number;
+  endsAt: number;
+  reservation: number;
+  rewardMultiplier: number;
+  reserved: number;
+}
+export interface ExpeditionState {
+  active: ExpeditionMission | null;
+  completed: number;
+  artifacts: Partial<Record<ExpeditionDestination, true>>;
 }
 
 export interface OfflineProgress {

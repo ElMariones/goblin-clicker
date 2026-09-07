@@ -1,3 +1,5 @@
+import { collectExpedition, launchExpedition } from './expeditions';
+import type { ExpeditionPlan } from './types';
 import { BUILDINGS, UPGRADE_BY_ID, type UpgradeId } from './content';
 import { ensureContracts, getContractRewardAmount, isContractComplete, resetContractsForMigration } from './contracts';
 import { advanceMooncap, applyMoonDialAction, clickMooncap, scheduleNextMooncap, type MooncapClickResult, type MoonDialAction, type MoonDialResult } from './events';
@@ -47,6 +49,11 @@ export function calculateProductionBetween(state: GameState, startTime: number, 
     if (buff.startedAt > startTime && buff.startedAt < endTime) boundaries.add(buff.startedAt);
     if (buff.expiresAt > startTime && buff.expiresAt < endTime) boundaries.add(buff.expiresAt);
   }
+  const mission = state.expeditions.active;
+  if (mission) {
+    if (mission.startedAt > startTime && mission.startedAt < endTime) boundaries.add(mission.startedAt);
+    if (mission.endsAt > startTime && mission.endsAt < endTime) boundaries.add(mission.endsAt);
+  }
   const sorted = [...boundaries].sort((a, b) => a - b);
   let produced = 0;
   for (let i = 0; i < sorted.length - 1; i += 1) {
@@ -90,6 +97,13 @@ export function tickGame(state: GameState, now: number): GameState {
       lifetimeProducedByBuilding,
     },
   };
+  const mission = state.expeditions.active;
+  if (mission && state.lastUpdateAt < mission.endsAt) {
+    const end = Math.min(timestamp, mission.endsAt);
+    const net = calculateProductionBetween(state, Math.max(state.lastUpdateAt, mission.startedAt), end);
+    next.expeditions = { ...state.expeditions, active: { ...mission,
+      reserved: clampResource(mission.reserved + net * mission.reservation / (1 - mission.reservation)) } };
+  }
   next = advanceMooncap(next, timestamp);
   return awardAchievements(ensureContracts(next, timestamp), timestamp);
 }
@@ -188,26 +202,29 @@ export function purchasePermanentUpgrade(
 
 export function performPrestigeReset(state: GameState, now = state.lastUpdateAt): EconomyActionResult {
   const ticked = tickGame(state, now);
-  const gained = getPrestigeShardGain(ticked);
+  const expeditionReady = !!ticked.expeditions.active && ticked.lastUpdateAt >= ticked.expeditions.active.endsAt;
+  const settled = expeditionReady ? collectExpedition(ticked).state : ticked;
+  const gained = getPrestigeShardGain(settled);
   if (gained <= 0) return { state: ticked, success: false, amount: 0 };
-  const startingGoblins = getPermanentRank(ticked, 'starter_clutch') * 50;
+  const startingGoblins = getPermanentRank(settled, 'starter_clutch') * 50;
   const startingBuildings = createEmptyBuildings();
-  startingBuildings.brood_matron = getPermanentRank(ticked, 'heirloom_matrons');
+  startingBuildings.brood_matron = getPermanentRank(settled, 'heirloom_matrons');
   let next: GameState = {
-    ...ticked,
+    ...settled,
     goblins: startingGoblins,
     runGoblins: startingGoblins,
     buildings: startingBuildings,
     purchasedUpgrades: {},
+    expeditions: { ...settled.expeditions, active: null },
     buffs: [],
     prestige: {
-      ...ticked.prestige,
-      shards: ticked.prestige.shards + gained,
-      totalShardsEarned: ticked.prestige.totalShardsEarned + gained,
-      resets: ticked.prestige.resets + 1,
+      ...settled.prestige,
+      shards: settled.prestige.shards + gained,
+      totalShardsEarned: settled.prestige.totalShardsEarned + gained,
+      resets: settled.prestige.resets + 1,
     },
     mooncap: {
-      ...ticked.mooncap,
+      ...settled.mooncap,
       active: false,
       family: null,
       spawnedAt: null,
@@ -249,4 +266,19 @@ export function claimContract(state: GameState, kind: ContractKind, now = state.
 export function spendLunarCharge(state: GameState, action: MoonDialAction, now = state.lastUpdateAt): MoonDialResult {
   const ticked = tickGame(state, now);
   return applyMoonDialAction(ticked, action, now);
+}
+
+export function startExpedition(state: GameState, plan: ExpeditionPlan, now = state.lastUpdateAt): GameState {
+  return launchExpedition(tickGame(state, now), plan);
+}
+
+export function cancelExpedition(state: GameState, now = state.lastUpdateAt): GameState {
+  const next = tickGame(state, now);
+  if (!next.expeditions.active || next.lastUpdateAt >= next.expeditions.active.endsAt) return next;
+  return { ...next, expeditions: { ...next.expeditions, active: null } };
+}
+
+export function claimExpedition(state: GameState, now = state.lastUpdateAt) {
+  const result = collectExpedition(tickGame(state, now));
+  return { ...result, state: awardAchievements(ensureContracts(result.state, now), now) };
 }

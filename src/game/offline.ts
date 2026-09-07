@@ -22,7 +22,9 @@ export function calculateOfflineProgress(state: GameState, now: number): Offline
   const capMs = getOfflineCapMs(state);
   const creditedMs = Math.min(elapsedMs, capMs);
   const efficiency = getOfflineEfficiency(state);
-  const goblinsProduced = getBaseCps(state) * (creditedMs / 1_000) * efficiency;
+  const mission = state.expeditions.active;
+  const reservedMs = mission ? Math.max(0, Math.min(state.lastUpdateAt + creditedMs, mission.endsAt) - Math.max(state.lastUpdateAt, mission.startedAt)) : 0;
+  const goblinsProduced = getBaseCps(state) * ((creditedMs - reservedMs * (mission?.reservation ?? 0)) / 1_000) * efficiency;
   return { elapsedMs, creditedMs, efficiency, goblinsProduced, capMs };
 }
 
@@ -34,8 +36,9 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
   const progress = calculateOfflineProgress(state, now);
   const timestamp = Math.max(state.lastUpdateAt, Math.floor(now));
   const lifetimeProducedByBuilding = { ...state.statistics.lifetimeProducedByBuilding };
+  const baseCps = getBaseCps(state);
   for (const building of BUILDINGS) {
-    const produced = getBuildingBaseCps(state, building.id) * (progress.creditedMs / 1_000) * progress.efficiency;
+    const produced = baseCps > 0 ? progress.goblinsProduced * getBuildingBaseCps(state, building.id) / baseCps : 0;
     if (produced <= 0) continue;
     lifetimeProducedByBuilding[building.id] = clampResource(lifetimeProducedByBuilding[building.id] + produced);
   }
@@ -49,6 +52,12 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
     mooncap: { ...state.mooncap, active: false, family: null, spawnedAt: null, expiresAt: null },
     statistics: { ...state.statistics, lifetimeProducedByBuilding },
   };
+  const mission = state.expeditions.active;
+  if (mission) {
+    const reservedMs = Math.max(0, Math.min(state.lastUpdateAt + progress.creditedMs, mission.endsAt) - Math.max(state.lastUpdateAt, mission.startedAt));
+    next.expeditions = { ...state.expeditions, active: { ...mission,
+      reserved: clampResource(mission.reserved + baseCps * reservedMs / 1000 * progress.efficiency * mission.reservation) } };
+  }
   next = scheduleNextMooncap(next, timestamp);
   return { state: next, progress };
 }

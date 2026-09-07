@@ -49,6 +49,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
       rngSeed: seed >>> 0,
       rngCounter: 0,
     },
+    expeditions: { active: null, completed: 0, artifacts: {} },
     contracts: {
       active: {},
       completed: 0,

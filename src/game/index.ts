@@ -9,3 +9,4 @@ export * from './engine';
 export * from './offline';
 export * from './save';
 export * from './reducer';
+export * from './expeditions';

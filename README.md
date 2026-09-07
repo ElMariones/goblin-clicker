@@ -16,6 +16,14 @@ An original goblin-themed incremental clicker built for the browser. Spawn gobli
 
 ![Responsive mobile view](docs/screenshots/mobile.png)
 
+## Surface expeditions
+
+Build a War Camp to unlock an illustrated, interactive surface map. Choose the Abandoned Mine, Moonlit Ruin, or Merchant Cellar, then combine three crew specialties, three duration bands, and an optional overgrown trail. Each route favors a different warren; mastery shortens the trip.
+
+A single crew reserves 10–23% of production until arrival. Its haul follows the output actually reserved, including production changes and offline efficiency. Recall restores production immediately and forfeits the haul. First returns recover cosmetic keepsakes that survive Great Migration.
+
+The planner previews the tradeoffs before departure, supports keyboard scouting and seven languages, and respects reduced motion. See the [design and balance notes](docs/SURFACE_EXPEDITIONS.md) and the [map generation prompt](docs/SURFACE_MAP_PROMPT.md).
+
 ## Tech stack
 
 - React 19 + TypeScript

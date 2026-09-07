@@ -1,3 +1,4 @@
+import { sanitizeExpeditions } from './expeditions';
 import { ACHIEVEMENTS, BUILDINGS, PERMANENT_UPGRADES, UPGRADES } from './content';
 import { ensureContracts } from './contracts';
 import { MAX_LUNAR_CHARGE } from './events';
@@ -182,6 +183,7 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       rngSeed: normalizeSeed(finiteNumber(rawMooncap.rngSeed, base.mooncap.rngSeed)),
       rngCounter: integer(rawMooncap.rngCounter),
     },
+    expeditions: base.expeditions,
     contracts: {
       active: activeContracts,
       completed: integer(rawContracts.completed),
@@ -205,6 +207,7 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
   if (state.lifetimeGoblins < state.runGoblins) state.lifetimeGoblins = state.runGoblins;
   if (!state.mooncap.active) state.mooncap.family = null;
   if (state.mooncap.active && state.mooncap.family === null) state.mooncap.family = 'clutch';
+  state.expeditions = sanitizeExpeditions(raw.expeditions, state.lastUpdateAt);
   state = ensureContracts(state, state.lastUpdateAt);
   return state;
 }

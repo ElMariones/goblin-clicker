@@ -1,3 +1,6 @@
+import { ExpeditionEntry, ExpeditionMap } from './components/ExpeditionMap';
+import { startExpedition, cancelExpedition, claimExpedition, creditGoblins, getClaimableExpeditionReward, getExpeditionReservation } from './game';
+import { EXPEDITION_COPY } from './i18n/expeditions';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AchievementModal,
@@ -43,7 +46,7 @@ import './App.css';
 const SAVE_KEY = 'goblin-clicker.save';
 const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'goblin-clicker.save.v1'] as const;
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | null;
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
@@ -260,7 +263,8 @@ function App() {
   const cps = getCps(game, now);
   const baseCps = getBaseCps(game);
   const clickPower = getClickPower(game, now);
-  const prestigeGain = getPrestigeShardGain(game);
+  const claimableExpeditionReward = getClaimableExpeditionReward(game);
+  const prestigeGain = getPrestigeShardGain(claimableExpeditionReward > 0 ? creditGoblins(game, claimableExpeditionReward) : game);
   const totalBuildings = BUILDINGS.reduce((sum, building) => sum + game.buildings[building.id], 0);
   const spawnActivity = totalBuildings >= 75 ? 'overrun' : totalBuildings >= 25 ? 'busy' : totalBuildings >= 5 ? 'stirring' : 'dormant';
   const availableUpgrades = UPGRADES.filter((upgrade) => !game.purchasedUpgrades[upgrade.id] && !isUpgradeBlockedByChoice(game, upgrade.id) && isUpgradeUnlocked(game, upgrade.id)).length;
@@ -591,6 +595,7 @@ function App() {
   };
   const canExtendMoon = activeBuffs.some((buff) => buff.id === 'moon_frenzy' || buff.id === 'hatching_fever' || buff.id === 'eclipse');
   const musicMuted = settings.musicMuted || settings.musicVolume <= 0;
+  const expeditionReservation = getExpeditionReservation(game, now);
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
@@ -604,8 +609,10 @@ function App() {
         <div><dt>{t('ledger.manual')}</dt><dd>{fmtNumber(game.statistics.manuallyBorn)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
         <div><dt>{t('ledger.baseProduction')}</dt><dd>{fmtNumber(baseCps)}/s</dd></div><div><dt>{t('ledger.bestProduction')}</dt><dd>{fmtNumber(game.statistics.highestCps)}/s</dd></div>
       </dl>
+      {expeditionReservation > 0 && <p className="panel-copy">{EXPEDITION_COPY[language].reserve}: −{fmtNumber(cps * expeditionReservation / (1 - expeditionReservation))}/s ({fmtInteger(expeditionReservation * 100)}%)</p>}
       {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className={`buff-pill${buff.id === 'moon_frenzy' ? ' buff-pill--sevenfold' : buff.id === 'eclipse' ? ' buff-pill--eclipse' : ''}`} key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : buff.id === 'hatching_fever' ? t('buff.hatchingFever') : t('buff.eclipse')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
     </SidePanel>
+    <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
     <SidePanel title={t('research.title')} eyebrow={t('research.eyebrow')} action={availableUpgrades > 0 ? <span className="notification-badge">{fmtInteger(availableUpgrades)}</span> : undefined}>
       <p className="panel-copy">{t('research.copy')}</p><button className="panel-primary-button" type="button" onClick={() => setModal('upgrades')}><Icon name="sparkles" size={16} /> {t('research.open')} <Icon name="chevron" size={14} /></button>
     </SidePanel>
@@ -699,6 +706,11 @@ function App() {
       onClaim={collectContract}
       onClose={() => setModal(null)}
       labels={{ title: t('contract.title'), subtitle: t('contract.subtitle'), progress: t('contract.progress'), reward: t('contract.reward'), claim: t('contract.claim'), working: t('contract.working'), complete: t('contract.complete') }}
+    />
+    <ExpeditionMap open={modal === 'expeditions'} state={game} onClose={() => setModal(null)}
+      onLaunch={(plan) => { if (resetInProgress.current) return; commitGame(startExpedition(gameRef.current, plan, Date.now())); playSound('buy', settings.sound); }}
+      onCancel={() => { if (resetInProgress.current) return; commitGame(cancelExpedition(gameRef.current, Date.now())); }}
+      onClaim={() => { if (resetInProgress.current) return; const result = claimExpedition(gameRef.current, Date.now()); commitGame(result.state); if (result.reward > 0) { playSound('achievement', settings.sound); addToast({ title: EXPEDITION_COPY[language].returned, message: `+${fmtNumber(result.reward)}`, icon: 'clutch', tone: 'success' }); } }}
     />
     <MoonDialModal
       open={modal === 'moonDial'}

@@ -500,6 +500,7 @@ function App() {
           lifetimeProduced: t('shop.telemetryLifetime'),
         },
       }} mastery={locked ? undefined : {
+        tierId: masteryLevel?.id ?? 'unranked',
         levelLabel: t(masteryTranslationKey),
         multiplierLabel: `×${formatNumber(masteryMultiplier, 2, getLanguageMeta(language).locale)}`,
         networkLabel: `+${formatNumber(masteryNetworkContribution * 100, 2, getLanguageMeta(language).locale)}%`,

@@ -17,6 +17,8 @@ export interface ShopCardProductionDetails {
 }
 
 export interface ShopCardMasteryDetails {
+  /** Stable mastery id used for the compact owned-count visual treatment. */
+  tierId: 'unranked' | 'established' | 'thriving' | 'veteran' | 'renowned' | 'elite' | 'legendary' | 'ancestral' | 'mythic';
   /** Localized current mastery tier, for example "Established" or "Veteran". */
   levelLabel: string;
   /** Ready-to-render active multiplier, for example "×1.25". */
@@ -51,13 +53,14 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
   const masteryLabels = masteryDetails?.labels;
   const hasNextMastery = Boolean(masteryDetails?.nextLevelLabel);
   const hasHoverDetails = Boolean(details || masteryDetails);
+  const masteryTierClass = masteryDetails ? ` shop-card__owned--${masteryDetails.tierId}` : '';
   return (
     <article
       className={`shop-card${locked ? ' shop-card--locked' : ''}${canAfford ? ' shop-card--affordable' : ''}${hasHoverDetails ? ' shop-card--has-details' : ''}`}
     >
       <div className="shop-card__art" aria-hidden="true">{artSrc ? <img src={artSrc} alt="" /> : <Icon name={locked ? 'lock' : 'brood'} size={28} />}</div>
       <div className="shop-card__body">
-        <div className="shop-card__topline"><h3>{name}</h3><span className="shop-card__owned" aria-label={t('shop.owned', { count: ownedLabel })}>{ownedLabel}</span></div>
+        <div className="shop-card__topline"><h3>{name}</h3><span className={`shop-card__owned${masteryTierClass}`} aria-label={t('shop.owned', { count: ownedLabel })}>{ownedLabel}</span></div>
         <p>{description}</p>
         <div className="shop-card__meta"><span><Icon name="cps" size={14} /> {productionLabel}/s</span>{badge && <span className="shop-card__badge">{badge}</span>}</div>
       </div>

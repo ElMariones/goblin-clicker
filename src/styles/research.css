@@ -1,4 +1,4 @@
-.research-modal { width: min(100%, 1180px); }
+.research-modal { width: min(calc(100vw - 28px), 1500px); max-height: min(94vh, 1040px); }
 .research-modal .modal__body { padding: 0; overflow: hidden; }
 .research-modal .modal__footer { position: relative; z-index: 3; }
 
@@ -45,7 +45,7 @@
   text-transform: uppercase;
 }
 .research-tree__drag-mark { color: var(--moss-bright); font-size: 14px; }
-.research-tree__toolbar-actions { display: flex; margin-left: 4px; }
+.research-tree__toolbar-actions { display: flex; margin-left: 4px; align-items: stretch; }
 .research-tree__tool {
   display: grid;
   width: 36px;
@@ -58,14 +58,27 @@
   background: transparent;
   font: 800 16px/1 var(--font-pixel);
 }
+.research-tree__zoom {
+  display: grid;
+  min-width: 52px;
+  padding: 0 8px;
+  place-items: center;
+  border-right: 1px solid rgba(202,226,170,.13);
+  color: var(--moss-bright);
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .035em;
+}
 .research-tree__tool:last-child { border-right: 0; }
 .research-tree__tool:hover { color: var(--moss-bright); background: rgba(149,201,79,.1); }
 .research-tree__tool:focus-visible { position: relative; z-index: 2; outline: 2px solid var(--moss-bright); outline-offset: -2px; }
 
 .research-tree__viewport {
   position: relative;
-  height: min(67vh, 690px);
-  min-height: 470px;
+  height: min(76vh, 820px);
+  min-height: 520px;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
@@ -514,10 +527,12 @@
 }
 
 @media (max-width: 760px) {
+  .research-modal { width: 100%; max-height: min(92svh, 920px); }
   .research-modal .modal__body { padding: 0; }
-  .research-tree__viewport { height: min(69svh, 640px); min-height: 420px; }
+  .research-tree__viewport { height: min(69svh, 650px); min-height: 420px; }
   .research-tree__hint { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .research-tree__tool { width: 42px; height: 39px; }
+  .research-tree__tool { width: 40px; height: 39px; }
+  .research-tree__zoom { min-width: 48px; padding: 0 6px; }
 }
 
 @media (max-width: 480px) {
@@ -525,7 +540,8 @@
   .research-tree__hint { display: none; }
   .research-tree__toolbar { justify-content: flex-end; }
   .research-tree__toolbar-actions { margin-left: 0; }
-  .research-tree__tool { width: 45px; height: 43px; }
+  .research-tree__tool { width: 42px; height: 43px; }
+  .research-tree__zoom { min-width: 46px; padding: 0 5px; font-size: 8.5px; }
   .research-tree__viewport { min-height: 430px; }
 }
 

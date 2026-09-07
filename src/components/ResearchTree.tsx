@@ -9,12 +9,16 @@ interface ResearchTreeProps {
 }
 
 type Point = { x: number; y: number };
+type ViewState = Point & { zoom: number };
 type Motif = 'claw' | 'scroll' | 'egg' | 'mushroom' | 'burrow' | 'bog' | 'gear' | 'moon' | 'spear' | 'spore' | 'forge' | 'gate' | 'wyrm' | 'rift';
 
 const CANVAS_WIDTH = 3800;
 const CANVAS_HEIGHT = 1260;
 const NODE_WIDTH = 252;
 const NODE_HEIGHT = 133;
+const MIN_ZOOM = 0.55;
+const MAX_ZOOM = 1.4;
+const DEFAULT_ZOOM = 1;
 const ROOT: Point = { x: 112, y: 500 };
 const HUBS = {
   manual: { x: 360, y: 174 },
@@ -84,14 +88,19 @@ function pathBetween(from: Point, to: Point) {
   return `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
 }
 
-function defaultTreeOffset(): Point {
+function defaultTreeView(): ViewState {
   const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
-  return { x: viewportWidth <= 360 ? -430 : viewportWidth <= 480 ? -340 : 28, y: -62 };
+  return { x: viewportWidth <= 360 ? -430 : viewportWidth <= 480 ? -340 : 28, y: -62, zoom: DEFAULT_ZOOM };
+}
+
+function clampZoom(value: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 }
 
 export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
   const { t } = useI18n();
-  const [offset, setOffset] = useState<Point>(defaultTreeOffset);
+  const [view, setView] = useState<ViewState>(defaultTreeView);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [purchaseBurst, setPurchaseBurst] = useState<string | null>(null);
   const purchaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number; originX: number; originY: number } | null>(null);
@@ -149,8 +158,30 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
 
   useEffect(() => () => { if (purchaseTimerRef.current) clearTimeout(purchaseTimerRef.current); }, []);
 
-  const resetView = () => setOffset(defaultTreeOffset());
-  const centerView = () => setOffset({ x: -1_320, y: -360 });
+  const resetView = () => setView(defaultTreeView());
+  const centerView = () => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const target = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+    setView((current) => ({
+      ...current,
+      x: viewport.clientWidth / 2 - target.x * current.zoom,
+      y: viewport.clientHeight / 2 - target.y * current.zoom,
+    }));
+  };
+  const zoomBy = (factor: number) => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const anchorX = viewport.clientWidth / 2;
+    const anchorY = viewport.clientHeight / 2;
+    setView((current) => {
+      const zoom = clampZoom(current.zoom * factor);
+      if (Math.abs(zoom - current.zoom) < 0.001) return current;
+      const worldX = (anchorX - current.x) / current.zoom;
+      const worldY = (anchorY - current.y) / current.zoom;
+      return { x: anchorX - worldX * zoom, y: anchorY - worldY * zoom, zoom };
+    });
+  };
   const purchase = (id: string) => {
     if (purchaseTimerRef.current) clearTimeout(purchaseTimerRef.current);
     setPurchaseBurst(id);
@@ -161,13 +192,13 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, originX: offset.x, originY: offset.y };
+    dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, originX: view.x, originY: view.y };
     setDragging(true);
   };
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    setOffset({ x: drag.originX + event.clientX - drag.x, y: drag.originY + event.clientY - drag.y });
+    setView((current) => ({ ...current, x: drag.originX + event.clientX - drag.x, y: drag.originY + event.clientY - drag.y }));
   };
   const stopDragging = (event: PointerEvent<HTMLDivElement>) => {
     if (dragRef.current?.pointerId !== event.pointerId) return;
@@ -177,14 +208,33 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
   };
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
-    setOffset((current) => ({ x: current.x - event.deltaX, y: current.y - event.deltaY }));
+    const rect = event.currentTarget.getBoundingClientRect();
+    const anchorX = event.clientX - rect.left;
+    const anchorY = event.clientY - rect.top;
+    const delta = event.deltaMode === 1
+      ? event.deltaY * 16
+      : event.deltaMode === 2
+        ? event.deltaY * rect.height
+        : event.deltaY;
+    const factor = Math.exp(-delta * 0.0015);
+    setView((current) => {
+      const zoom = clampZoom(current.zoom * factor);
+      if (Math.abs(zoom - current.zoom) < 0.001) return current;
+      const worldX = (anchorX - current.x) / current.zoom;
+      const worldY = (anchorY - current.y) / current.zoom;
+      return { x: anchorX - worldX * zoom, y: anchorY - worldY * zoom, zoom };
+    });
   };
   const handleKeyboard = (event: KeyboardEvent<HTMLDivElement>) => {
     const amount = event.shiftKey ? 92 : 36;
     if (event.key === 'Home') { event.preventDefault(); resetView(); return; }
+    if (event.key === '+' || event.key === '=') { event.preventDefault(); zoomBy(1.12); return; }
+    if (event.key === '-' || event.key === '_') { event.preventDefault(); zoomBy(1 / 1.12); return; }
+    if (event.key === '0') { event.preventDefault(); resetView(); return; }
     if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
     event.preventDefault();
-    setOffset((current) => ({
+    setView((current) => ({
+      ...current,
       x: current.x + (event.key === 'ArrowRight' ? -amount : event.key === 'ArrowLeft' ? amount : 0),
       y: current.y + (event.key === 'ArrowDown' ? -amount : event.key === 'ArrowUp' ? amount : 0),
     }));
@@ -195,11 +245,15 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
       <div className="research-tree__toolbar">
         <span className="research-tree__hint" aria-hidden="true"><span className="research-tree__drag-mark">✥</span> {t('research.treeHint')}</span>
         <div className="research-tree__toolbar-actions">
+          <button type="button" className="research-tree__tool" onClick={() => zoomBy(1 / 1.12)} aria-label={t('research.zoomOut')} title={t('research.zoomOut')}>−</button>
+          <span className="research-tree__zoom" aria-live="polite" aria-label={t('research.zoomLevel', { percent: Math.round(view.zoom * 100) })}>{Math.round(view.zoom * 100)}%</span>
+          <button type="button" className="research-tree__tool" onClick={() => zoomBy(1.12)} aria-label={t('research.zoomIn')} title={t('research.zoomIn')}>+</button>
           <button type="button" className="research-tree__tool" onClick={centerView} aria-label={t('research.centerTree')} title={t('research.centerTree')}>◎</button>
           <button type="button" className="research-tree__tool" onClick={resetView} aria-label={t('research.resetView')} title={t('research.resetView')}>↺</button>
         </div>
       </div>
       <div
+        ref={viewportRef}
         className={`research-tree__viewport${dragging ? ' research-tree__viewport--dragging' : ''}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -212,7 +266,7 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
         aria-label={t('research.treeRegion')}
       >
         <div className="research-tree__grid" aria-hidden="true" />
-        <div className="research-tree__surface" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}>
+        <div className="research-tree__surface" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.zoom})` }}>
           <svg className="research-tree__links" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`} aria-hidden="true">
             {links.map((link, index) => <path key={index} className={`research-link${link.active ? ' research-link--active' : ''}${link.ready ? ' research-link--ready' : ''}${link.spine ? ' research-link--spine' : ''}`} d={pathBetween(link.from, link.to)} />)}
           </svg>

@@ -1,4 +1,4 @@
-export const CURRENT_SAVE_VERSION = 4 as const;
+export const CURRENT_SAVE_VERSION = 5 as const;
 
 export type BuildingId =
   | 'brood_matron'
@@ -111,6 +111,18 @@ export type PermanentUpgradeId =
   | 'moonlit_blood'
   | 'heirloom_matrons';
 
+export type CosmeticId =
+  | 'red_cap'
+  | 'round_glasses'
+  | 'steampunk_goggles'
+  | 'miner_helmet'
+  | 'pirate_monocle'
+  | 'chef'
+  | 'wizard'
+  | 'king'
+  | 'druid'
+  | 'punk';
+
 export interface PermanentUpgradeDefinition {
   id: PermanentUpgradeId;
   name: string;
@@ -183,6 +195,10 @@ export interface PrestigeState {
   totalShardsEarned: number;
   resets: number;
   permanentUpgrades: Partial<Record<PermanentUpgradeId, number>>;
+  cosmetics: {
+    owned: Partial<Record<CosmeticId, true>>;
+    equipped: CosmeticId | null;
+  };
 }
 
 export interface GameState {

@@ -13,6 +13,17 @@ import warrenDen from '../images/building-warren-den.webp';
 import wyrmHoard from '../images/building-wyrm-hoard.webp';
 import goblinSpawn from '../images/goblin-spawn.webp';
 import missionGiver from '../images/mission.webp';
+import goblinChef from '../images/goblins/goblin_chef.webp';
+import goblinDruid from '../images/goblins/goblin_druid.webp';
+import goblinKing from '../images/goblins/goblin_king.webp';
+import goblinMinerHelmet from '../images/goblins/goblin_miner_helmet.webp';
+import goblinPirateMonocle from '../images/goblins/goblin_pirate_monocle.webp';
+import goblinPunk from '../images/goblins/goblin_punk.webp';
+import goblinRedCap from '../images/goblins/goblin_red_cap.webp';
+import goblinRoundGlasses from '../images/goblins/goblin_round_glasses.webp';
+import goblinSteampunkGoggles from '../images/goblins/goblin_steampunk_goggles.webp';
+import goblinWizard from '../images/goblins/goblin_wizard.webp';
+import type { CosmeticId } from '../game/types';
 
 export function publicAsset(path: string): string {
   const cleanPath = path.replace(/^\/+/, '');
@@ -39,6 +50,23 @@ export const gameArt = {
   goblinSpawn,
   missionGiver,
 } as const;
+
+export const cosmeticArt: Readonly<Record<CosmeticId, string>> = {
+  red_cap: goblinRedCap,
+  round_glasses: goblinRoundGlasses,
+  steampunk_goggles: goblinSteampunkGoggles,
+  miner_helmet: goblinMinerHelmet,
+  pirate_monocle: goblinPirateMonocle,
+  chef: goblinChef,
+  wizard: goblinWizard,
+  king: goblinKing,
+  druid: goblinDruid,
+  punk: goblinPunk,
+};
+
+export function goblinCosmeticArt(id: CosmeticId | null): string {
+  return id ? cosmeticArt[id] : goblinSpawn;
+}
 
 /**
  * Prefer the bespoke transparent raster set where one exists, while keeping the

@@ -90,6 +90,15 @@
 @keyframes contract-scan { from { background-position: 0 0; } to { background-position: 0 36px; } }
 @keyframes contract-sheet-in { from { opacity: 0; transform: translateX(8px); filter: brightness(1.35); } to { opacity: 1; transform: translateX(0); filter: brightness(1); } }
 @keyframes contract-stamp { 0% { opacity: 0; transform: translateY(-10px) scale(1.55) rotate(-7deg); filter: brightness(2); } 18% { opacity: 1; transform: translateY(0) scale(.94) rotate(-2deg); } 26% { transform: scale(1.03) rotate(-2deg); } 72% { opacity: 1; } 100% { opacity: 0; transform: translateY(-7px) scale(.98) rotate(-2deg); } }
+@keyframes goblin-cosmetic-swap {
+  0% { opacity: 0; transform: scale(.82) translateY(8px); filter: brightness(2) saturate(.35) drop-shadow(0 0 22px rgba(229, 169, 73, .3)); }
+  45% { opacity: 1; transform: scale(1.075) translateY(-3px); filter: brightness(1.3) saturate(.76) drop-shadow(0 0 17px rgba(229, 169, 73, .18)); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes cosmetic-card-enter { from { opacity: 0; transform: translateY(8px); filter: brightness(1.3); } to { opacity: 1; transform: translateY(0); filter: brightness(1); } }
+@keyframes cosmetic-scan { from { background-position: 0 0; } to { background-position: 0 32px; } }
+@keyframes cosmetic-equipped-pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.14); } }
+@keyframes cosmetic-preview-swap { 0% { opacity: 0; transform: scale(.86) translateY(5px); filter: brightness(1.8) saturate(.4); } 55% { opacity: 1; transform: scale(1.04) translateY(-2px); } 100% { opacity: 1; transform: scale(1); filter: brightness(1); } }
 
 .floating-number-layer { position: absolute; z-index: 12; inset: 0; overflow: hidden; pointer-events: none; }
 .floating-number-layer--active::before {

@@ -1,6 +1,7 @@
 export * from './AchievementModal';
 export * from './CRTWarp';
 export * from './ContractModal';
+export * from './CosmeticsModal';
 export * from './FloatingNumbers';
 export * from './GameShell';
 export * from './Icon';

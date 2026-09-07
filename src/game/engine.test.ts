@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, spendLunarCharge, tickGame } from './engine';
+import { claimMooncap, equipCosmetic, hatchGoblin, performPrestigeReset, purchaseBuilding, purchaseCosmetic, spendLunarCharge, tickGame } from './engine';
 import { applyOfflineProgress, calculateOfflineProgress } from './offline';
 import { createInitialGameState } from './state';
 
@@ -71,6 +71,48 @@ describe('game simulation', () => {
     expect(result.state.buildings.brood_matron).toBe(0);
     expect(result.state.purchasedUpgrades).toEqual({});
     expect(result.state.lifetimeGoblins).toBe(5_000_000);
+  });
+
+  it('buys and equips cosmetics with permanent Ancestral Cunning', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.prestige.shards = 3;
+    state.prestige.totalShardsEarned = 3;
+
+    const blockedEquip = equipCosmetic(state, 'wizard', 1_000);
+    expect(blockedEquip.success).toBe(false);
+    expect(blockedEquip.state.prestige.cosmetics.equipped).toBeNull();
+
+    const bought = purchaseCosmetic(state, 'red_cap', 1_000);
+    expect(bought.success).toBe(true);
+    expect(bought.amount).toBe(1);
+    expect(bought.state.prestige.shards).toBe(2);
+    expect(bought.state.prestige.totalShardsEarned).toBe(3);
+    expect(bought.state.prestige.cosmetics.owned.red_cap).toBe(true);
+
+    const duplicate = purchaseCosmetic(bought.state, 'red_cap', 1_000);
+    expect(duplicate.success).toBe(false);
+    expect(duplicate.state.prestige.shards).toBe(2);
+
+    const equipped = equipCosmetic(bought.state, 'red_cap', 1_000);
+    expect(equipped.success).toBe(true);
+    expect(equipped.state.prestige.cosmetics.equipped).toBe('red_cap');
+
+    const unequipped = equipCosmetic(equipped.state, null, 1_000);
+    expect(unequipped.success).toBe(true);
+    expect(unequipped.state.prestige.cosmetics.equipped).toBeNull();
+  });
+
+  it('carries owned and equipped cosmetics through a New Warren reset', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.lifetimeGoblins = 5_000_000;
+    state.runGoblins = 5_000_000;
+    state.prestige.cosmetics.owned.druid = true;
+    state.prestige.cosmetics.equipped = 'druid';
+
+    const result = performPrestigeReset(state, 1_000);
+    expect(result.success).toBe(true);
+    expect(result.state.prestige.cosmetics.owned.druid).toBe(true);
+    expect(result.state.prestige.cosmetics.equipped).toBe('druid');
   });
 
   it('counts a permanent starter clutch consistently in the new run', () => {

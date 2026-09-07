@@ -1,10 +1,11 @@
 import { sanitizeExpeditions } from './expeditions';
 import { ACHIEVEMENTS, BUILDINGS, PERMANENT_UPGRADES, UPGRADES } from './content';
+import { COSMETICS } from './cosmetics';
 import { ensureContracts } from './contracts';
 import { MAX_LUNAR_CHARGE } from './events';
 import { normalizeSeed, seedFromTimestamp } from './rng';
 import { clampResource, createEmptyBuildingProduction, createInitialGameState } from './state';
-import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope, type UpgradeDefinition, type UpgradeExclusiveGroup } from './types';
+import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type CosmeticId, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope, type UpgradeDefinition, type UpgradeExclusiveGroup } from './types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -20,6 +21,7 @@ const CONTRACT_KINDS = new Set<ContractKind>(['quick', 'quartermaster', 'directi
 const MOONCAP_FAMILIES = new Set<MooncapFamily>(['clutch', 'frenzy', 'blood', 'oracle']);
 const MASTERY_IDS = new Set<ExpansionMasteryLevelId>(['established', 'thriving', 'veteran', 'renowned', 'elite', 'legendary', 'ancestral', 'mythic']);
 const BUILDING_IDS = new Set<BuildingId>(BUILDINGS.map(({ id }) => id));
+const COSMETIC_IDS = new Set<CosmeticId>(COSMETICS.map(({ id }) => id));
 
 function looksLikeLegacySave(value: Record<string, unknown>): boolean {
   return LEGACY_SAVE_KEYS.some((key) => Object.prototype.hasOwnProperty.call(value, key));
@@ -121,6 +123,18 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
     const rank = Math.min(definition.maxRank, integer(rawPermanent[definition.id]));
     if (rank > 0) permanentUpgrades[definition.id] = rank;
   }
+  const rawCosmetics = isRecord(rawPrestige.cosmetics) ? rawPrestige.cosmetics : {};
+  const rawOwnedCosmetics = isRecord(rawCosmetics.owned) ? rawCosmetics.owned : {};
+  const ownedCosmetics: Partial<Record<CosmeticId, true>> = {};
+  for (const definition of COSMETICS) {
+    if (rawOwnedCosmetics[definition.id] === true) ownedCosmetics[definition.id] = true;
+  }
+  const rawEquippedCosmetic = rawCosmetics.equipped;
+  const equippedCosmetic = typeof rawEquippedCosmetic === 'string'
+    && COSMETIC_IDS.has(rawEquippedCosmetic as CosmeticId)
+    && ownedCosmetics[rawEquippedCosmetic as CosmeticId]
+    ? rawEquippedCosmetic as CosmeticId
+    : null;
 
   const rawStats = isRecord(raw.statistics) ? raw.statistics : {};
   const rawBuildingProduction = isRecord(rawStats.lifetimeProducedByBuilding) ? rawStats.lifetimeProducedByBuilding : {};
@@ -170,6 +184,7 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       totalShardsEarned,
       resets: integer(rawPrestige.resets),
       permanentUpgrades,
+      cosmetics: { owned: ownedCosmetics, equipped: equippedCosmetic },
     },
     buffs,
     mooncap: {

@@ -13,6 +13,8 @@ describe('save system', () => {
     state.statistics.lifetimeProducedByBuilding.warren_den = 678.5;
     state.purchasedUpgrades.sharpened_nails = true;
     state.prestige.permanentUpgrades.founders_legacy = 2;
+    state.prestige.cosmetics.owned.wizard = true;
+    state.prestige.cosmetics.equipped = 'wizard';
     state.mooncap.lunarCharge = 4;
     state.mooncap.nextFamilyBias = 'oracle';
     state.contracts.completed = 9;
@@ -25,6 +27,8 @@ describe('save system', () => {
     expect(loaded.state.statistics.lifetimeProducedByBuilding.warren_den).toBe(678.5);
     expect(loaded.state.purchasedUpgrades.sharpened_nails).toBe(true);
     expect(loaded.state.prestige.permanentUpgrades.founders_legacy).toBe(2);
+    expect(loaded.state.prestige.cosmetics.owned.wizard).toBe(true);
+    expect(loaded.state.prestige.cosmetics.equipped).toBe('wizard');
     expect(loaded.state.mooncap.lunarCharge).toBe(4);
     expect(loaded.state.mooncap.nextFamilyBias).toBe('oracle');
     expect(loaded.state.contracts.completed).toBe(9);
@@ -56,7 +60,7 @@ describe('save system', () => {
     expect(loaded.warnings[0]).toContain('migrated');
   });
 
-  it('migrates v3 envelopes to the stable v4 contract and Observatory state', () => {
+  it('migrates v3 envelopes through the current contract and Observatory state', () => {
     const state = createInitialGameState(10_000, 42);
     state.goblins = 321;
     const parsed = JSON.parse(serializeGame(state, 10_000)) as { version: number; state: Record<string, unknown> };
@@ -74,6 +78,32 @@ describe('save system', () => {
     expect(Object.keys(loaded.state.contracts.active)).toHaveLength(3);
     expect(loaded.state.mooncap.lunarCharge).toBe(0);
     expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
+  });
+
+  it('migrates v4 saves to an empty permanent cosmetics wardrobe', () => {
+    const state = createInitialGameState(10_000, 42);
+    const parsed = JSON.parse(serializeGame(state, 10_000)) as { version: number; state: { version: number; prestige: Record<string, unknown> } };
+    parsed.version = 4;
+    parsed.state.version = 4;
+    delete parsed.state.prestige.cosmetics;
+
+    const loaded = deserializeGame(JSON.stringify(parsed), 10_000);
+    expect(loaded.migratedFrom).toBe(4);
+    expect(loaded.state.prestige.cosmetics.owned).toEqual({});
+    expect(loaded.state.prestige.cosmetics.equipped).toBeNull();
+    expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
+  });
+
+  it('sanitizes cosmetic ownership and refuses an equipped unowned cosmetic', () => {
+    const state = createInitialGameState(10_000, 42);
+    const parsed = JSON.parse(serializeGame(state, 10_000)) as { state: { prestige: { cosmetics: { owned: Record<string, unknown>; equipped: string | null } } } };
+    parsed.state.prestige.cosmetics.owned.red_cap = true;
+    parsed.state.prestige.cosmetics.owned.hacked_cosmetic = true;
+    parsed.state.prestige.cosmetics.equipped = 'wizard';
+
+    const loaded = deserializeGame(JSON.stringify(parsed), 10_000).state;
+    expect(loaded.prestige.cosmetics.owned).toEqual({ red_cap: true });
+    expect(loaded.prestige.cosmetics.equipped).toBeNull();
   });
 
   it('does not count prestige starter currency as newly produced goblins on load', () => {

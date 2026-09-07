@@ -1,5 +1,6 @@
 import { collectExpedition, launchExpedition } from './expeditions';
-import type { ExpeditionPlan } from './types';
+import { COSMETIC_BY_ID } from './cosmetics';
+import type { CosmeticId, ExpeditionPlan } from './types';
 import { BUILDINGS, UPGRADE_BY_ID, type UpgradeId } from './content';
 import { ensureContracts, getContractRewardAmount, isContractComplete, resetContractsForMigration } from './contracts';
 import { advanceMooncap, applyMoonDialAction, clickMooncap, scheduleNextMooncap, type MooncapClickResult, type MoonDialAction, type MoonDialResult } from './events';
@@ -197,6 +198,53 @@ export function purchasePermanentUpgrade(
     },
     success: true,
     amount: cost,
+  };
+}
+
+export function purchaseCosmetic(
+  state: GameState,
+  id: CosmeticId,
+  now = state.lastUpdateAt,
+): EconomyActionResult {
+  const ticked = tickGame(state, now);
+  const definition = COSMETIC_BY_ID[id];
+  if (!definition || ticked.prestige.cosmetics.owned[id] || ticked.prestige.shards < definition.cost) {
+    return { state: ticked, success: false, amount: definition?.cost ?? 0 };
+  }
+  return {
+    state: {
+      ...ticked,
+      prestige: {
+        ...ticked.prestige,
+        shards: ticked.prestige.shards - definition.cost,
+        cosmetics: {
+          ...ticked.prestige.cosmetics,
+          owned: { ...ticked.prestige.cosmetics.owned, [id]: true },
+        },
+      },
+    },
+    success: true,
+    amount: definition.cost,
+  };
+}
+
+export function equipCosmetic(
+  state: GameState,
+  id: CosmeticId | null,
+  now = state.lastUpdateAt,
+): EconomyActionResult {
+  const ticked = tickGame(state, now);
+  if (id !== null && !ticked.prestige.cosmetics.owned[id]) return { state: ticked, success: false, amount: 0 };
+  return {
+    state: {
+      ...ticked,
+      prestige: {
+        ...ticked.prestige,
+        cosmetics: { ...ticked.prestige.cosmetics, equipped: id },
+      },
+    },
+    success: true,
+    amount: 0,
   };
 }
 

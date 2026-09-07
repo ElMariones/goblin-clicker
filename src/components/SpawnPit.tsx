@@ -24,10 +24,11 @@ export interface SpawnPitProps {
   contractGiver?: ReactNode;
   expeditionGiver?: ReactNode;
   moonDial?: ReactNode;
+  goblinArtSrc?: string;
   children?: ReactNode;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, children }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, goblinArtSrc = gameArt.goblinSpawn, children }: SpawnPitProps) {
   const { t } = useI18n();
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
@@ -48,7 +49,7 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
         <span className="spawn-pit__embers" aria-hidden="true" />
         <button className={`spawn-target spawn-target--${activityLevel}`} type="button" onClick={onSpawn} disabled={disabled} aria-label={t('spawn.aria', { power: clickPowerLabel })}>
           <span className="spawn-target__glow spawn-target__glow--core" aria-hidden="true" />
-          <img className="spawn-target__goblin" src={gameArt.goblinSpawn} alt="" draggable={false} />
+          <img key={goblinArtSrc} className="spawn-target__goblin" src={goblinArtSrc} alt="" draggable={false} />
           <span className="spawn-target__cta">{t('spawn.button')}</span>
         </button>
         {children}

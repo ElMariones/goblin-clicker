@@ -36,6 +36,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
       totalShardsEarned: 0,
       resets: 0,
       permanentUpgrades: {},
+      cosmetics: { owned: {}, equipped: null },
     },
     buffs: [],
     mooncap: {

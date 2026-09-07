@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AchievementModal,
   ContractModal,
+  CosmeticsModal,
   CRTWarp,
   FloatingNumbers,
   GameShell,
@@ -26,12 +27,12 @@ import {
   type ToastView,
 } from './components';
 import {
-  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
+  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, COSMETICS, COSMETIC_BY_ID, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
   createInitialGameState, deserializeGame, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
   getContractProgress, getContractRewardAmount, getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
   getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, performPrestigeReset,
-  importGameSave, isContractComplete, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
-  type BuildingId, type ContractKind, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
+  equipCosmetic, importGameSave, isContractComplete, purchaseBuilding, purchaseCosmetic, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
+  type BuildingId, type ContractKind, type CosmeticId, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
 import { playSound } from './audio';
 import { BackgroundMusicPlayer } from './music';
@@ -39,14 +40,14 @@ import {
   I18nProvider, detectPreferredLanguage, formatCompact, getLanguageMeta, isLanguageCode, localizedName, localizedPerkDescription, translate,
   type LanguageCode, type TranslationKey,
 } from './i18n';
-import { buildingArtAsset, gameArt } from './utils/assets';
+import { buildingArtAsset, cosmeticArt, gameArt, goblinCosmeticArt } from './utils/assets';
 import { formatDateTime, formatDuration, formatInteger, formatNumber } from './utils/format';
 import './App.css';
 
 const SAVE_KEY = 'goblin-clicker.save';
 const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'goblin-clicker.save.v1'] as const;
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | null;
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
@@ -309,6 +310,21 @@ function App() {
     if (result.success) { playSound('upgrade', settings.sound); const definition = UPGRADES.find((upgrade) => upgrade.id === id); if (definition) addToast({ title: localizedName(language, 'upgrade', id, definition.name), message: t('upgrade.purchased'), icon: 'sparkles', tone: 'success' }); }
   };
   const buyPermanent = (id: string) => { const result = purchasePermanentUpgrade(gameRef.current, id as PermanentUpgradeId, Date.now()); commitGame(result.state); if (result.success) playSound('upgrade', settings.sound); };
+  const buyCosmetic = (rawId: string) => {
+    const id = rawId as CosmeticId;
+    const result = purchaseCosmetic(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (!result.success) return;
+    playSound('upgrade', settings.sound);
+    const definition = COSMETIC_BY_ID[id];
+    addToast({ title: t('cosmetics.purchasedTitle'), message: t('cosmetics.purchasedMessage', { name: definition.name }), icon: 'shop', tone: 'prestige' });
+  };
+  const equipGoblinCosmetic = (rawId: string | null) => {
+    const id = rawId === null ? null : rawId as CosmeticId;
+    const result = equipCosmetic(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('buy', settings.sound);
+  };
 
   const prestige = () => {
     if (prestigeGain <= 0 || resetInProgress.current) return;
@@ -542,6 +558,26 @@ function App() {
     };
   }), [fmtInteger, game, language, t]);
 
+  const cosmeticViews = useMemo(() => [{
+    id: 'default',
+    name: t('cosmetics.defaultName'),
+    description: t('cosmetics.defaultDescription'),
+    imageSrc: gameArt.goblinSpawn,
+    owned: true,
+    equipped: game.prestige.cosmetics.equipped === null,
+    affordable: true,
+    isDefault: true,
+  }, ...COSMETICS.map((cosmetic) => ({
+    id: cosmetic.id,
+    name: cosmetic.name,
+    description: cosmetic.description,
+    imageSrc: cosmeticArt[cosmetic.id],
+    priceLabel: fmtInteger(cosmetic.cost),
+    owned: Boolean(game.prestige.cosmetics.owned[cosmetic.id]),
+    equipped: game.prestige.cosmetics.equipped === cosmetic.id,
+    affordable: game.prestige.shards >= cosmetic.cost,
+  }))], [fmtInteger, game.prestige.cosmetics, game.prestige.shards, t]);
+
   const activeBuffs = game.buffs.filter((buff) => buff.expiresAt > now);
   const sevenfoldActive = activeBuffs.some((buff) => buff.id === 'moon_frenzy' && buff.target === 'cps');
   const contractViews = CONTRACT_KINDS.map((kind) => {
@@ -601,7 +637,7 @@ function App() {
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
     { id: 'ancestry', label: t('header.ancestral'), value: fmtInteger(game.prestige.shards), icon: 'crown', title: t('header.ancestralTitle') },
-  ]} onOpenAchievements={() => setModal('achievements')} onOpenPrestige={() => setModal('prestige')} musicMuted={musicMuted} onToggleMusic={toggleMusic} onSkipMusic={() => musicPlayerRef.current?.skip()} onOpenSettings={() => setModal('settings')} />;
+  ]} onOpenAchievements={() => setModal('achievements')} onOpenPrestige={() => setModal('prestige')} onOpenCosmetics={() => setModal('cosmetics')} musicMuted={musicMuted} onToggleMusic={toggleMusic} onSkipMusic={() => musicPlayerRef.current?.skip()} onOpenSettings={() => setModal('settings')} />;
 
   const left = <div className="left-stack">
     <SidePanel title={t('ledger.title')} eyebrow={t('ledger.eyebrow')} action={<button className="mini-action" type="button" onClick={() => setModal('achievements')}><Icon name="trophy" size={14} /> {fmtInteger(unlockedAchievementCount)}</button>}>
@@ -622,7 +658,7 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} expeditionGiver={
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} goblinArtSrc={goblinCosmeticArt(game.prestige.cosmetics.equipped)} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} expeditionGiver={
     <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
   } contractGiver={
     <button className={`contract-giver${readyContracts > 0 ? ' contract-giver--ready' : ''}`} type="button" onClick={() => setModal('contracts')} aria-label={t('contract.openAria')}>
@@ -730,7 +766,8 @@ function App() {
       onClose={() => setModal(null)}
       labels={{ title: t('moonDial.title'), charge: t('moonDial.charge'), hasten: t('moonDial.hasten'), extend: t('moonDial.extend'), bias: t('moonDial.bias'), family: familyLabels }}
     />
-    <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onClose={() => setModal(null)} />
+    <CosmeticsModal open={modal === 'cosmetics'} currencyLabel={fmtInteger(game.prestige.shards)} cosmetics={cosmeticViews} onPurchase={buyCosmetic} onEquip={equipGoblinCosmetic} onClose={() => setModal(null)} />
+    <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onOpenCosmetics={() => setModal('cosmetics')} onClose={() => setModal(null)} />
     <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} musicVolume={settings.musicVolume} musicMuted={musicMuted} onMusicVolumeChange={changeMusicVolume} toggles={[
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },

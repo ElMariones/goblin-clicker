@@ -17,7 +17,7 @@ export interface PrestigePerkView {
   icon?: IconName;
   effectLabel?: string;
 }
-export interface PrestigeModalProps { open: boolean; currentCurrencyLabel: string; gainLabel: string; requirementLabel?: string; canPrestige: boolean; perks: PrestigePerkView[]; onPrestige: () => void; onBuyPerk: (id: string) => void; onClose: () => void }
+export interface PrestigeModalProps { open: boolean; currentCurrencyLabel: string; gainLabel: string; requirementLabel?: string; canPrestige: boolean; perks: PrestigePerkView[]; onPrestige: () => void; onBuyPerk: (id: string) => void; onOpenCosmetics?: () => void; onClose: () => void }
 
 function perkIcon(perk: PrestigePerkView): IconName {
   if (perk.icon) return perk.icon;
@@ -45,7 +45,7 @@ function perkProgress(perk: PrestigePerkView) {
   return Number.isFinite(rank) && Number.isFinite(maxRank) && maxRank > 0 ? { rank, maxRank } : undefined;
 }
 
-export function PrestigeModal({ open, currentCurrencyLabel, gainLabel, requirementLabel, canPrestige, perks, onPrestige, onBuyPerk, onClose }: PrestigeModalProps) {
+export function PrestigeModal({ open, currentCurrencyLabel, gainLabel, requirementLabel, canPrestige, perks, onPrestige, onBuyPerk, onOpenCosmetics, onClose }: PrestigeModalProps) {
   const { t } = useI18n();
   const [confirming, setConfirming] = useState(false);
   const confirmTitleId = useId();
@@ -98,6 +98,7 @@ export function PrestigeModal({ open, currentCurrencyLabel, gainLabel, requireme
             <button ref={beginButtonRef} className="prestige-button" type="button" disabled={!canPrestige} onClick={() => setConfirming(true)}><Icon name="crown" size={18} /> {t('prestige.begin')}</button>
           </section>
           <div className="prestige-warning"><strong>{t('prestige.whatResets')}</strong><span>{t('prestige.resetInfo')}</span></div>
+          {onOpenCosmetics && <button className="prestige-cosmetics-link" type="button" onClick={onOpenCosmetics}><span className="prestige-cosmetics-link__icon"><Icon name="shop" size={21} /></span><span><strong>{t('prestige.cosmeticsShop')}</strong><small>{t('prestige.cosmeticsHint')}</small></span><Icon name="chevron" size={16} /></button>}
           <section className="prestige-perks" aria-labelledby="prestige-perks-title">
             <div className="modal-section-heading prestige-perks__heading">
               <div><span>{t('prestige.bloodline')}</span><h3 id="prestige-perks-title">{t('prestige.perks')}</h3></div>

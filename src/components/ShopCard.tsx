@@ -1,7 +1,9 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../i18n';
 import { Icon } from './Icon';
+
+const SHOP_TOOLTIP_OPEN_EVENT = 'brood-and-burrow:shop-tooltip-open';
 
 export interface ShopCardProductionDetails {
   /** Ready-to-render values. Include units/suffixes here (for example "12.5/s" or "38.2%"). */
@@ -63,17 +65,25 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
   const positionDetails = useCallback(() => {
     if (!hasHoverDetails || !cardRef.current || typeof window === 'undefined') return;
     const cardRect = cardRef.current.getBoundingClientRect();
-    const actionsRect = cardRef.current.querySelector<HTMLElement>('.shop-card__actions')?.getBoundingClientRect();
-    const actionsBesideCard = Boolean(actionsRect && actionsRect.left > cardRect.left + cardRect.width * .48 && actionsRect.top < cardRect.bottom - 16);
-    const availableWidth = actionsBesideCard && actionsRect
-      ? actionsRect.left - cardRect.left - 14
-      : cardRect.width - 14;
-    const width = Math.max(180, Math.min(360, availableWidth, window.innerWidth - 16));
+    const gap = 12;
+    const availableLeft = Math.max(0, cardRect.left - gap - 8);
+    const preferredWidth = Math.max(240, Math.min(340, cardRect.width * .88));
+    const width = Math.max(160, Math.min(preferredWidth, availableLeft, window.innerWidth - 16));
     const tooltipHeight = detailsRef.current?.offsetHeight ?? 0;
-    const left = Math.max(8, Math.min(cardRect.left + 7, window.innerWidth - width - 8));
-    const top = Math.max(8, Math.min(cardRect.top + 7, window.innerHeight - tooltipHeight - 8));
+    const left = Math.max(8, cardRect.left - width - gap);
+    const centeredTop = cardRect.top + (cardRect.height - tooltipHeight) / 2;
+    const top = Math.max(8, Math.min(centeredTop, window.innerHeight - tooltipHeight - 8));
     setDetailsPosition((current) => current && current.top === top && current.left === left && current.width === width ? current : { top, left, width });
   }, [hasHoverDetails]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const closeWhenAnotherOpens = (event: Event) => {
+      if ((event as CustomEvent<string>).detail !== id) setDetailsPosition(null);
+    };
+    window.addEventListener(SHOP_TOOLTIP_OPEN_EVENT, closeWhenAnotherOpens);
+    return () => window.removeEventListener(SHOP_TOOLTIP_OPEN_EVENT, closeWhenAnotherOpens);
+  }, [id]);
 
   useLayoutEffect(() => {
     if (!detailsPosition) return;
@@ -86,7 +96,11 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
     };
   }, [detailsPosition, positionDetails]);
 
-  const showDetails = () => { if (hasHoverDetails) positionDetails(); };
+  const showDetails = () => {
+    if (!hasHoverDetails || typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent<string>(SHOP_TOOLTIP_OPEN_EVENT, { detail: id }));
+    positionDetails();
+  };
   const hidePointerDetails = () => {
     if (cardRef.current?.contains(document.activeElement)) return;
     setDetailsPosition(null);

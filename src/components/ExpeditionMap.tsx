@@ -10,7 +10,7 @@ import { Modal } from './Modal';
 import '../styles/expeditions.css';
 
 const destinations = Object.keys(EXPEDITION_DESTINATIONS) as ExpeditionDestination[];
-const icons: Record<ExpeditionDestination, IconName> = { mine: 'hammer', ruins: 'moon', cellar: 'coin' };
+const icons: Record<ExpeditionDestination, IconName> = { mine: 'pickaxe', ruins: 'moon', cellar: 'coin' };
 
 export function ExpeditionEntry({ state, onOpen }: { state: GameState; onOpen: () => void }) {
   const { language } = useI18n();

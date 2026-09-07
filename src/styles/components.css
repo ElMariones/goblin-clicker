@@ -739,6 +739,19 @@
 }
 .shop-card__details::before { inset-block-start: 3px; inset-inline-start: 3px; border-block-start: 1px solid var(--moss); border-inline-start: 1px solid var(--moss); opacity: .72; }
 .shop-card__details::after { inset-block-end: 3px; inset-inline-end: 3px; border-block-end: 1px solid var(--moss); border-inline-end: 1px solid var(--moss); opacity: .72; }
+.shop-card__details--portal::after {
+  inset-block-start: 50%;
+  inset-block-end: auto;
+  inset-inline-end: -7px;
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-block-start: 1px solid rgba(163, 207, 91, .32);
+  border-inline-end: 1px solid rgba(163, 207, 91, .32);
+  background: rgba(10, 16, 9, .985);
+  opacity: 1;
+  transform: translateY(-50%) rotate(45deg);
+}
 .shop-card__details-header {
   display: flex;
   align-items: center;

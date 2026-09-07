@@ -1,6 +1,6 @@
 import { BUILDINGS } from './content';
 import { scheduleNextMooncap } from './events';
-import { getBaseCps, getBuildingBaseCps, getPermanentRank } from './math';
+import { getBaseCps, getBuildingBaseCps, getOfflineEfficiencyResearchBonus, getPermanentRank } from './math';
 import { clampResource } from './state';
 import type { GameState, OfflineProgress } from './types';
 
@@ -9,7 +9,7 @@ export const OFFLINE_CAP_PER_RANK_MS = 2 * 60 * 60 * 1_000;
 export const OFFLINE_EFFICIENCY = 0.75;
 
 export function getOfflineEfficiency(state: GameState): number {
-  return Math.min(1, OFFLINE_EFFICIENCY + getPermanentRank(state, 'tireless_lineage') * 0.05);
+  return Math.min(1, OFFLINE_EFFICIENCY + getPermanentRank(state, 'tireless_lineage') * 0.05 + getOfflineEfficiencyResearchBonus(state));
 }
 
 export function getOfflineCapMs(state: GameState): number {

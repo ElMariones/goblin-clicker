@@ -338,6 +338,121 @@ export const UPGRADES = [
     id: 'impossible_population', name: 'Impossible Population', description: 'Reality Burrows are twice as productive yet again.', cost: 28_000_000_000_000_000_000,
     requirements: [{ type: 'buildingOwned', buildingId: 'reality_burrow', amount: 100 }], effects: [{ type: 'buildingMultiplier', buildingId: 'reality_burrow', multiplier: 2 }],
   },
+  // Doctrine research deliberately begins after the stable 48-node foundation.
+  // Every pair is exclusive for this migration and automatically becomes a fresh
+  // choice after Great Migration clears purchasedUpgrades.
+  {
+    id: 'doctrine_matron_dynasty', name: 'Matron Dynasty',
+    description: 'Make the old warrens scale with accumulated mastery. Each mastery tier compounds Brood Matron, Mushroom Nursery, Warren Den, and Bog Hatchery output by another 12%.',
+    cost: 400_000_000,
+    requirements: [{ type: 'prestigeResets', amount: 1 }, { type: 'buildingOwned', buildingId: 'mushroom_nursery', amount: 100 }],
+    effects: [
+      { type: 'masteryLevelMultiplier', buildingId: 'brood_matron', multiplier: 1.12 },
+      { type: 'masteryLevelMultiplier', buildingId: 'mushroom_nursery', multiplier: 1.12 },
+      { type: 'masteryLevelMultiplier', buildingId: 'warren_den', multiplier: 1.12 },
+      { type: 'masteryLevelMultiplier', buildingId: 'bog_hatchery', multiplier: 1.12 },
+    ],
+    exclusiveGroup: 'broodcraft',
+    tradeoff: 'Commits Broodcraft to deep mastery scaling; Fungal Symbiosis is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_fungal_symbiosis', name: 'Fungal Symbiosis',
+    description: 'Wire nursery mycelium into the spawn pits. Mushroom Nurseries surge, manual spawning siphons 4% of base CPS, and Clutchcap payouts grow richer.',
+    cost: 400_000_000,
+    requirements: [{ type: 'prestigeResets', amount: 1 }, { type: 'buildingOwned', buildingId: 'mushroom_nursery', amount: 100 }],
+    effects: [
+      { type: 'buildingMultiplier', buildingId: 'mushroom_nursery', multiplier: 1.8 },
+      { type: 'clickCpsFraction', fraction: 0.04 },
+      { type: 'mooncapRewardMultiplier', multiplier: 1.15 },
+    ],
+    exclusiveGroup: 'broodcraft',
+    tradeoff: 'Commits Broodcraft to active spawning and fungus; Matron Dynasty is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_scrap_standardization', name: 'Scrap Standardization',
+    description: 'Standard fittings and stolen gauges cut Scrap Incubator and Deepforge Vat purchase costs by 18% while improving both production lines.',
+    cost: 450_000_000_000,
+    requirements: [{ type: 'prestigeResets', amount: 1 }, { type: 'buildingOwned', buildingId: 'scrap_incubator', amount: 100 }],
+    effects: [
+      { type: 'buildingCostMultiplier', buildingId: 'scrap_incubator', multiplier: 0.82 },
+      { type: 'buildingCostMultiplier', buildingId: 'deepforge_vat', multiplier: 0.82 },
+      { type: 'buildingMultiplier', buildingId: 'scrap_incubator', multiplier: 1.25 },
+      { type: 'buildingMultiplier', buildingId: 'deepforge_vat', multiplier: 1.25 },
+    ],
+    exclusiveGroup: 'industry',
+    tradeoff: 'Commits Industry to efficient expansion; Redline Industry is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_redline_industry', name: 'Redline Industry',
+    description: 'Run the industrial warrens beyond every sensible limit. Scrap Incubators and Deepforge Vats gain enormous throughput, but all expansion prices rise 8%.',
+    cost: 450_000_000_000,
+    requirements: [{ type: 'prestigeResets', amount: 1 }, { type: 'buildingOwned', buildingId: 'scrap_incubator', amount: 100 }],
+    effects: [
+      { type: 'buildingMultiplier', buildingId: 'scrap_incubator', multiplier: 1.9 },
+      { type: 'buildingMultiplier', buildingId: 'deepforge_vat', multiplier: 1.9 },
+      { type: 'globalBuildingCostMultiplier', multiplier: 1.08 },
+    ],
+    exclusiveGroup: 'industry',
+    tradeoff: 'All expansion prices ×1.08. Scrap Standardization is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_moon_cult', name: 'Moon Cult',
+    description: 'Make lunar interruptions the heart of the run. Shaman Circles and Moonspore Caverns bloom, Clutchcaps pay more, and temporary Mooncap effects last longer.',
+    cost: 4_500_000_000_000,
+    requirements: [{ type: 'prestigeResets', amount: 2 }, { type: 'buildingOwned', buildingId: 'shaman_circle', amount: 100 }],
+    effects: [
+      { type: 'buildingMultiplier', buildingId: 'shaman_circle', multiplier: 1.6 },
+      { type: 'buildingMultiplier', buildingId: 'moonspore_cavern', multiplier: 1.6 },
+      { type: 'mooncapRewardMultiplier', multiplier: 1.25 },
+      { type: 'mooncapDurationMultiplier', multiplier: 1.2 },
+    ],
+    exclusiveGroup: 'occult',
+    tradeoff: 'Commits the occult branch to active lunar spikes; Ancestor Choir is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_ancestor_choir', name: 'Ancestor Choir',
+    description: 'Trade volatile omens for a tireless ancestral hum. Global production rises and offline efficiency improves by 20 points, but Mooncap rewards and buff durations are subdued.',
+    cost: 4_500_000_000_000,
+    requirements: [{ type: 'prestigeResets', amount: 2 }, { type: 'buildingOwned', buildingId: 'shaman_circle', amount: 100 }],
+    effects: [
+      { type: 'globalCpsMultiplier', multiplier: 1.18 },
+      { type: 'offlineEfficiencyBonus', bonus: 0.2 },
+      { type: 'mooncapRewardMultiplier', multiplier: 0.85 },
+      { type: 'mooncapDurationMultiplier', multiplier: 0.85 },
+    ],
+    exclusiveGroup: 'occult',
+    tradeoff: 'Mooncap payouts and durations ×0.85. Moon Cult is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_gate_network', name: 'Gate Network',
+    description: 'Route every mature district through crooked portal logistics. Goblin Gates strengthen while the global expansion-mastery network becomes 75% stronger.',
+    cost: 250_000_000_000_000_000,
+    requirements: [{ type: 'prestigeShardsEarned', amount: 5 }, { type: 'buildingOwned', buildingId: 'goblin_gate', amount: 100 }],
+    effects: [
+      { type: 'buildingMultiplier', buildingId: 'goblin_gate', multiplier: 1.55 },
+      { type: 'masteryNetworkMultiplier', multiplier: 1.75 },
+    ],
+    exclusiveGroup: 'dimensional',
+    tradeoff: 'Commits dimensional research to broad mastery synergies; Impossible Brood is locked until the next Great Migration.',
+  },
+  {
+    id: 'doctrine_impossible_brood', name: 'Impossible Brood',
+    description: 'Feed probability itself into the deepest tunnels. Reality Burrows become monstrous and Wyrm Hoards surge, but the six earliest expansion types lose 20% output.',
+    cost: 250_000_000_000_000_000,
+    requirements: [{ type: 'prestigeShardsEarned', amount: 5 }, { type: 'buildingOwned', buildingId: 'goblin_gate', amount: 100 }],
+    effects: [
+      { type: 'buildingMultiplier', buildingId: 'reality_burrow', multiplier: 2.5 },
+      { type: 'buildingMultiplier', buildingId: 'wyrm_hoard', multiplier: 1.5 },
+      { type: 'buildingMultiplier', buildingId: 'brood_matron', multiplier: 0.8 },
+      { type: 'buildingMultiplier', buildingId: 'mushroom_nursery', multiplier: 0.8 },
+      { type: 'buildingMultiplier', buildingId: 'warren_den', multiplier: 0.8 },
+      { type: 'buildingMultiplier', buildingId: 'bog_hatchery', multiplier: 0.8 },
+      { type: 'buildingMultiplier', buildingId: 'scrap_incubator', multiplier: 0.8 },
+      { type: 'buildingMultiplier', buildingId: 'shaman_circle', multiplier: 0.8 },
+    ],
+    exclusiveGroup: 'dimensional',
+    tradeoff: 'The six earliest expansions produce ×0.80. Gate Network is locked until the next Great Migration.',
+  },
 ] as const satisfies readonly UpgradeDefinition[];
 
 export const ACHIEVEMENTS = [
@@ -390,5 +505,5 @@ export const BUILDING_BY_ID = Object.fromEntries(BUILDINGS.map((item) => [item.i
   [K in (typeof BUILDINGS)[number]['id']]: Extract<(typeof BUILDINGS)[number], { id: K }>;
 };
 
-export const UPGRADE_BY_ID = Object.fromEntries(UPGRADES.map((item) => [item.id, item])) as Record<UpgradeId, (typeof UPGRADES)[number]>;
+export const UPGRADE_BY_ID = Object.fromEntries(UPGRADES.map((item) => [item.id, item])) as unknown as Record<UpgradeId, UpgradeDefinition>;
 export const PERMANENT_UPGRADE_BY_ID = Object.fromEntries(PERMANENT_UPGRADES.map((item) => [item.id, item])) as Record<(typeof PERMANENT_UPGRADES)[number]['id'], (typeof PERMANENT_UPGRADES)[number]>;

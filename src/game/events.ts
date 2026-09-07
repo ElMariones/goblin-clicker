@@ -1,4 +1,4 @@
-import { getCps, getPermanentRank } from './math';
+import { getCps, getMooncapDurationMultiplier, getMooncapRewardMultiplier, getPermanentRank } from './math';
 import { randomAt } from './rng';
 import type { BuffInstance, GameState, MooncapFamily, MooncapReward } from './types';
 
@@ -20,6 +20,10 @@ export interface MoonDialResult {
 
 export function getMoonlitBloodFactor(state: GameState): number {
   return 1 + getPermanentRank(state, 'moonlit_blood') * 0.1;
+}
+
+function getMooncapDurationFactor(state: GameState): number {
+  return getMoonlitBloodFactor(state) * getMooncapDurationMultiplier(state);
 }
 
 function nextRandom(state: GameState): [number, GameState] {
@@ -111,7 +115,7 @@ export interface MooncapClickResult {
 function triggerEclipseIfReady(state: GameState, now: number): { state: GameState; triggered: boolean } {
   const active = (id: BuffInstance['id']) => state.buffs.some((buff) => buff.id === id && buff.expiresAt > now);
   if (!active('moon_frenzy') || !active('hatching_fever') || active('eclipse')) return { state, triggered: false };
-  const duration = Math.round(20_000 * getMoonlitBloodFactor(state));
+  const duration = Math.round(20_000 * getMooncapDurationFactor(state));
   const eclipse: BuffInstance = {
     id: 'eclipse',
     multiplier: 2,
@@ -133,7 +137,7 @@ export function clickMooncap(state: GameState, now: number): MooncapClickResult 
 
   if (family === 'clutch') {
     const baseAmount = Math.max(13, Math.floor(state.goblins * 0.1), Math.floor(getCps(state, now) * 60));
-    const amount = Math.floor(baseAmount * getMoonlitBloodFactor(state));
+    const amount = Math.floor(baseAmount * getMoonlitBloodFactor(state) * getMooncapRewardMultiplier(state));
     reward = { type: 'goblins', family, amount, label: 'Clutchcap' };
     next = {
       ...next,
@@ -142,7 +146,7 @@ export function clickMooncap(state: GameState, now: number): MooncapClickResult 
       lifetimeGoblins: next.lifetimeGoblins + amount,
     };
   } else if (family === 'frenzy') {
-    const duration = Math.round(77_000 * getMoonlitBloodFactor(state));
+    const duration = Math.round(77_000 * getMooncapDurationFactor(state));
     const buff = {
       id: 'moon_frenzy' as const,
       multiplier: 7,
@@ -153,7 +157,7 @@ export function clickMooncap(state: GameState, now: number): MooncapClickResult 
     reward = { type: 'buff', family, buff, label: 'Frenzycap' };
     next = { ...next, buffs: [...next.buffs.filter(({ id }) => id !== buff.id), buff] };
   } else if (family === 'blood') {
-    const duration = Math.round(13_000 * getMoonlitBloodFactor(state));
+    const duration = Math.round(13_000 * getMooncapDurationFactor(state));
     const buff = {
       id: 'hatching_fever' as const,
       multiplier: 25,

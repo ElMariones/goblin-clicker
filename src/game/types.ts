@@ -18,7 +18,16 @@ export type UpgradeEffect =
   | { type: 'clickMultiplier'; multiplier: number }
   | { type: 'globalCpsMultiplier'; multiplier: number }
   | { type: 'buildingMultiplier'; buildingId: BuildingId; multiplier: number }
-  | { type: 'clickCpsFraction'; fraction: number };
+  | { type: 'clickCpsFraction'; fraction: number }
+  | { type: 'buildingCostMultiplier'; buildingId: BuildingId; multiplier: number }
+  | { type: 'globalBuildingCostMultiplier'; multiplier: number }
+  | { type: 'masteryLevelMultiplier'; buildingId: BuildingId; multiplier: number }
+  | { type: 'masteryNetworkMultiplier'; multiplier: number }
+  | { type: 'offlineEfficiencyBonus'; bonus: number }
+  | { type: 'mooncapRewardMultiplier'; multiplier: number }
+  | { type: 'mooncapDurationMultiplier'; multiplier: number };
+
+export type UpgradeExclusiveGroup = 'broodcraft' | 'industry' | 'occult' | 'dimensional';
 
 export type UnlockRequirement =
   | { type: 'buildingOwned'; buildingId: BuildingId; amount: number }
@@ -67,6 +76,10 @@ export interface UpgradeDefinition {
   cost: number;
   requirements: UnlockRequirement[];
   effects: UpgradeEffect[];
+  /** New doctrine research only. Foundation upgrades intentionally omit this. */
+  exclusiveGroup?: UpgradeExclusiveGroup;
+  /** Short, explicit cost of committing to this doctrine for the current migration. */
+  tradeoff?: string;
 }
 
 export type AchievementCondition =

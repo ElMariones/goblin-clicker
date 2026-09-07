@@ -3,7 +3,24 @@ import { Icon, type IconName } from './Icon';
 import { Modal } from './Modal';
 import { ResearchTree } from './ResearchTree';
 
-export interface UpgradeView { id: string; name: string; description: string; priceLabel: string; effectLabel: string; purchased: boolean; affordable: boolean; locked?: boolean; tier?: string; icon?: IconName }
+export interface UpgradeView {
+  id: string;
+  name: string;
+  description: string;
+  priceLabel: string;
+  effectLabel: string;
+  purchased: boolean;
+  affordable: boolean;
+  locked?: boolean;
+  choiceLocked?: boolean;
+  specialization?: boolean;
+  exclusiveGroupLabel?: string;
+  siblingName?: string;
+  choiceBlockerName?: string;
+  tradeoffLabel?: string;
+  tier?: string;
+  icon?: IconName;
+}
 export interface UpgradeModalProps { open: boolean; upgrades: UpgradeView[]; onPurchase: (id: string) => void; onClose: () => void; currencyLabel?: string }
 
 export function UpgradeModal({ open, upgrades, onPurchase, onClose, currencyLabel }: UpgradeModalProps) {

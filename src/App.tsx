@@ -25,9 +25,9 @@ import {
   ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
   createInitialGameState, deserializeGame, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
   getContractProgress, getContractRewardAmount, getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
-  getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, hatchGoblin, isUpgradeUnlocked, performPrestigeReset,
+  getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, performPrestigeReset,
   importGameSave, isContractComplete, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
-  type BuildingId, type ContractKind, type GameState, type MooncapFamily, type PermanentUpgradeId,
+  type BuildingId, type ContractKind, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
 import { playSound } from './audio';
 import {
@@ -234,7 +234,7 @@ function App() {
   const prestigeGain = getPrestigeShardGain(game);
   const totalBuildings = BUILDINGS.reduce((sum, building) => sum + game.buildings[building.id], 0);
   const spawnActivity = totalBuildings >= 75 ? 'overrun' : totalBuildings >= 25 ? 'busy' : totalBuildings >= 5 ? 'stirring' : 'dormant';
-  const availableUpgrades = UPGRADES.filter((upgrade) => !game.purchasedUpgrades[upgrade.id] && isUpgradeUnlocked(game, upgrade.id)).length;
+  const availableUpgrades = UPGRADES.filter((upgrade) => !game.purchasedUpgrades[upgrade.id] && !isUpgradeBlockedByChoice(game, upgrade.id) && isUpgradeUnlocked(game, upgrade.id)).length;
   const unlockedAchievementCount = Object.keys(game.unlockedAchievements).length;
 
   const statusLine = useMemo(() => {
@@ -418,10 +418,18 @@ function App() {
       case 'globalCpsMultiplier': return t('upgrade.effectAll', { multiplier: effect.multiplier });
       case 'buildingMultiplier': return t('upgrade.effectBuilding', { name: localizedName(language, 'building', effect.buildingId, BUILDING_BY_ID[effect.buildingId].name), multiplier: effect.multiplier });
       case 'clickCpsFraction': return t('upgrade.effectCps', { percent: Math.round(effect.fraction * 100) });
+      case 'buildingCostMultiplier': return t('upgrade.effectBuildingCost', { name: localizedName(language, 'building', effect.buildingId, BUILDING_BY_ID[effect.buildingId].name), multiplier: effect.multiplier });
+      case 'globalBuildingCostMultiplier': return t('upgrade.effectAllBuildingCost', { multiplier: effect.multiplier });
+      case 'masteryLevelMultiplier': return t('upgrade.effectMasteryTier', { name: localizedName(language, 'building', effect.buildingId, BUILDING_BY_ID[effect.buildingId].name), multiplier: effect.multiplier });
+      case 'masteryNetworkMultiplier': return t('upgrade.effectMasteryNetwork', { multiplier: effect.multiplier });
+      case 'offlineEfficiencyBonus': return t('upgrade.effectOfflineBonus', { percent: Math.round(effect.bonus * 100) });
+      case 'mooncapRewardMultiplier': return t('upgrade.effectMooncapReward', { multiplier: effect.multiplier });
+      case 'mooncapDurationMultiplier': return t('upgrade.effectMooncapDuration', { multiplier: effect.multiplier });
     }
   }).join(' · '), [language, t]);
 
   const upgradeTierLabel = useCallback((upgrade: (typeof UPGRADES)[number]) => {
+    if ('exclusiveGroup' in upgrade && upgrade.exclusiveGroup) return t('upgrade.doctrine');
     if (upgrade.requirements.some((req) => req.type === 'prestigeResets' || req.type === 'prestigeShardsEarned')) return t('upgrade.forbidden');
     if (upgrade.requirements.some((req) =>
       (req.type === 'buildingOwned' && req.amount >= 100)
@@ -436,11 +444,34 @@ function App() {
     return t('upgrade.common');
   }, [t]);
 
-  const upgradesView = useMemo(() => UPGRADES.map((upgrade) => ({
-    id: upgrade.id, name: localizedName(language, 'upgrade', upgrade.id, upgrade.name), description: language === 'en' ? upgrade.description : t('upgrade.genericDescription'),
-    priceLabel: fmtNumber(upgrade.cost), effectLabel: upgradeEffectLabel(upgrade), purchased: Boolean(game.purchasedUpgrades[upgrade.id]), affordable: canPurchaseUpgrade(game, upgrade.id),
-    locked: !isUpgradeUnlocked(game, upgrade.id), tier: upgradeTierLabel(upgrade), icon: 'sparkles' as const,
-  })), [fmtNumber, game, language, t, upgradeEffectLabel, upgradeTierLabel]);
+  const doctrineGroupLabel = useCallback((group: UpgradeExclusiveGroup) => t(`research.doctrine.${group}` as TranslationKey), [t]);
+
+  const upgradesView = useMemo(() => UPGRADES.map((upgrade) => {
+    const exclusiveGroup = 'exclusiveGroup' in upgrade ? upgrade.exclusiveGroup : undefined;
+    const sibling = exclusiveGroup
+      ? UPGRADES.find((candidate) => candidate.id !== upgrade.id && 'exclusiveGroup' in candidate && candidate.exclusiveGroup === exclusiveGroup)
+      : undefined;
+    const blockerId = getUpgradeChoiceBlocker(game, upgrade.id);
+    const blocker = blockerId ? UPGRADES.find((candidate) => candidate.id === blockerId) : undefined;
+    return {
+      id: upgrade.id,
+      name: localizedName(language, 'upgrade', upgrade.id, upgrade.name),
+      description: language === 'en' ? upgrade.description : t('upgrade.genericDescription'),
+      priceLabel: fmtNumber(upgrade.cost),
+      effectLabel: upgradeEffectLabel(upgrade),
+      purchased: Boolean(game.purchasedUpgrades[upgrade.id]),
+      affordable: canPurchaseUpgrade(game, upgrade.id),
+      locked: !isUpgradeUnlocked(game, upgrade.id),
+      choiceLocked: Boolean(blockerId),
+      specialization: Boolean(exclusiveGroup),
+      exclusiveGroupLabel: exclusiveGroup ? doctrineGroupLabel(exclusiveGroup) : undefined,
+      siblingName: sibling ? localizedName(language, 'upgrade', sibling.id, sibling.name) : undefined,
+      choiceBlockerName: blocker ? localizedName(language, 'upgrade', blocker.id, blocker.name) : undefined,
+      tradeoffLabel: language === 'en' && 'tradeoff' in upgrade ? upgrade.tradeoff : undefined,
+      tier: upgradeTierLabel(upgrade),
+      icon: 'sparkles' as const,
+    };
+  }), [doctrineGroupLabel, fmtNumber, game, language, t, upgradeEffectLabel, upgradeTierLabel]);
 
   const achievementViews = useMemo(() => ACHIEVEMENTS.map((achievement) => ({
     id: achievement.id, name: localizedName(language, 'achievement', achievement.id, achievement.name), description: achievementDescription(achievement),

@@ -12,8 +12,8 @@ type Point = { x: number; y: number };
 type ViewState = Point & { zoom: number };
 type Motif = 'claw' | 'scroll' | 'egg' | 'mushroom' | 'burrow' | 'bog' | 'gear' | 'moon' | 'spear' | 'spore' | 'forge' | 'gate' | 'wyrm' | 'rift';
 
-const CANVAS_WIDTH = 3800;
-const CANVAS_HEIGHT = 1260;
+const CANVAS_WIDTH = 4420;
+const CANVAS_HEIGHT = 1510;
 const NODE_WIDTH = 252;
 const NODE_HEIGHT = 133;
 const MIN_ZOOM = 0.55;
@@ -30,6 +30,13 @@ const STRUCTURE_SECTORS: readonly Point[] = [
   { x: 1550, y: 710 },
   { x: 2600, y: 710 },
 ];
+
+const DOCTRINE_GROUPS = [
+  { ids: ['doctrine_matron_dynasty', 'doctrine_fungal_symbiosis'], sourceId: 'mycelial_cradles', hub: { x: 3625, y: 180 }, motif: 'egg' as Motif },
+  { ids: ['doctrine_scrap_standardization', 'doctrine_redline_industry'], sourceId: 'redline_boilers', hub: { x: 3625, y: 520 }, motif: 'gear' as Motif },
+  { ids: ['doctrine_moon_cult', 'doctrine_ancestor_choir'], sourceId: 'ancestor_thunder', hub: { x: 3625, y: 860 }, motif: 'moon' as Motif },
+  { ids: ['doctrine_gate_network', 'doctrine_impossible_brood'], sourceId: 'gate_without_walls', hub: { x: 3625, y: 1200 }, motif: 'rift' as Motif },
+] as const;
 
 const manualBranch = ['sharpened_nails', 'midwife_whistles', 'riotous_birthing', 'iron_fingertips', 'hatchery_command', 'twitch_of_creation'];
 const globalBranch = ['green_thumb', 'warren_accounting', 'grand_clutch_plan', 'subterranean_logistics', 'horde_standardization', 'empire_beneath_everything'];
@@ -51,6 +58,13 @@ const structureBranches = [
 const motifByBranch: Motif[] = ['egg', 'mushroom', 'burrow', 'bog', 'gear', 'moon', 'spear', 'spore', 'forge', 'gate', 'wyrm', 'rift'];
 
 function motifForUpgrade(id: string): Motif {
+  const doctrineMotifs: Record<string, Motif> = {
+    doctrine_matron_dynasty: 'egg', doctrine_fungal_symbiosis: 'mushroom',
+    doctrine_scrap_standardization: 'gear', doctrine_redline_industry: 'forge',
+    doctrine_moon_cult: 'moon', doctrine_ancestor_choir: 'scroll',
+    doctrine_gate_network: 'gate', doctrine_impossible_brood: 'rift',
+  };
+  if (doctrineMotifs[id]) return doctrineMotifs[id];
   if (manualBranch.includes(id)) return 'claw';
   if (globalBranch.includes(id)) return 'scroll';
   const branchIndex = structureBranches.findIndex((branch) => branch.some((upgradeId) => upgradeId === id));
@@ -118,11 +132,15 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
       const y = 492 + lane * 172 + (sector % 2) * 22;
       branch.forEach((id, tier) => result.set(id, { x: x + tier * 330, y }));
     });
+    DOCTRINE_GROUPS.forEach((group) => {
+      result.set(group.ids[0], { x: 3820, y: group.hub.y - 145 });
+      result.set(group.ids[1], { x: 3820, y: group.hub.y + 12 });
+    });
     return result;
   }, []);
 
   const links = useMemo(() => {
-    const result: Array<{ from: Point; to: Point; active: boolean; ready?: boolean; spine?: boolean }> = [
+    const result: Array<{ from: Point; to: Point; active: boolean; ready?: boolean; spine?: boolean; blocked?: boolean; doctrine?: boolean }> = [
       { from: ROOT, to: HUBS.manual, active: true },
       { from: ROOT, to: HUBS.global, active: true },
       { from: ROOT, to: HUBS.structures, active: true },
@@ -153,6 +171,33 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
     addBranch(manualBranch, HUBS.manual);
     addBranch(globalBranch, HUBS.global);
     structureBranches.forEach((branch, index) => addBranch(branch, STRUCTURE_SECTORS[Math.floor(index / 4)]));
+    DOCTRINE_GROUPS.forEach((group) => {
+      const source = positions.get(group.sourceId);
+      if (!source) return;
+      const groupUpgrades = group.ids.map((id) => upgradeMap.get(id)).filter(Boolean);
+      const groupActive = groupUpgrades.some((upgrade) => Boolean(upgrade?.purchased || (!upgrade?.locked && !upgrade?.choiceLocked)));
+      const groupReady = groupUpgrades.some((upgrade) => Boolean(upgrade && !upgrade.purchased && !upgrade.locked && !upgrade.choiceLocked && upgrade.affordable));
+      result.push({
+        from: { x: source.x + NODE_WIDTH, y: source.y + NODE_HEIGHT / 2 },
+        to: group.hub,
+        active: groupActive,
+        ready: groupReady,
+        doctrine: true,
+      });
+      group.ids.forEach((id) => {
+        const target = positions.get(id);
+        const upgrade = upgradeMap.get(id);
+        if (!target || !upgrade) return;
+        result.push({
+          from: group.hub,
+          to: { x: target.x, y: target.y + NODE_HEIGHT / 2 },
+          active: Boolean(upgrade.purchased || (!upgrade.locked && !upgrade.choiceLocked)),
+          ready: Boolean(!upgrade.purchased && !upgrade.locked && !upgrade.choiceLocked && upgrade.affordable),
+          blocked: Boolean(upgrade.choiceLocked),
+          doctrine: true,
+        });
+      });
+    });
     return result;
   }, [positions, upgradeMap]);
 
@@ -268,8 +313,13 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
         <div className="research-tree__grid" aria-hidden="true" />
         <div className="research-tree__surface" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.zoom})` }}>
           <svg className="research-tree__links" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`} aria-hidden="true">
-            {links.map((link, index) => <path key={index} className={`research-link${link.active ? ' research-link--active' : ''}${link.ready ? ' research-link--ready' : ''}${link.spine ? ' research-link--spine' : ''}`} d={pathBetween(link.from, link.to)} />)}
+            {links.map((link, index) => <path key={index} className={`research-link${link.active ? ' research-link--active' : ''}${link.ready ? ' research-link--ready' : ''}${link.spine ? ' research-link--spine' : ''}${link.blocked ? ' research-link--blocked' : ''}${link.doctrine ? ' research-link--doctrine' : ''}`} d={pathBetween(link.from, link.to)} />)}
           </svg>
+
+          <div className="research-doctrine-zone" style={{ left: 3500, top: 20 }} aria-hidden="true">
+            <div className="research-doctrine-zone__heading"><Icon name="sparkles" size={14} /><strong>{t('research.doctrineZone')}</strong></div>
+            <p>{t('research.doctrineHint')}</p>
+          </div>
 
           <div className="research-root" style={{ left: ROOT.x - 36, top: ROOT.y - 36 }} aria-hidden="true"><span><Icon name="sparkles" size={27} /></span><i /></div>
           <div className="research-hub research-hub--manual" style={{ left: HUBS.manual.x - 18, top: HUBS.manual.y - 18 }} aria-hidden="true"><ResearchGlyph motif="claw" /></div>
@@ -281,16 +331,28 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
               <span>0{index + 1}</span>
             </div>
           ))}
+          {DOCTRINE_GROUPS.map((group) => {
+            const label = upgradeMap.get(group.ids[0])?.exclusiveGroupLabel ?? t('upgrade.doctrine');
+            return (
+              <div key={group.ids[0]} className="research-doctrine-hub" style={{ left: group.hub.x - 28, top: group.hub.y - 28 }} aria-hidden="true">
+                <ResearchGlyph motif={group.motif} />
+                <span>{label}</span>
+              </div>
+            );
+          })}
 
           {upgrades.map((upgrade) => {
             const position = positions.get(upgrade.id);
             if (!position) return null;
-            const ready = !upgrade.purchased && !upgrade.locked && upgrade.affordable;
-            const unaffordable = !upgrade.purchased && !upgrade.locked && !upgrade.affordable;
+            const choiceLocked = !upgrade.purchased && Boolean(upgrade.choiceLocked);
+            const ready = !upgrade.purchased && !upgrade.locked && !choiceLocked && upgrade.affordable;
+            const unaffordable = !upgrade.purchased && !upgrade.locked && !choiceLocked && !upgrade.affordable;
             const bursting = purchaseBurst === upgrade.id;
-            const unavailable = upgrade.purchased || upgrade.locked || !upgrade.affordable || bursting;
+            const unavailable = upgrade.purchased || upgrade.locked || choiceLocked || !upgrade.affordable || bursting;
             const statusLabel = upgrade.purchased
               ? t('upgrade.researched')
+              : choiceLocked
+                ? t('research.statusChoiceLocked')
                 : upgrade.locked
                 ? t('upgrade.unknown')
                 : ready
@@ -299,7 +361,7 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
             return (
               <article
                 key={upgrade.id}
-                className={`research-node${upgrade.purchased ? ' research-node--purchased' : ''}${upgrade.locked ? ' research-node--locked' : ''}${unaffordable ? ' research-node--unaffordable' : ''}${ready ? ' research-node--ready' : ''}${bursting ? ' research-node--purchasing' : ''}`}
+                className={`research-node${upgrade.specialization ? ' research-node--doctrine' : ''}${upgrade.purchased ? ' research-node--purchased' : ''}${upgrade.locked ? ' research-node--locked' : ''}${choiceLocked ? ' research-node--choice-locked' : ''}${unaffordable ? ' research-node--unaffordable' : ''}${ready ? ' research-node--ready' : ''}${bursting ? ' research-node--purchasing' : ''}`}
                 style={{ left: position.x, top: position.y }}
               >
                 <button
@@ -310,11 +372,14 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
                   tabIndex={unavailable ? -1 : 0}
                   aria-label={upgrade.locked
                     ? `${t('upgrade.unknown')}. ${upgrade.tier ?? ''}`
+                    : choiceLocked
+                      ? `${upgrade.name}. ${t('research.choiceLockedBy', { name: upgrade.choiceBlockerName ?? t('upgrade.doctrine') })}`
                     : `${upgrade.name}. ${upgrade.effectLabel}. ${upgrade.purchased ? t('upgrade.researched') : upgrade.priceLabel}`}
                 >
                   <span className="research-node__icon" aria-hidden="true">
                     <ResearchGlyph motif={motifForUpgrade(upgrade.id)} />
-                    {upgrade.locked && <Icon name="lock" size={10} className="research-node__lock" />}
+                    {(upgrade.locked || choiceLocked) && <Icon name="lock" size={10} className="research-node__lock" />}
+                    {upgrade.specialization && <span className="research-node__doctrine-mark">◇</span>}
                   </span>
                   <span className="research-node__copy">
                     <strong>{upgrade.locked ? '???' : upgrade.name}</strong>
@@ -330,8 +395,21 @@ export function ResearchTree({ upgrades, onPurchase }: ResearchTreeProps) {
                   </span>
                 </button>
                 {ready && <span className="research-node__ready-mark" aria-hidden="true">+</span>}
+                {choiceLocked && <span className="research-node__choice-seal" aria-hidden="true">×</span>}
                 {bursting && <span className="research-node__burst" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>}
                 <span className="research-node__signal" aria-hidden="true" />
+                {upgrade.specialization && !upgrade.locked && (
+                  <div className="research-node__doctrine-tooltip" role="tooltip">
+                    <strong>{upgrade.exclusiveGroupLabel ?? t('upgrade.doctrine')}</strong>
+                    <p>{upgrade.description}</p>
+                    <span className={choiceLocked ? 'is-blocked' : ''}>
+                      {choiceLocked
+                        ? t('research.choiceLockedBy', { name: upgrade.choiceBlockerName ?? t('upgrade.doctrine') })
+                        : t('research.choiceLocks', { name: upgrade.siblingName ?? t('upgrade.doctrine') })}
+                    </span>
+                    {upgrade.tradeoffLabel && <small>{upgrade.tradeoffLabel}</small>}
+                  </div>
+                )}
               </article>
             );
           })}

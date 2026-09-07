@@ -15,6 +15,8 @@ import type {
   GameState,
   PermanentUpgradeId,
   UnlockRequirement,
+  UpgradeDefinition,
+  UpgradeExclusiveGroup,
   UpgradeEffect,
 } from './types';
 
@@ -41,8 +43,14 @@ export function getNextExpansionMasteryLevel(state: GameState, buildingId: Build
 
 /** Product of every local mastery multiplier earned by the expansion. */
 export function getExpansionMasteryProductionMultiplier(state: GameState, buildingId: BuildingId): number {
-  return getReachedExpansionMasteryLevels(state, buildingId)
-    .reduce((multiplier, level) => multiplier * level.productionMultiplier, 1);
+  const reached = getReachedExpansionMasteryLevels(state, buildingId);
+  let multiplier = reached.reduce((current, level) => current * level.productionMultiplier, 1);
+  for (const effect of getPurchasedEffects(state)) {
+    if (effect.type === 'masteryLevelMultiplier' && effect.buildingId === buildingId) {
+      multiplier *= effect.multiplier ** reached.length;
+    }
+  }
+  return multiplier;
 }
 
 /**
@@ -58,7 +66,11 @@ export function getExpansionMasteryNetworkBonus(state: GameState): number {
     }
   }
   const legacyFactor = 1 + getPermanentRank(state, 'founders_legacy') * 0.2;
-  return baseBonus * legacyFactor;
+  let bonus = baseBonus * legacyFactor;
+  for (const effect of getPurchasedEffects(state)) {
+    if (effect.type === 'masteryNetworkMultiplier') bonus *= effect.multiplier;
+  }
+  return bonus;
 }
 
 export function getExpansionMasteryNetworkMultiplier(state: GameState): number {
@@ -71,15 +83,20 @@ export function getAncestralMomentumMultiplier(state: GameState): number {
   return 1 + countedMigrations * rank * 0.01;
 }
 
-export function getBuildingCostMultiplier(state: GameState): number {
+export function getBuildingCostMultiplier(state: GameState, buildingId?: BuildingId): number {
   const rank = getPermanentRank(state, 'scavenger_memory');
-  return Math.max(0.5, 1 - rank * 0.01);
+  let multiplier = Math.max(0.5, 1 - rank * 0.01);
+  for (const effect of getPurchasedEffects(state)) {
+    if (effect.type === 'globalBuildingCostMultiplier') multiplier *= effect.multiplier;
+    if (buildingId && effect.type === 'buildingCostMultiplier' && effect.buildingId === buildingId) multiplier *= effect.multiplier;
+  }
+  return multiplier;
 }
 
 export function getBuildingUnitCost(state: GameState, buildingId: BuildingId, ownedOffset = 0): number {
   const definition = BUILDING_BY_ID[buildingId];
   const owned = Math.max(0, Math.floor(state.buildings[buildingId] + ownedOffset));
-  const raw = definition.baseCost * definition.costGrowth ** owned * getBuildingCostMultiplier(state);
+  const raw = definition.baseCost * definition.costGrowth ** owned * getBuildingCostMultiplier(state, buildingId);
   return Number.isFinite(raw) ? Math.max(1, Math.ceil(raw - EPSILON)) : Number.POSITIVE_INFINITY;
 }
 
@@ -88,7 +105,7 @@ export function getBuildingBulkCost(state: GameState, buildingId: BuildingId, co
   if (quantity === 0) return 0;
   const definition = BUILDING_BY_ID[buildingId];
   const owned = Math.max(0, Math.floor(state.buildings[buildingId]));
-  const first = definition.baseCost * definition.costGrowth ** owned * getBuildingCostMultiplier(state);
+  const first = definition.baseCost * definition.costGrowth ** owned * getBuildingCostMultiplier(state, buildingId);
   const growth: number = definition.costGrowth;
   const raw = growth === 1
     ? first * quantity
@@ -101,7 +118,7 @@ export function getBuildingSellRefund(state: GameState, buildingId: BuildingId, 
   if (quantity === 0) return 0;
   const definition = BUILDING_BY_ID[buildingId];
   const firstOwnedIndex = state.buildings[buildingId] - quantity;
-  const first = definition.baseCost * definition.costGrowth ** firstOwnedIndex * getBuildingCostMultiplier(state);
+  const first = definition.baseCost * definition.costGrowth ** firstOwnedIndex * getBuildingCostMultiplier(state, buildingId);
   const rawPaidEquivalent = first * ((definition.costGrowth ** quantity - 1) / (definition.costGrowth - 1));
   const refund = rawPaidEquivalent * Math.min(1, Math.max(0, refundRate));
   return Number.isFinite(refund) ? Math.max(0, Math.floor(refund + EPSILON)) : Number.MAX_VALUE;
@@ -113,7 +130,7 @@ export function getMaxAffordableBuildingCount(state: GameState, buildingId: Buil
   }
   const definition = BUILDING_BY_ID[buildingId];
   const owned = Math.max(0, Math.floor(state.buildings[buildingId]));
-  const first = definition.baseCost * definition.costGrowth ** owned * getBuildingCostMultiplier(state);
+  const first = definition.baseCost * definition.costGrowth ** owned * getBuildingCostMultiplier(state, buildingId);
   if (budget + EPSILON < first) return 0;
 
   const growth: number = definition.costGrowth;
@@ -132,6 +149,36 @@ function getPurchasedEffects(state: GameState): UpgradeEffect[] {
     if (state.purchasedUpgrades[definition.id]) effects.push(...definition.effects);
   }
   return effects;
+}
+
+export function getPurchasedUpgradeInExclusiveGroup(state: GameState, group: UpgradeExclusiveGroup): UpgradeId | null {
+  for (const definition of UPGRADES as readonly UpgradeDefinition[]) {
+    if (definition.exclusiveGroup === group && state.purchasedUpgrades[definition.id]) return definition.id as UpgradeId;
+  }
+  return null;
+}
+
+export function getUpgradeChoiceBlocker(state: GameState, upgradeId: UpgradeId): UpgradeId | null {
+  const definition = UPGRADE_BY_ID[upgradeId];
+  if (!definition.exclusiveGroup) return null;
+  const chosen = getPurchasedUpgradeInExclusiveGroup(state, definition.exclusiveGroup);
+  return chosen && chosen !== upgradeId ? chosen : null;
+}
+
+export function isUpgradeBlockedByChoice(state: GameState, upgradeId: UpgradeId): boolean {
+  return getUpgradeChoiceBlocker(state, upgradeId) !== null;
+}
+
+export function getOfflineEfficiencyResearchBonus(state: GameState): number {
+  return getPurchasedEffects(state).reduce((bonus, effect) => effect.type === 'offlineEfficiencyBonus' ? bonus + effect.bonus : bonus, 0);
+}
+
+export function getMooncapRewardMultiplier(state: GameState): number {
+  return getPurchasedEffects(state).reduce((multiplier, effect) => effect.type === 'mooncapRewardMultiplier' ? multiplier * effect.multiplier : multiplier, 1);
+}
+
+export function getMooncapDurationMultiplier(state: GameState): number {
+  return getPurchasedEffects(state).reduce((multiplier, effect) => effect.type === 'mooncapDurationMultiplier' ? multiplier * effect.multiplier : multiplier, 1);
 }
 
 export function getBuildingProductionMultiplier(state: GameState, buildingId: BuildingId): number {
@@ -223,7 +270,10 @@ export function isUpgradeUnlocked(state: GameState, upgradeId: UpgradeId): boole
 
 export function canPurchaseUpgrade(state: GameState, upgradeId: UpgradeId): boolean {
   const definition = UPGRADE_BY_ID[upgradeId];
-  return !state.purchasedUpgrades[upgradeId] && isUpgradeUnlocked(state, upgradeId) && state.goblins + EPSILON >= definition.cost;
+  return !state.purchasedUpgrades[upgradeId]
+    && !isUpgradeBlockedByChoice(state, upgradeId)
+    && isUpgradeUnlocked(state, upgradeId)
+    && state.goblins + EPSILON >= definition.cost;
 }
 
 export function getPrestigePotential(state: GameState): number {

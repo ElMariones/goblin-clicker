@@ -16,6 +16,7 @@ describe('save system', () => {
     state.mooncap.lunarCharge = 4;
     state.mooncap.nextFamilyBias = 'oracle';
     state.contracts.completed = 9;
+    state.purchasedUpgrades.doctrine_moon_cult = true;
     state.buffs = [{ id: 'eclipse', multiplier: 2, startedAt: 9_000, expiresAt: 20_000, target: 'cps' }];
     const loaded = deserializeGame(serializeGame(state, 10_000), 10_000);
     expect(loaded.migratedFrom).toBeNull();
@@ -27,6 +28,7 @@ describe('save system', () => {
     expect(loaded.state.mooncap.lunarCharge).toBe(4);
     expect(loaded.state.mooncap.nextFamilyBias).toBe('oracle');
     expect(loaded.state.contracts.completed).toBe(9);
+    expect(loaded.state.purchasedUpgrades.doctrine_moon_cult).toBe(true);
     expect(loaded.state.buffs[0]?.id).toBe('eclipse');
     expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
   });
@@ -118,5 +120,17 @@ describe('save system', () => {
   it('rejects saves from unsupported future versions', () => {
     expect(() => deserializeGame(JSON.stringify({ schema: 'goblin-clicker-save', version: 999, state: {} }), 10_000))
       .toThrow(/newer than supported/);
+  });
+
+  it('sanitizes conflicting doctrine choices from edited saves', () => {
+    const state = createInitialGameState(10_000, 42);
+    const parsed = JSON.parse(serializeGame(state, 10_000)) as { state: { purchasedUpgrades: Record<string, true> } };
+    parsed.state.purchasedUpgrades.doctrine_matron_dynasty = true;
+    parsed.state.purchasedUpgrades.doctrine_fungal_symbiosis = true;
+
+    const loaded = deserializeGame(JSON.stringify(parsed), 10_000);
+    expect(loaded.state.purchasedUpgrades.doctrine_matron_dynasty).toBe(true);
+    expect(loaded.state.purchasedUpgrades.doctrine_fungal_symbiosis).toBeUndefined();
+    expect(loaded.warnings.some((warning) => warning.includes('Conflicting broodcraft doctrine'))).toBe(true);
   });
 });

@@ -3,7 +3,7 @@ import { ensureContracts } from './contracts';
 import { MAX_LUNAR_CHARGE } from './events';
 import { normalizeSeed, seedFromTimestamp } from './rng';
 import { clampResource, createEmptyBuildingProduction, createInitialGameState } from './state';
-import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope } from './types';
+import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope, type UpgradeDefinition, type UpgradeExclusiveGroup } from './types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -94,7 +94,16 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       ? Object.fromEntries(raw.upgrades.filter((value): value is string => typeof value === 'string').map((id) => [id, true]))
       : {};
   const purchasedUpgrades: Record<string, true> = {};
-  for (const { id } of UPGRADES) if (rawUpgrades[id] === true) purchasedUpgrades[id] = true;
+  const chosenExclusiveGroups = new Set<UpgradeExclusiveGroup>();
+  for (const upgrade of UPGRADES as readonly UpgradeDefinition[]) {
+    if (rawUpgrades[upgrade.id] !== true) continue;
+    if (upgrade.exclusiveGroup && chosenExclusiveGroups.has(upgrade.exclusiveGroup)) {
+      warnings.push(`Conflicting ${upgrade.exclusiveGroup} doctrine was ignored while loading the save.`);
+      continue;
+    }
+    purchasedUpgrades[upgrade.id] = true;
+    if (upgrade.exclusiveGroup) chosenExclusiveGroups.add(upgrade.exclusiveGroup);
+  }
 
   const rawAchievements = isRecord(raw.unlockedAchievements) ? raw.unlockedAchievements : {};
   const unlockedAchievements: Record<string, number> = {};

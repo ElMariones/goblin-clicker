@@ -1,4 +1,4 @@
-import { publicAsset } from '../utils/assets';
+import { gameArt } from '../utils/assets';
 import { useI18n } from '../i18n';
 import { Icon, type IconName } from './Icon';
 
@@ -25,10 +25,10 @@ export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onO
   return (
     <div className="resource-header">
       <div className="resource-header__brand">
-        <img src={publicAsset('assets/goblin-broodmark.svg')} alt="" className="resource-header__mark" />
-        <div>
+        <img src={gameArt.brandLogo} alt="" className="resource-header__logo" draggable={false} />
+        <div className="resource-header__brand-copy">
           <div className="resource-header__eyebrow">{subtitle ?? t('brand.subtitle')}</div>
-          <h1 className="resource-header__title">{title ?? 'Brood & Burrow'}</h1>
+          <h1 className="sr-only">{title ?? 'Brood & Burrow'}</h1>
         </div>
       </div>
 

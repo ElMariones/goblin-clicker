@@ -30,7 +30,7 @@ import {
   I18nProvider, detectPreferredLanguage, formatCompact, getLanguageMeta, isLanguageCode, localizedName, localizedPerkDescription, translate,
   type LanguageCode, type TranslationKey,
 } from './i18n';
-import { publicAsset } from './utils/assets';
+import { buildingArtAsset } from './utils/assets';
 import { formatDateTime, formatDuration, formatInteger, formatNumber } from './utils/format';
 import './App.css';
 
@@ -75,7 +75,7 @@ function loadInitialState(): { state: GameState; offline: number; warning: Warni
   }
 }
 
-function buildingArtPath(id: BuildingId): string { return publicAsset(`assets/building-${id.replace(/_/g, '-')}.svg`); }
+function buildingArtPath(id: BuildingId): string { return buildingArtAsset(id); }
 
 function App() {
   const [boot] = useState(loadInitialState);

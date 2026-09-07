@@ -1,17 +1,28 @@
-import burrowRainUrl from './music/burrow-rain.mp3';
-import lanternMossUrl from './music/lantern-moss.mp3';
-import mooncapLullabyUrl from './music/mooncap-lullaby.mp3';
+import aglsUrl from './music/agls.mp3';
+import ckgnUrl from './music/ckgn.mp3';
+import clrsUrl from './music/clrs.mp3';
+import lbdcUrl from './music/lbdc.mp3';
+import lmdaUrl from './music/lmda.mp3';
+import mrnoUrl from './music/mrno.mp3';
+import plmsUrl from './music/plms.mp3';
+import vmlaUrl from './music/vmla.mp3';
 
 export interface MusicTrack {
   id: string;
   title: string;
+  artist: string;
   src: string;
 }
 
 export const MUSIC_TRACKS: readonly MusicTrack[] = [
-  { id: 'lantern-moss', title: 'Lantern Moss', src: lanternMossUrl },
-  { id: 'burrow-rain', title: 'Burrow Rain', src: burrowRainUrl },
-  { id: 'mooncap-lullaby', title: 'Mooncap Lullaby', src: mooncapLullabyUrl },
+  { id: 'lmda', title: 'lmda', artist: 'elma', src: lmdaUrl },
+  { id: 'clrs', title: 'clrs', artist: 'elma', src: clrsUrl },
+  { id: 'vmla', title: 'vmla', artist: 'elma', src: vmlaUrl },
+  { id: 'lbdc', title: 'lbdc', artist: 'elma', src: lbdcUrl },
+  { id: 'ckgn', title: 'ckgn', artist: 'elma', src: ckgnUrl },
+  { id: 'agls', title: 'agls', artist: 'elma', src: aglsUrl },
+  { id: 'plms', title: 'plms', artist: 'elma', src: plmsUrl },
+  { id: 'mrno', title: 'mrno', artist: 'elma', src: mrnoUrl },
 ];
 
 function clampVolume(value: number): number {
@@ -24,6 +35,11 @@ export class BackgroundMusicPlayer {
   private volume = 0.32;
   private muted = false;
   private unlocked = false;
+  private readonly onTrackChange?: (track: MusicTrack) => void;
+
+  constructor(onTrackChange?: (track: MusicTrack) => void) {
+    this.onTrackChange = onTrackChange;
+  }
 
   private readonly unlock = () => {
     this.unlocked = true;
@@ -58,8 +74,10 @@ export class BackgroundMusicPlayer {
 
   skip() {
     this.index = (this.index + 1) % MUSIC_TRACKS.length;
+    const track = MUSIC_TRACKS[this.index];
+    this.onTrackChange?.(track);
     if (!this.audio) return;
-    this.audio.src = MUSIC_TRACKS[this.index].src;
+    this.audio.src = track.src;
     this.audio.load();
     if (this.unlocked) void this.play();
   }

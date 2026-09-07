@@ -1,3 +1,4 @@
+@keyframes now-playing-in { 0% { opacity: 0; transform: translateY(-4px); } 45% { opacity: 1; } 100% { opacity: 1; transform: translateY(0); } }
 @keyframes ring-spin { to { transform: rotate(360deg); } }
 @keyframes pit-breathe { 0%, 100% { opacity: .62; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
 @keyframes omen-hover { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }

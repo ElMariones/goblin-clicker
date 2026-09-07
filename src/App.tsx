@@ -35,7 +35,7 @@ import {
   type BuildingId, type ContractKind, type CosmeticId, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
 import { playSound } from './audio';
-import { BackgroundMusicPlayer } from './music';
+import { BackgroundMusicPlayer, MUSIC_TRACKS } from './music';
 import {
   I18nProvider, detectPreferredLanguage, formatCompact, getLanguageMeta, isLanguageCode, localizedName, localizedPerkDescription, translate,
   type LanguageCode, type TranslationKey,
@@ -126,6 +126,7 @@ function App() {
   const [contractRewardNotice, setContractRewardNotice] = useState<string | null>(null);
   const [contractRewardFxKey, setContractRewardFxKey] = useState(0);
   const [resetEffect, setResetEffect] = useState<ResetEffect>(null);
+  const [currentMusicTrack, setCurrentMusicTrack] = useState(MUSIC_TRACKS[0]);
   const toastSequence = useRef(0);
   const floatSequence = useRef(0);
   const resetTimers = useRef<number[]>([]);
@@ -159,7 +160,7 @@ function App() {
     if (resetEffect) resetOverlayRef.current?.focus();
   }, [resetEffect]);
   useEffect(() => {
-    const player = new BackgroundMusicPlayer();
+    const player = new BackgroundMusicPlayer(setCurrentMusicTrack);
     musicPlayerRef.current = player;
     player.mount();
     return () => {
@@ -637,7 +638,7 @@ function App() {
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
     { id: 'ancestry', label: t('header.ancestral'), value: fmtInteger(game.prestige.shards), icon: 'crown', title: t('header.ancestralTitle') },
-  ]} onOpenAchievements={() => setModal('achievements')} onOpenPrestige={() => setModal('prestige')} onOpenCosmetics={() => setModal('cosmetics')} musicMuted={musicMuted} onToggleMusic={toggleMusic} onSkipMusic={() => musicPlayerRef.current?.skip()} onOpenSettings={() => setModal('settings')} />;
+  ]} onOpenAchievements={() => setModal('achievements')} onOpenPrestige={() => setModal('prestige')} onOpenCosmetics={() => setModal('cosmetics')} musicMuted={musicMuted} musicTitle={currentMusicTrack.title} musicArtist={currentMusicTrack.artist} onToggleMusic={toggleMusic} onSkipMusic={() => musicPlayerRef.current?.skip()} onOpenSettings={() => setModal('settings')} />;
 
   const left = <div className="left-stack">
     <SidePanel title={t('ledger.title')} eyebrow={t('ledger.eyebrow')} action={<button className="mini-action" type="button" onClick={() => setModal('achievements')}><Icon name="trophy" size={14} /> {fmtInteger(unlockedAchievementCount)}</button>}>

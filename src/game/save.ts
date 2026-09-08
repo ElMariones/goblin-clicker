@@ -4,7 +4,7 @@ import { COSMETICS } from './cosmetics';
 import { ensureContracts } from './contracts';
 import { MAX_LUNAR_CHARGE } from './events';
 import { normalizeSeed, seedFromTimestamp } from './rng';
-import { clampResource, createEmptyBuildingProduction, createInitialGameState } from './state';
+import { clampResource, createEmptyBuildingProduction, createInitialGameState, ensureRobogoblinsEligibility } from './state';
 import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type CosmeticId, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope, type UpgradeDefinition, type UpgradeExclusiveGroup } from './types';
 import { sanitizeRoboState } from './robo/save';
 import { createInitialRoboState } from './robo/state';
@@ -228,7 +228,8 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
   if (declaredVersion >= 6) {
     const rawUnlocks = isRecord(raw.unlocks) ? raw.unlocks : {};
     const unlocked = rawUnlocks.robogoblins === true;
-    state.unlocks = { robogoblins: unlocked };
+    const eligible = unlocked || rawUnlocks.robogoblinsEligible === true;
+    state.unlocks = { robogoblins: unlocked, robogoblinsEligible: eligible };
     if (!unlocked) {
       state.robo = null;
       if (raw.robo !== null && raw.robo !== undefined) {
@@ -241,9 +242,10 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       warnings.push('RoboGoblins was unlocked but its state was missing or corrupt; an empty mechanical run was recovered.');
     }
   } else {
-    state.unlocks = { robogoblins: false };
+    state.unlocks = { robogoblins: false, robogoblinsEligible: false };
     state.robo = null;
   }
+  state = ensureRobogoblinsEligibility(state);
   state = ensureContracts(state, state.lastUpdateAt);
   return state;
 }

@@ -14,7 +14,7 @@ Prepared against repository commit `61d091d`, save schema 5, on 2026-09-08. Sour
 
 ## The implemented chapter
 
-Buy the **Mechanical Charter** in the Great Migration shop to open a persistent **RoboGoblins** tab. The organic Warren keeps running. Assemble a spendable stock of mechanical goblins, use them to construct twelve increasingly impossible factories, close circuits between groups of expansions, and **Recompile** only the mechanical plane to earn **Kernel Cores**. Those cores improve subsequent runs and can fund a small, capped benefit for the original Warren.
+Reveal all twelve default Warren buildings to permanently discover the RoboGoblins frontier. From then on, the mirrored top-right control opens a **100 Ancestral Cunning** Mechanical Charter purchase popup even after later Great Migrations. Once bought, **RoboGoblins** remains permanently available and the organic Warren keeps running in parallel. Assemble a spendable stock of mechanical goblins, use them to construct twelve increasingly impossible factories, close circuits between groups of expansions, and **Recompile** only the mechanical plane to earn **Kernel Cores**. Those cores improve subsequent runs and can fund a small, capped benefit for the original Warren.
 
 Its signature is a factory with a heartbeat: real batch payouts, a limited Overclock, and the choice between fast delivery and larger slower batches. The chapter uses two currencies: RoboGoblins for the current run and Kernel Cores for permanent progression. Charge is a bounded meter, not another economy.
 

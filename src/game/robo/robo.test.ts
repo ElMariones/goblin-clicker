@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { performPrestigeReset, tickGame } from '../engine';
+import { performPrestigeReset, purchaseBuilding, tickGame } from '../engine';
 import { getBaseCps } from '../math';
 import { applyOfflineProgress } from '../offline';
 import { deserializeGame, serializeGame } from '../save';
@@ -54,35 +54,66 @@ describe('RoboGoblins content and entitlement', () => {
     }
   });
 
-  it('requires all three Mechanical Charter gates independently', () => {
+  it('requires permanent Warren reveal eligibility plus 100 available Cunning', () => {
     const state = createInitialGameState(1_000, 7);
-    state.prestige.resets = 3;
-    state.prestige.totalShardsEarned = 2_500;
-    state.prestige.shards = 99;
+    state.prestige.shards = 1_000;
     expect(canPurchaseMechanicalCharter(state)).toBe(false);
-    expect(getMechanicalCharterProgress(state).availableCunning.met).toBe(false);
-    state.prestige.shards = 100;
-    expect(canPurchaseMechanicalCharter(state)).toBe(true);
-    state.prestige.resets = 2;
-    expect(canPurchaseMechanicalCharter(state)).toBe(false);
-    state.prestige.resets = 3;
-    state.prestige.totalShardsEarned = 2_499;
-    expect(canPurchaseMechanicalCharter(state)).toBe(false);
+    expect(getMechanicalCharterProgress(state).eligible).toBe(false);
+
+    state.lifetimeGoblins = 3_500_000_000_000;
+    const eligible = tickGame(state, 1_000);
+    expect(eligible.unlocks.robogoblinsEligible).toBe(true);
+    expect(getMechanicalCharterProgress(eligible).eligible).toBe(true);
+    eligible.prestige.shards = 99;
+    expect(canPurchaseMechanicalCharter(eligible)).toBe(false);
+    expect(getMechanicalCharterProgress(eligible).availableCunning.met).toBe(false);
+    eligible.prestige.shards = 100;
+    expect(canPurchaseMechanicalCharter(eligible)).toBe(true);
   });
 
   it('buys the Charter exactly once without reducing total earned Cunning', () => {
     const state = createInitialGameState(1_000, 7);
-    state.prestige.resets = 3;
-    state.prestige.totalShardsEarned = 2_500;
+    state.unlocks.robogoblinsEligible = true;
+    state.prestige.totalShardsEarned = 17;
     state.prestige.shards = 150;
     const bought = purchaseMechanicalCharter(state, 1_000);
     expect(bought.success).toBe(true);
     expect(bought.state.prestige.shards).toBe(50);
-    expect(bought.state.prestige.totalShardsEarned).toBe(2_500);
+    expect(bought.state.prestige.totalShardsEarned).toBe(17);
     expect(bought.state.robo?.readyRG).toBe(20);
     const duplicate = purchaseMechanicalCharter(bought.state, 1_000);
     expect(duplicate.success).toBe(false);
     expect(duplicate.state.prestige.shards).toBe(50);
+  });
+
+  it('latches reveal eligibility before a Great Migration resets Warren buildings', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.goblins = 2_000_000_000_000;
+    state.runGoblins = state.goblins;
+    state.lifetimeGoblins = state.goblins;
+    state.prestige.totalShardsEarned = 100;
+    for (const id of [
+      'brood_matron',
+      'mushroom_nursery',
+      'warren_den',
+      'bog_hatchery',
+      'scrap_incubator',
+      'shaman_circle',
+      'war_camp',
+      'moonspore_cavern',
+      'deepforge_vat',
+      'goblin_gate',
+    ] as const) state.buildings[id] = 1;
+    state.buildings.wyrm_hoard = 0;
+
+    const bought = purchaseBuilding(state, 'wyrm_hoard', 1, 1_000);
+    expect(bought.success).toBe(true);
+    expect(bought.state.unlocks.robogoblinsEligible).toBe(true);
+
+    const migrated = performPrestigeReset(bought.state, 1_000);
+    expect(migrated.success).toBe(true);
+    expect(migrated.state.buildings.wyrm_hoard).toBe(0);
+    expect(migrated.state.unlocks.robogoblinsEligible).toBe(true);
   });
 });
 
@@ -389,6 +420,28 @@ describe('RoboGoblins offline and save behavior', () => {
     expect(loaded.robo!.lines.cutlery_press).toEqual(state.robo!.lines.cutlery_press);
     expect(loaded.robo!.kernel.perks.boot_cache).toBe(1);
     expect(loaded.robo!.kernel.cores).toBe(6);
+    expect(loaded.unlocks.robogoblinsEligible).toBe(true);
+  });
+
+  it('upgrades old v6 saves to permanent eligibility from current Warren reveal progress', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.lifetimeGoblins = 3_500_000_000_000;
+    const parsed = JSON.parse(serializeGame(state)) as { state: { unlocks: Record<string, unknown> } };
+    delete parsed.state.unlocks.robogoblinsEligible;
+
+    const loaded = deserializeGame(JSON.stringify(parsed), 1_000).state;
+    expect(loaded.unlocks.robogoblins).toBe(false);
+    expect(loaded.unlocks.robogoblinsEligible).toBe(true);
+    expect(loaded.robo).toBeNull();
+  });
+
+  it('preserves latched v6 eligibility after Warren progress has reset', () => {
+    const state = createInitialGameState(1_000, 7);
+    state.unlocks.robogoblinsEligible = true;
+    const loaded = deserializeGame(serializeGame(state), 1_000).state;
+    expect(loaded.lifetimeGoblins).toBe(0);
+    expect(loaded.buildings.wyrm_hoard).toBe(0);
+    expect(loaded.unlocks.robogoblinsEligible).toBe(true);
   });
 
   it('drops locked mechanical payloads and recovers unlocked corrupt state', () => {

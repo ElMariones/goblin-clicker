@@ -19,6 +19,27 @@ export function createEmptyBuildingProduction(): Record<BuildingId, number> {
   return Object.fromEntries(BUILDINGS.map(({ id }) => [id, 0])) as Record<BuildingId, number>;
 }
 
+export function isWarrenBuildingRevealed(state: GameState, index: number): boolean {
+  const building = BUILDINGS[index];
+  if (!building) return false;
+  if (index < 2) return true;
+  const previous = BUILDINGS[index - 1];
+  return state.buildings[previous.id] > 0 || state.lifetimeGoblins >= building.baseCost * 0.25;
+}
+
+export function hasRevealedAllWarrenBuildings(state: GameState): boolean {
+  return BUILDINGS.every((_, index) => isWarrenBuildingRevealed(state, index));
+}
+
+export function ensureRobogoblinsEligibility(state: GameState): GameState {
+  if (state.unlocks.robogoblinsEligible) return state;
+  if (!state.unlocks.robogoblins && !hasRevealedAllWarrenBuildings(state)) return state;
+  return {
+    ...state,
+    unlocks: { ...state.unlocks, robogoblinsEligible: true },
+  };
+}
+
 export function createInitialGameState(now = Date.now(), seed = seedFromTimestamp(now)): GameState {
   const timestamp = Math.max(0, Math.floor(now));
   const initial: GameState = {
@@ -65,7 +86,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
       highestCps: 0,
       lifetimeProducedByBuilding: createEmptyBuildingProduction(),
     },
-    unlocks: { robogoblins: false },
+    unlocks: { robogoblins: false, robogoblinsEligible: false },
     robo: null,
   };
 

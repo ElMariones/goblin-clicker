@@ -1,42 +1,330 @@
-export const ROBO_COPY = {
-  world: 'RoboGoblins',
-  foundry: 'Unlicensed foundry',
-  switchToWarren: 'Return to Warren',
-  switchToRobo: 'Enter RoboGoblins',
-  lockedFrontier: 'Mechanical Charter required',
-  ready: 'Ready RoboGoblins',
-  inAssembly: 'In assembly',
-  average: 'Average assembly per second',
-  assemble: 'Assemble',
-  eachPress: 'Each press',
-  charge: 'Charge',
-  charging: 'Charging',
-  overclock: 'Overclock',
-  overclockDetail: '30s at double passive assembly',
-  assemblyLines: 'Assembly lines',
-  purchaseQuantity: 'Purchase quantity',
-  nextMilestone: 'Next milestone',
-  noSelling: 'Assigned robots stay with their line until Recompile.',
-  circuits: 'Circuits',
-  blueprints: 'Blueprints & firmware',
-  kernel: 'Kernel / Recompile',
-  achievements: 'Mechanical achievements',
-  appearances: 'Robot appearances',
-  available: 'Available',
-  all: 'All',
-  global: 'Global',
-  local: 'Local',
-  firmware: 'Firmware',
-  locked: 'Locked',
-  purchased: 'Installed',
-  choose: 'Install',
-  kernelCores: 'Kernel Cores',
-  recompile: 'Recompile',
-  recompileWarning: 'Your robot stock, lines, blueprints and firmware reset. Your Kernel, discoveries and organic Warren stay.',
-  cancel: 'Cancel',
-  confirm: 'Confirm Recompile',
-  maxed: 'Max rank',
-  equip: 'Equip',
-  equipped: 'Equipped',
-} as const;
+import type { LanguageCode } from './index';
 
+type NamedDescription = { name: string; description: string };
+type AppearanceCopy = NamedDescription & { unlock?: string };
+
+export interface RoboCopy {
+  world: string;
+  foundry: string;
+  foundrySubtitle: string;
+  switchToWarren: string;
+  switchToRobo: string;
+  lockedFrontier: string;
+  ready: string;
+  inAssembly: string;
+  average: string;
+  assemble: string;
+  assembleAria: string;
+  eachPress: string;
+  charge: string;
+  charging: string;
+  overclock: string;
+  overclockDetail: string;
+  overclockRemaining: string;
+  overclockReady: string;
+  chargeUntilReady: string;
+  assemblyLines: string;
+  purchaseQuantity: string;
+  max: string;
+  buy: string;
+  buyMax: string;
+  nextMilestone: string;
+  noSelling: string;
+  circuits: string;
+  circuitsSubtitle: string;
+  blueprints: string;
+  kernel: string;
+  achievements: string;
+  appearances: string;
+  available: string;
+  all: string;
+  global: string;
+  local: string;
+  firmware: string;
+  locked: string;
+  purchased: string;
+  choose: string;
+  kernelCores: string;
+  cores: string;
+  recompile: string;
+  recompileWarning: string;
+  cancel: string;
+  confirm: string;
+  maxed: string;
+  equip: string;
+  equipped: string;
+  factoryLedger: string;
+  nextObjective: string;
+  warrenStillProducing: string;
+  foundryCollection: string;
+  achievementCount: string;
+  blueprintFilters: string;
+  currentKernel: string;
+  recompileGain: string;
+  memoryTransfer: string;
+  recompileQuestion: string;
+  resets: string;
+  preserves: string;
+  rank: string;
+  rankAria: string;
+  earned: string;
+  thisCompile: string;
+  allTimeRG: string;
+  manualAssembly: string;
+  bestStable: string;
+  kernelEarned: string;
+  recompiles: string;
+  lineLocked: string;
+  unbolted: string;
+  masteryComplete: string;
+  nextBatchIn: string;
+  assignToStart: string;
+  assembled: string;
+  circuitAllClosed: string;
+  circuitTier: string;
+  circuitBringAll: string;
+  circuitFullySynchronized: string;
+  circuitShared: string;
+  circuitNeeded: string;
+  circuitNoBottleneck: string;
+  localBlueprintDescription: string;
+  localBlueprintEffect: string;
+  localBlueprintRequirement: string;
+  globalBlueprintDescription: string;
+  globalBlueprintEffect: string;
+  globalBlueprintRequirement: string;
+  firmwareUnlock: string;
+  firmwareChoiceCommitted: string;
+  nextCore: string;
+  statusOverclocked: string;
+  statusOnline: string;
+  switchWarrenDetail: string;
+  objectiveStarter: string;
+  objectiveRecompile: string;
+  objectiveMastery: string;
+  objectiveComplete: string;
+  ariaFactoryControls: string;
+  ariaAssemblyCradle: string;
+  ariaAssemblyLines: string;
+  readyRG: string;
+  averageShort: string;
+  resetItems: readonly string[];
+  preservedItems: readonly string[];
+  circuitNames: Record<'scrap' | 'steam' | 'impossible', string>;
+  masteryNames: Record<string, string>;
+  lines: Record<string, NamedDescription>;
+  blueprintTiers: Record<string, string>;
+  globalBlueprints: Record<string, string>;
+  kernelPerks: Record<string, NamedDescription>;
+  firmwareGroups: Record<'control' | 'cadence', string>;
+  firmwareOptions: Record<string, NamedDescription>;
+  appearancesCopy: Record<string, AppearanceCopy>;
+  achievementsCopy: Record<string, NamedDescription>;
+}
+
+const EN: RoboCopy = {
+  world: 'RoboGoblins', foundry: 'Unlicensed foundry', foundrySubtitle: 'Unlicensed mechanical foundry',
+  switchToWarren: 'Return to Warren', switchToRobo: 'Enter RoboGoblins', lockedFrontier: 'Mechanical Charter required',
+  ready: 'Ready RoboGoblins', inAssembly: 'In assembly', average: 'Average assembly per second', assemble: 'Assemble',
+  assembleAria: 'Assemble · +{amount} RoboGoblins', eachPress: 'Each press', charge: 'Charge', charging: 'Charging',
+  overclock: 'Overclock', overclockDetail: '30s at double passive assembly', overclockRemaining: '{duration} remaining · ×2 passive',
+  overclockReady: 'Capacitor full · 30s at ×2 passive', chargeUntilReady: '{amount} Charge until ready',
+  assemblyLines: 'Assembly lines', purchaseQuantity: 'Purchase quantity', max: 'Max', buy: 'Buy {count}', buyMax: 'Buy Max',
+  nextMilestone: 'Next milestone', noSelling: 'Assigned robots stay with their line until Recompile.', circuits: 'Circuits',
+  circuitsSubtitle: 'Four lines complete each circuit tier.', blueprints: 'Blueprints & firmware', kernel: 'Kernel / Recompile',
+  achievements: 'Mechanical achievements', appearances: 'Robot appearances', available: 'Available', all: 'All', global: 'Global', local: 'Local',
+  firmware: 'Firmware', locked: 'Locked', purchased: 'Installed', choose: 'Install', kernelCores: 'Kernel Cores', cores: 'cores',
+  recompile: 'Recompile', recompileWarning: 'Your robot stock, lines, blueprints and firmware reset. Your Kernel, discoveries and organic Warren stay.',
+  cancel: 'Cancel', confirm: 'Confirm Recompile', maxed: 'Max rank', equip: 'Equip', equipped: 'Equipped', factoryLedger: 'Factory ledger',
+  nextObjective: 'Next objective', warrenStillProducing: 'Your Warren is still producing {rate}.', foundryCollection: 'Foundry collection',
+  achievementCount: '{done}/{total} achievements', blueprintFilters: 'Blueprint filters', currentKernel: 'Current Kernel', recompileGain: 'Recompile gain',
+  memoryTransfer: 'Memory transfer', recompileQuestion: 'Recompile this foundry?', resets: 'Resets', preserves: 'Preserves', rank: 'Rank {rank} / {max}',
+  rankAria: 'Rank {rank} of {max}', earned: 'earned', thisCompile: 'This compile', allTimeRG: 'All-time RG', manualAssembly: 'Manual assembly',
+  bestStable: 'Best stable /s', kernelEarned: 'Kernel earned', recompiles: 'Recompiles', lineLocked: 'Own at least one of the preceding assembly line to reveal this machine.',
+  unbolted: 'Unbolted', masteryComplete: 'Mastery complete', nextBatchIn: 'Next batch in {duration}', assignToStart: 'Assign robots to start this line', assembled: '{amount} assembled',
+  circuitAllClosed: 'All four tiers closed', circuitTier: 'Tier {tier} / 4', circuitBringAll: 'Bring all four lines to {amount}', circuitFullySynchronized: 'Circuit fully synchronized',
+  circuitShared: 'Shared ×{factor}', circuitNeeded: '{name}: {amount} needed', circuitNoBottleneck: 'No bottleneck',
+  localBlueprintDescription: 'A permanent-for-this-compile tooling upgrade for {line}.', localBlueprintEffect: '×{factor} line output',
+  localBlueprintRequirement: 'Requires {amount} owned and the previous local blueprint.', globalBlueprintDescription: 'Shared control-room instructions propagated through every active assembly line.',
+  globalBlueprintEffect: '×{factor} all mechanical output', globalBlueprintRequirement: 'Install the preceding global blueprint first.', firmwareUnlock: 'Unlocks at {amount} RG produced this compile',
+  firmwareChoiceCommitted: 'Choice committed until Recompile', nextCore: '{amount} RG until the next Core', statusOverclocked: 'Pressure beyond warranty', statusOnline: 'Assembly cradle online',
+  switchWarrenDetail: 'Organic production continues at {rate}/s', objectiveStarter: 'Assign the starter stock to one Tin Cradle.',
+  objectiveRecompile: 'Recompile now for +{amount} Kernel Cores, or push farther.', objectiveMastery: 'Bring {line} to {amount} for {mastery}.', objectiveComplete: 'Complete the Kernel and close every circuit.',
+  ariaFactoryControls: 'RoboGoblins factory controls', ariaAssemblyCradle: 'RoboGoblin assembly cradle', ariaAssemblyLines: 'RoboGoblin assembly lines', readyRG: 'Ready RG', averageShort: 'Average /s',
+  resetItems: ['Ready RG and compile production', 'Assembly-line ownership and batch phases', 'Blueprints and firmware choices', 'Charge and active Overclock'],
+  preservedItems: ['Warren and Mechanical Charter', 'Kernel wallet, earned Cores and perks', 'Mechanical lifetime statistics', 'Achievements and robot appearances'],
+  circuitNames: { scrap: 'Scrap Circuit', steam: 'Steam Circuit', impossible: 'Impossible Circuit' },
+  masteryNames: { Bolted: 'Bolted', Calibrated: 'Calibrated', Synchronized: 'Synchronized', 'Self-tooling': 'Self-tooling', Replicating: 'Replicating', Distributed: 'Distributed', Recursive: 'Recursive', 'Unreasonably Alive': 'Unreasonably Alive' },
+  lines: {
+    tin_cradle: { name: 'Tin Cradle', description: 'A soup tin with rocking feet and one proud parent.' },
+    windup_workbench: { name: 'Wind-up Workbench', description: 'Tiny robots winding each other with stolen keys.' },
+    cutlery_press: { name: 'Cutlery Press', description: 'Household silverware stamped into sharp little bodies.' },
+    magnet_nursery: { name: 'Magnet Nursery', description: 'Magnets fishing newborns out of a scrap pond.' },
+    boiler_brood: { name: 'Boiler Brood', description: 'A furnace mother with a clutch of pressure vessels.' },
+    punchcard_den: { name: 'Punchcard Den', description: 'Machines taught mischief by chewed punchcards.' },
+    servo_scriptorium: { name: 'Servo Scriptorium', description: 'Robot scribes copying plans faster than they can read.' },
+    walking_foundry: { name: 'Walking Foundry', description: 'An entire factory on bent chicken legs.' },
+    thunderhead_coil: { name: 'Thunderhead Coil', description: 'A bottled storm issuing birth certificates.' },
+    moonwire_loom: { name: 'Moonwire Loom', description: 'Moonlight woven into metal skeletons.' },
+    clockwyrm_assembly: { name: 'Clockwyrm Assembly', description: 'A dragon made of gears, coughing up assembly lines.' },
+    paradox_nest: { name: 'Paradox Nest', description: 'Future robots assembling their own ancestors.' },
+  },
+  blueprintTiers: { stolen_plans: 'Stolen Plans', self_inspection: 'Self-inspection', recursive_tooling: 'Recursive Tooling' },
+  globalBlueprints: { common_thread: 'Common Thread', standard_sockets: 'Standard Sockets', distributed_mischief: 'Distributed Mischief', factory_remembers: 'The Factory Remembers', illegal_recursion: 'Illegal Recursion', birth_without_permission: 'Birth Without Permission' },
+  kernelPerks: {
+    better_bolts: { name: 'Better Bolts', description: 'Tighter fasteners improve every mechanical passive line.' },
+    boot_cache: { name: 'Boot Cache', description: 'Keep a small pile of ready robots between recompiles; each rank also grants 100 RG now.' },
+    night_shift: { name: 'Night Shift', description: 'Teach the foundry to waste less work while the browser is away.' },
+    deep_battery: { name: 'Deep Battery', description: 'Larger storage cells extend the mechanical offline production window.' },
+    copper_memory: { name: 'Copper Memory', description: 'Circuit completions remember how to cooperate more efficiently.' },
+    warm_start: { name: 'Warm Start', description: 'Pre-charge the capacitor after Recompile; each purchased rank also grants 30 Charge now.' },
+    finger_servos: { name: 'Finger Servos', description: 'Faster manual assembly without changing automated batch output.' },
+    family_adapter: { name: 'Family Adapter', description: 'Translate hard-earned machine knowledge into a small capped Warren production bridge.' },
+  },
+  firmwareGroups: { control: 'Control logic', cadence: 'Batch cadence' },
+  firmwareOptions: {
+    clock: { name: 'Clockwork Consensus', description: 'Prefer reliable unattended throughput.' }, spark: { name: 'Spark Personality', description: 'Route more factory output through manual assembly.' },
+    quick: { name: 'Quick-release Latches', description: 'Release smaller intervals without changing average production.' }, heavy: { name: 'Heavy Batch Protocol', description: 'Wait longer for a stronger stable production line.' },
+  },
+  appearancesCopy: {
+    tin_rascal: { name: 'Tin Rascal', description: 'Soup-can chest, fork fingers and a grin cut into sheet metal.' },
+    boiler_baron: { name: 'Boiler Baron', description: 'Pressure-gauge monocle, stovepipe crown and a warm boiler heart.', unlock: 'Close the first Steam circuit tier.' },
+    clockwork_ancestor: { name: 'Clockwork Ancestor', description: 'Brass memory discs, gear halo and a patched lilac circuit robe.', unlock: 'Own a Paradox Nest.' },
+  },
+  achievementsCopy: {
+    rg_first_spark: { name: 'It Has Opinions', description: 'Manually assemble a RoboGoblin.' }, rg_unattended: { name: "Somebody Else's Problem", description: 'Own one Tin Cradle.' },
+    rg_bolted: { name: 'Tighten Until It Complains', description: 'Reach 10 owned on any line.' }, rg_scrap_circuit: { name: 'A Complete Bad Idea', description: 'Close the first Scrap circuit tier.' },
+    rg_first_million: { name: 'A Million Loose Screws', description: 'Deliver one million lifetime RoboGoblins.' }, rg_overclock: { name: 'Smoke Is a Feature', description: 'Activate Overclock.' },
+    rg_firmware: { name: 'The Machine Disagrees', description: 'Choose control-logic firmware.' }, rg_recompile: { name: 'Remember the Important Bits', description: 'Complete one Recompile.' },
+    rg_steam_circuit: { name: 'Union of Boilers', description: 'Close the first Steam circuit tier.' }, rg_three_circuits: { name: 'Everything Is Connected', description: 'Close the first tier of all three circuits in one compile.' },
+    rg_paradox: { name: 'Your Grandchild Built You', description: 'Own one Paradox Nest.' }, rg_kernel_complete: { name: 'A Very Small God', description: 'Max all eight Kernel tracks.' },
+  },
+};
+
+const ES: RoboCopy = {
+  ...EN,
+  foundry: 'Fundición sin licencia', foundrySubtitle: 'Fundición mecánica sin licencia', switchToWarren: 'Volver a la Madriguera', switchToRobo: 'Entrar en RoboGoblins', lockedFrontier: 'Se requiere la Carta Mecánica',
+  ready: 'RoboGoblins listos', inAssembly: 'En montaje', average: 'Montaje medio por segundo', assemble: 'Montar', assembleAria: 'Montar · +{amount} RoboGoblins', eachPress: 'Cada pulsación',
+  charge: 'Carga', charging: 'Cargando', overclock: 'Sobrecarga', overclockDetail: '30 s con montaje pasivo doble', overclockRemaining: 'Quedan {duration} · pasivo ×2', overclockReady: 'Condensador lleno · 30 s a pasivo ×2', chargeUntilReady: 'Faltan {amount} de Carga',
+  assemblyLines: 'Líneas de montaje', purchaseQuantity: 'Cantidad de compra', max: 'Máx.', buy: 'Comprar {count}', buyMax: 'Comprar máx.', nextMilestone: 'Siguiente hito', noSelling: 'Los robots asignados permanecen en su línea hasta Recompilar.',
+  circuits: 'Circuitos', circuitsSubtitle: 'Cuatro líneas completan cada nivel de circuito.', blueprints: 'Planos y firmware', kernel: 'Núcleo / Recompilar', achievements: 'Logros mecánicos', appearances: 'Apariencias robóticas',
+  available: 'Disponibles', all: 'Todos', global: 'Global', local: 'Local', firmware: 'Firmware', locked: 'Bloqueado', purchased: 'Instalado', choose: 'Instalar', kernelCores: 'Núcleos Kernel', cores: 'núcleos',
+  recompile: 'Recompilar', recompileWarning: 'Se reinician tus robots disponibles, líneas, planos y firmware. Se conservan el Kernel, los descubrimientos y la Madriguera orgánica.', cancel: 'Cancelar', confirm: 'Confirmar Recompilación', maxed: 'Rango máximo', equip: 'Equipar', equipped: 'Equipado',
+  factoryLedger: 'Libro de la fábrica', nextObjective: 'Siguiente objetivo', warrenStillProducing: 'Tu Madriguera sigue produciendo {rate}.', foundryCollection: 'Colección de la fundición', achievementCount: '{done}/{total} logros', blueprintFilters: 'Filtros de planos',
+  currentKernel: 'Kernel actual', recompileGain: 'Ganancia al recompilar', memoryTransfer: 'Transferencia de memoria', recompileQuestion: '¿Recompilar esta fundición?', resets: 'Se reinicia', preserves: 'Se conserva', rank: 'Rango {rank} / {max}', rankAria: 'Rango {rank} de {max}', earned: 'ganados',
+  thisCompile: 'Esta compilación', allTimeRG: 'RG históricos', manualAssembly: 'Montaje manual', bestStable: 'Mejor estable /s', kernelEarned: 'Kernel ganado', recompiles: 'Recompilaciones',
+  lineLocked: 'Posee al menos una unidad de la línea de montaje anterior para revelar esta máquina.', unbolted: 'Sin atornillar', masteryComplete: 'Maestría completa', nextBatchIn: 'Siguiente lote en {duration}', assignToStart: 'Asigna robots para iniciar esta línea', assembled: '{amount} montados',
+  circuitAllClosed: 'Los cuatro niveles cerrados', circuitTier: 'Nivel {tier} / 4', circuitBringAll: 'Lleva las cuatro líneas a {amount}', circuitFullySynchronized: 'Circuito totalmente sincronizado', circuitShared: 'Compartido ×{factor}', circuitNeeded: '{name}: faltan {amount}', circuitNoBottleneck: 'Sin cuello de botella',
+  localBlueprintDescription: 'Mejora de utillaje válida durante esta compilación para {line}.', localBlueprintEffect: 'Producción de línea ×{factor}', localBlueprintRequirement: 'Requiere {amount} en propiedad y el plano local anterior.', globalBlueprintDescription: 'Instrucciones compartidas de la sala de control propagadas por todas las líneas activas.', globalBlueprintEffect: 'Toda la producción mecánica ×{factor}', globalBlueprintRequirement: 'Instala primero el plano global anterior.',
+  firmwareUnlock: 'Se desbloquea con {amount} RG producidos esta compilación', firmwareChoiceCommitted: 'Elección fijada hasta Recompilar', nextCore: 'Faltan {amount} RG para el siguiente Núcleo', statusOverclocked: 'Presión fuera de garantía', statusOnline: 'Cuna de montaje operativa', switchWarrenDetail: 'La producción orgánica continúa a {rate}/s',
+  objectiveStarter: 'Asigna las existencias iniciales a una Cuna de Hojalata.', objectiveRecompile: 'Recompila ahora por +{amount} Núcleos Kernel o sigue avanzando.', objectiveMastery: 'Lleva {line} a {amount} para alcanzar {mastery}.', objectiveComplete: 'Completa el Kernel y cierra todos los circuitos.',
+  ariaFactoryControls: 'Controles de la fábrica RoboGoblins', ariaAssemblyCradle: 'Cuna de montaje RoboGoblin', ariaAssemblyLines: 'Líneas de montaje RoboGoblin', readyRG: 'RG listos', averageShort: 'Media /s',
+  resetItems: ['RG listos y producción de la compilación', 'Propiedad de líneas y fases de lote', 'Planos y elecciones de firmware', 'Carga y Sobrecarga activa'], preservedItems: ['Madriguera y Carta Mecánica', 'Saldo Kernel, Núcleos ganados y ventajas', 'Estadísticas mecánicas históricas', 'Logros y apariencias robóticas'],
+  circuitNames: { scrap: 'Circuito de Chatarra', steam: 'Circuito de Vapor', impossible: 'Circuito Imposible' },
+  masteryNames: { Bolted: 'Atornillado', Calibrated: 'Calibrado', Synchronized: 'Sincronizado', 'Self-tooling': 'Autoutillado', Replicating: 'Replicante', Distributed: 'Distribuido', Recursive: 'Recursivo', 'Unreasonably Alive': 'Irracionalmente Vivo' },
+  lines: {
+    tin_cradle: { name: 'Cuna de Hojalata', description: 'Una lata de sopa con patas de balancín y un progenitor orgulloso.' }, windup_workbench: { name: 'Banco de Cuerda', description: 'Robots diminutos dándose cuerda con llaves robadas.' },
+    cutlery_press: { name: 'Prensa de Cubiertos', description: 'Cubiertos domésticos estampados en cuerpecillos afilados.' }, magnet_nursery: { name: 'Vivero Magnético', description: 'Imanes pescando recién nacidos de un estanque de chatarra.' },
+    boiler_brood: { name: 'Prole de Calderas', description: 'Una madre-horno con una nidada de recipientes a presión.' }, punchcard_den: { name: 'Guarida de Tarjetas Perforadas', description: 'Máquinas aprendiendo travesuras con tarjetas mordisqueadas.' },
+    servo_scriptorium: { name: 'Scriptorium de Servos', description: 'Escribas robóticos copiando planos más rápido de lo que pueden leer.' }, walking_foundry: { name: 'Fundición Andante', description: 'Una fábrica entera sobre patas de gallina torcidas.' },
+    thunderhead_coil: { name: 'Bobina de Tormenta', description: 'Una tormenta embotellada expidiendo certificados de nacimiento.' }, moonwire_loom: { name: 'Telar de Hilo Lunar', description: 'Luz de luna tejida en esqueletos metálicos.' },
+    clockwyrm_assembly: { name: 'Montaje del Dragón Relojero', description: 'Un dragón de engranajes tosiendo líneas de montaje.' }, paradox_nest: { name: 'Nido Paradójico', description: 'Robots del futuro montando a sus propios antepasados.' },
+  },
+  blueprintTiers: { stolen_plans: 'Planos Robados', self_inspection: 'Autoinspección', recursive_tooling: 'Utillaje Recursivo' },
+  globalBlueprints: { common_thread: 'Hilo Común', standard_sockets: 'Zócalos Estándar', distributed_mischief: 'Travesura Distribuida', factory_remembers: 'La Fábrica Recuerda', illegal_recursion: 'Recursión Ilegal', birth_without_permission: 'Nacimiento Sin Permiso' },
+  kernelPerks: {
+    better_bolts: { name: 'Mejores Tornillos', description: 'Uniones más firmes mejoran todas las líneas mecánicas pasivas.' }, boot_cache: { name: 'Caché de Arranque', description: 'Conserva unos pocos robots listos entre recompilaciones; cada rango también concede 100 RG ahora.' },
+    night_shift: { name: 'Turno Nocturno', description: 'Enseña a la fundición a desperdiciar menos trabajo cuando el navegador está ausente.' }, deep_battery: { name: 'Batería Profunda', description: 'Celdas mayores amplían la ventana de producción mecánica sin conexión.' },
+    copper_memory: { name: 'Memoria de Cobre', description: 'Los circuitos completados recuerdan cómo cooperar con más eficiencia.' }, warm_start: { name: 'Arranque en Caliente', description: 'Precarga el condensador tras Recompilar; cada rango comprado también concede 30 de Carga ahora.' },
+    finger_servos: { name: 'Servos de Dedo', description: 'Montaje manual más rápido sin alterar la producción automática por lotes.' }, family_adapter: { name: 'Adaptador Familiar', description: 'Traduce conocimiento mecánico en un pequeño puente de producción limitado hacia la Madriguera.' },
+  },
+  firmwareGroups: { control: 'Lógica de control', cadence: 'Cadencia de lotes' }, firmwareOptions: {
+    clock: { name: 'Consenso de Relojería', description: 'Prioriza un rendimiento fiable sin supervisión.' }, spark: { name: 'Personalidad de Chispa', description: 'Desvía más producción de fábrica al montaje manual.' },
+    quick: { name: 'Pestillos de Liberación Rápida', description: 'Libera lotes con intervalos menores sin cambiar la producción media.' }, heavy: { name: 'Protocolo de Lote Pesado', description: 'Espera más para una línea estable más potente.' },
+  },
+  appearancesCopy: {
+    tin_rascal: { name: 'Pícaro de Hojalata', description: 'Pecho de lata, dedos de tenedor y una sonrisa cortada en chapa.' }, boiler_baron: { name: 'Barón de la Caldera', description: 'Monóculo manómetro, corona de chimenea y un cálido corazón de caldera.', unlock: 'Cierra el primer nivel del Circuito de Vapor.' },
+    clockwork_ancestor: { name: 'Antepasado Relojero', description: 'Discos de memoria de latón, halo de engranajes y túnica lila de circuitos remendada.', unlock: 'Posee un Nido Paradójico.' },
+  },
+  achievementsCopy: {
+    rg_first_spark: { name: 'Tiene Opiniones', description: 'Monta manualmente un RoboGoblin.' }, rg_unattended: { name: 'Problema de Otro', description: 'Posee una Cuna de Hojalata.' }, rg_bolted: { name: 'Aprieta Hasta que Proteste', description: 'Alcanza 10 unidades en cualquier línea.' },
+    rg_scrap_circuit: { name: 'Una Mala Idea Completa', description: 'Cierra el primer nivel del Circuito de Chatarra.' }, rg_first_million: { name: 'Un Millón de Tornillos Sueltos', description: 'Entrega un millón de RoboGoblins históricos.' }, rg_overclock: { name: 'El Humo Es una Función', description: 'Activa la Sobrecarga.' },
+    rg_firmware: { name: 'La Máquina Discrepa', description: 'Elige firmware de lógica de control.' }, rg_recompile: { name: 'Recuerda lo Importante', description: 'Completa una Recompilación.' }, rg_steam_circuit: { name: 'Unión de Calderas', description: 'Cierra el primer nivel del Circuito de Vapor.' },
+    rg_three_circuits: { name: 'Todo Está Conectado', description: 'Cierra el primer nivel de los tres circuitos en una compilación.' }, rg_paradox: { name: 'Tu Nieto te Construyó', description: 'Posee un Nido Paradójico.' }, rg_kernel_complete: { name: 'Un Dios Muy Pequeño', description: 'Maximiza las ocho ramas del Kernel.' },
+  },
+};
+
+const ZH: RoboCopy = {
+  ...EN,
+  foundry: '无证铸造厂', foundrySubtitle: '无证机械铸造厂', switchToWarren: '返回巢穴', switchToRobo: '进入机械哥布林', lockedFrontier: '需要机械特许状', ready: '可用机械哥布林', inAssembly: '装配中', average: '平均每秒装配', assemble: '装配', assembleAria: '装配 · +{amount} 个机械哥布林', eachPress: '每次按压', charge: '电荷', charging: '充电中', overclock: '超频', overclockDetail: '30 秒双倍被动装配', overclockRemaining: '剩余 {duration} · 被动 ×2', overclockReady: '电容已满 · 30 秒被动 ×2', chargeUntilReady: '还需 {amount} 电荷',
+  assemblyLines: '装配线', purchaseQuantity: '购买数量', max: '最大', buy: '购买 {count}', buyMax: '尽量购买', nextMilestone: '下一里程碑', noSelling: '分配到产线的机器人会留在那里，直到重新编译。', circuits: '回路', circuitsSubtitle: '每个回路等级需要四条产线共同完成。', blueprints: '蓝图与固件', kernel: '内核 / 重新编译', achievements: '机械成就', appearances: '机器人外观', available: '可用', all: '全部', global: '全局', local: '本地', firmware: '固件', locked: '锁定', purchased: '已安装', choose: '安装', kernelCores: '内核核心', cores: '核心',
+  recompile: '重新编译', recompileWarning: '现有机器人、产线、蓝图和固件将重置。内核、发现和有机巢穴会保留。', cancel: '取消', confirm: '确认重新编译', maxed: '满级', equip: '装备', equipped: '已装备', factoryLedger: '工厂账簿', nextObjective: '下一目标', warrenStillProducing: '你的巢穴仍在以 {rate} 生产。', foundryCollection: '铸造厂收藏', achievementCount: '{done}/{total} 项成就', blueprintFilters: '蓝图筛选', currentKernel: '当前内核', recompileGain: '重新编译收益', memoryTransfer: '记忆转移', recompileQuestion: '重新编译这座铸造厂？', resets: '重置', preserves: '保留', rank: '等级 {rank} / {max}', rankAria: '等级 {rank}，共 {max}', earned: '累计获得',
+  thisCompile: '本次编译', allTimeRG: '历史 RG', manualAssembly: '手动装配', bestStable: '最高稳定 /秒', kernelEarned: '累计核心', recompiles: '重新编译次数', lineLocked: '先拥有上一条装配线至少 1 台，才能发现这台机器。', unbolted: '未上螺栓', masteryComplete: '精通完成', nextBatchIn: '下一批 {duration} 后', assignToStart: '分配机器人以启动此产线', assembled: '已装配 {amount}',
+  circuitAllClosed: '四个等级全部闭合', circuitTier: '等级 {tier} / 4', circuitBringAll: '将四条产线都提升到 {amount}', circuitFullySynchronized: '回路已完全同步', circuitShared: '共享 ×{factor}', circuitNeeded: '{name}：还需 {amount}', circuitNoBottleneck: '无瓶颈',
+  localBlueprintDescription: '{line} 在本次编译期间有效的工具升级。', localBlueprintEffect: '产线产量 ×{factor}', localBlueprintRequirement: '需要拥有 {amount} 台，并先安装前一张本地蓝图。', globalBlueprintDescription: '将共享控制室指令传播到每条活动装配线。', globalBlueprintEffect: '全部机械产量 ×{factor}', globalBlueprintRequirement: '请先安装上一张全局蓝图。', firmwareUnlock: '本次编译生产 {amount} RG 后解锁', firmwareChoiceCommitted: '选择将锁定至重新编译', nextCore: '距下一核心还差 {amount} RG', statusOverclocked: '压力已超出保修范围', statusOnline: '装配摇篮已上线', switchWarrenDetail: '有机产量继续保持 {rate}/秒',
+  objectiveStarter: '把初始库存分配给一台铁皮摇篮。', objectiveRecompile: '现在重新编译可获 +{amount} 个内核核心，或继续推进。', objectiveMastery: '将 {line} 提升至 {amount}，达成 {mastery}。', objectiveComplete: '完成内核并闭合所有回路。', ariaFactoryControls: '机械哥布林工厂控制', ariaAssemblyCradle: '机械哥布林装配摇篮', ariaAssemblyLines: '机械哥布林装配线', readyRG: '可用 RG', averageShort: '平均 /秒',
+  resetItems: ['可用 RG 与本次编译产量', '装配线数量与批次阶段', '蓝图和固件选择', '电荷和活动中的超频'], preservedItems: ['巢穴与机械特许状', '内核余额、累计核心与升级', '机械历史统计', '成就与机器人外观'],
+  circuitNames: { scrap: '废料回路', steam: '蒸汽回路', impossible: '不可能回路' }, masteryNames: { Bolted: '上栓', Calibrated: '校准', Synchronized: '同步', 'Self-tooling': '自备工具', Replicating: '复制', Distributed: '分布式', Recursive: '递归', 'Unreasonably Alive': '活得不讲道理' },
+  lines: {
+    tin_cradle: { name: '铁皮摇篮', description: '一只带摇脚的汤罐头，还有一位骄傲的家长。' }, windup_workbench: { name: '发条工作台', description: '小机器人用偷来的钥匙互相上发条。' }, cutlery_press: { name: '餐具冲压机', description: '家用银器被压成尖锐的小身体。' }, magnet_nursery: { name: '磁力育儿室', description: '磁铁从废料池里钓出新生儿。' }, boiler_brood: { name: '锅炉育群', description: '一位炉膛母亲守着一窝压力容器。' }, punchcard_den: { name: '穿孔卡巢穴', description: '机器从被咬坏的穿孔卡里学会捣蛋。' }, servo_scriptorium: { name: '伺服抄写室', description: '机器人抄写员复制图纸的速度比阅读还快。' }, walking_foundry: { name: '行走铸造厂', description: '整座工厂踩着弯曲鸡腿走路。' }, thunderhead_coil: { name: '雷云线圈', description: '一场瓶装风暴正在签发出生证明。' }, moonwire_loom: { name: '月丝织机', description: '把月光织进金属骨架。' }, clockwyrm_assembly: { name: '钟械龙装配厂', description: '一条齿轮龙咳出装配线。' }, paradox_nest: { name: '悖论巢', description: '未来机器人正在组装自己的祖先。' },
+  },
+  blueprintTiers: { stolen_plans: '偷来的图纸', self_inspection: '自检', recursive_tooling: '递归工具' }, globalBlueprints: { common_thread: '共同线索', standard_sockets: '标准插槽', distributed_mischief: '分布式恶作剧', factory_remembers: '工厂记得', illegal_recursion: '非法递归', birth_without_permission: '未经许可的出生' },
+  kernelPerks: { better_bolts: { name: '更好的螺栓', description: '更紧的连接件提升所有机械被动产线。' }, boot_cache: { name: '启动缓存', description: '重新编译时保留一小堆可用机器人；每级购买时还立即赠送 100 RG。' }, night_shift: { name: '夜班', description: '让铸造厂在浏览器离开时浪费更少工作。' }, deep_battery: { name: '深层电池', description: '更大的储能单元延长机械离线生产窗口。' }, copper_memory: { name: '铜质记忆', description: '闭合回路会记住更高效的协作方式。' }, warm_start: { name: '热启动', description: '重新编译后预充电容；每购买一级还立即获得 30 电荷。' }, finger_servos: { name: '手指伺服', description: '提升手动装配，不改变自动批次产量。' }, family_adapter: { name: '家族适配器', description: '把机器知识转化为一个有上限的小型巢穴产量桥梁。' } },
+  firmwareGroups: { control: '控制逻辑', cadence: '批次节奏' }, firmwareOptions: { clock: { name: '钟械共识', description: '偏好可靠的无人值守产量。' }, spark: { name: '火花人格', description: '把更多工厂产量导向手动装配。' }, quick: { name: '快速释放锁扣', description: '缩短批次间隔而不改变平均产量。' }, heavy: { name: '重批协议', description: '等待更久，换取更强的稳定产线。' } },
+  appearancesCopy: { tin_rascal: { name: '铁皮小坏蛋', description: '汤罐胸膛、叉子手指，以及刻在铁皮上的坏笑。' }, boiler_baron: { name: '锅炉男爵', description: '压力表单片镜、烟囱小皇冠和温暖锅炉心。', unlock: '闭合蒸汽回路的第一等级。' }, clockwork_ancestor: { name: '钟械先祖', description: '黄铜记忆盘、齿轮光环和补丁丁香色电路长袍。', unlock: '拥有一个悖论巢。' } },
+  achievementsCopy: { rg_first_spark: { name: '它有意见', description: '手动装配一个机械哥布林。' }, rg_unattended: { name: '别人的问题', description: '拥有一台铁皮摇篮。' }, rg_bolted: { name: '拧到它抱怨', description: '任意产线拥有 10 台。' }, rg_scrap_circuit: { name: '完整的馊主意', description: '闭合废料回路第一等级。' }, rg_first_million: { name: '一百万颗松螺丝', description: '历史累计交付一百万机械哥布林。' }, rg_overclock: { name: '冒烟也是功能', description: '启动一次超频。' }, rg_firmware: { name: '机器不同意', description: '选择控制逻辑固件。' }, rg_recompile: { name: '记住重要部分', description: '完成一次重新编译。' }, rg_steam_circuit: { name: '锅炉联盟', description: '闭合蒸汽回路第一等级。' }, rg_three_circuits: { name: '万物相连', description: '在同一次编译中闭合三个回路的第一等级。' }, rg_paradox: { name: '你的孙辈造了你', description: '拥有一个悖论巢。' }, rg_kernel_complete: { name: '非常小的神', description: '将八条内核路线全部升满。' } },
+};
+
+const FR: RoboCopy = {
+  ...EN,
+  foundry: 'Fonderie sans licence', foundrySubtitle: 'Fonderie mécanique sans licence', switchToWarren: 'Retourner au Terrier', switchToRobo: 'Entrer chez les RoboGobelins', lockedFrontier: 'Charte Mécanique requise', ready: 'RoboGobelins disponibles', inAssembly: 'En assemblage', average: 'Assemblage moyen par seconde', assemble: 'Assembler', assembleAria: 'Assembler · +{amount} RoboGobelins', eachPress: 'Chaque pression', charge: 'Charge', charging: 'En charge', overclock: 'Surcharge', overclockDetail: '30 s à assemblage passif double', overclockRemaining: '{duration} restantes · passif ×2', overclockReady: 'Condensateur plein · 30 s à passif ×2', chargeUntilReady: 'Encore {amount} de Charge',
+  assemblyLines: 'Lignes d’assemblage', purchaseQuantity: 'Quantité d’achat', max: 'Max', buy: 'Acheter {count}', buyMax: 'Acheter max', nextMilestone: 'Prochain jalon', noSelling: 'Les robots assignés restent sur leur ligne jusqu’à la Recompilation.', circuits: 'Circuits', circuitsSubtitle: 'Quatre lignes complètent chaque niveau de circuit.', blueprints: 'Plans et firmware', kernel: 'Noyau / Recompiler', achievements: 'Succès mécaniques', appearances: 'Apparences robotiques', available: 'Disponibles', all: 'Tous', global: 'Global', local: 'Local', firmware: 'Firmware', locked: 'Verrouillé', purchased: 'Installé', choose: 'Installer', kernelCores: 'Cœurs Kernel', cores: 'cœurs',
+  recompile: 'Recompiler', recompileWarning: 'Votre stock de robots, vos lignes, plans et firmware sont réinitialisés. Le Kernel, les découvertes et le Terrier organique restent.', cancel: 'Annuler', confirm: 'Confirmer la Recompilation', maxed: 'Rang max', equip: 'Équiper', equipped: 'Équipé', factoryLedger: 'Registre de la fabrique', nextObjective: 'Prochain objectif', warrenStillProducing: 'Votre Terrier produit toujours {rate}.', foundryCollection: 'Collection de la fonderie', achievementCount: '{done}/{total} succès', blueprintFilters: 'Filtres de plans', currentKernel: 'Kernel actuel', recompileGain: 'Gain de Recompilation', memoryTransfer: 'Transfert de mémoire', recompileQuestion: 'Recompiler cette fonderie ?', resets: 'Réinitialise', preserves: 'Conserve', rank: 'Rang {rank} / {max}', rankAria: 'Rang {rank} sur {max}', earned: 'gagnés',
+  thisCompile: 'Cette compilation', allTimeRG: 'RG historiques', manualAssembly: 'Assemblage manuel', bestStable: 'Meilleur stable /s', kernelEarned: 'Kernel gagné', recompiles: 'Recompilations', lineLocked: 'Possédez au moins une unité de la ligne précédente pour révéler cette machine.', unbolted: 'Non boulonné', masteryComplete: 'Maîtrise complète', nextBatchIn: 'Prochain lot dans {duration}', assignToStart: 'Assignez des robots pour démarrer cette ligne', assembled: '{amount} assemblés',
+  circuitAllClosed: 'Quatre niveaux fermés', circuitTier: 'Niveau {tier} / 4', circuitBringAll: 'Montez les quatre lignes à {amount}', circuitFullySynchronized: 'Circuit entièrement synchronisé', circuitShared: 'Partagé ×{factor}', circuitNeeded: '{name} : encore {amount}', circuitNoBottleneck: 'Aucun goulot', localBlueprintDescription: 'Amélioration d’outillage valable pour cette compilation sur {line}.', localBlueprintEffect: 'Production de ligne ×{factor}', localBlueprintRequirement: 'Requiert {amount} possédés et le plan local précédent.', globalBlueprintDescription: 'Instructions partagées de salle de contrôle propagées à toutes les lignes actives.', globalBlueprintEffect: 'Toute production mécanique ×{factor}', globalBlueprintRequirement: 'Installez d’abord le plan global précédent.', firmwareUnlock: 'Se débloque à {amount} RG produits cette compilation', firmwareChoiceCommitted: 'Choix verrouillé jusqu’à Recompiler', nextCore: 'Encore {amount} RG avant le prochain Cœur', statusOverclocked: 'Pression hors garantie', statusOnline: 'Berceau d’assemblage en ligne', switchWarrenDetail: 'La production organique continue à {rate}/s', objectiveStarter: 'Assignez le stock initial à un Berceau de Fer-blanc.', objectiveRecompile: 'Recompilez maintenant pour +{amount} Cœurs Kernel, ou continuez.', objectiveMastery: 'Montez {line} à {amount} pour atteindre {mastery}.', objectiveComplete: 'Complétez le Kernel et fermez tous les circuits.', ariaFactoryControls: 'Commandes de l’usine RoboGobelins', ariaAssemblyCradle: 'Berceau d’assemblage RoboGobelin', ariaAssemblyLines: 'Lignes d’assemblage RoboGobelin', readyRG: 'RG disponibles', averageShort: 'Moyenne /s',
+  resetItems: ['RG disponibles et production de compilation', 'Possession des lignes et phases de lots', 'Plans et choix de firmware', 'Charge et Surcharge active'], preservedItems: ['Terrier et Charte Mécanique', 'Solde Kernel, Cœurs gagnés et avantages', 'Statistiques mécaniques historiques', 'Succès et apparences robotiques'], circuitNames: { scrap: 'Circuit Ferraille', steam: 'Circuit Vapeur', impossible: 'Circuit Impossible' }, masteryNames: { Bolted: 'Boulonné', Calibrated: 'Calibré', Synchronized: 'Synchronisé', 'Self-tooling': 'Auto-outillé', Replicating: 'Réplicant', Distributed: 'Distribué', Recursive: 'Récursif', 'Unreasonably Alive': 'Déraisonnablement Vivant' },
+  lines: { tin_cradle: { name: 'Berceau de Fer-blanc', description: 'Une boîte de soupe sur patins avec un parent très fier.' }, windup_workbench: { name: 'Établi à Ressort', description: 'De petits robots se remontent avec des clés volées.' }, cutlery_press: { name: 'Presse à Couverts', description: 'Des couverts ménagers frappés en petits corps tranchants.' }, magnet_nursery: { name: 'Nurserie Magnétique', description: 'Des aimants pêchent des nouveau-nés dans une mare de ferraille.' }, boiler_brood: { name: 'Couvée de Chaudières', description: 'Une mère-fourneau entourée de récipients sous pression.' }, punchcard_den: { name: 'Antre à Cartes Perforées', description: 'Des machines apprennent la malice avec des cartes mâchouillées.' }, servo_scriptorium: { name: 'Scriptorium Servo', description: 'Des scribes robots copient les plans plus vite qu’ils ne les lisent.' }, walking_foundry: { name: 'Fonderie Marcheuse', description: 'Une usine entière sur des pattes de poulet tordues.' }, thunderhead_coil: { name: 'Bobine d’Orage', description: 'Un orage en bouteille délivre des actes de naissance.' }, moonwire_loom: { name: 'Métier à Fil Lunaire', description: 'La lumière lunaire tissée dans des squelettes métalliques.' }, clockwyrm_assembly: { name: 'Assemblage du Wyrm Horloger', description: 'Un dragon d’engrenages crache des lignes d’assemblage.' }, paradox_nest: { name: 'Nid Paradoxal', description: 'Des robots futurs assemblent leurs propres ancêtres.' } },
+  blueprintTiers: { stolen_plans: 'Plans Volés', self_inspection: 'Auto-inspection', recursive_tooling: 'Outillage Récursif' }, globalBlueprints: { common_thread: 'Fil Commun', standard_sockets: 'Douilles Standard', distributed_mischief: 'Malice Distribuée', factory_remembers: 'La Fabrique Se Souvient', illegal_recursion: 'Récursion Illégale', birth_without_permission: 'Naissance Sans Autorisation' },
+  kernelPerks: { better_bolts: { name: 'Meilleurs Boulons', description: 'Des fixations plus solides améliorent toutes les lignes passives mécaniques.' }, boot_cache: { name: 'Cache de Démarrage', description: 'Gardez quelques robots prêts entre les recompilations ; chaque rang donne aussi 100 RG immédiatement.' }, night_shift: { name: 'Équipe de Nuit', description: 'Apprenez à la fonderie à gaspiller moins de travail en votre absence.' }, deep_battery: { name: 'Batterie Profonde', description: 'De plus grandes cellules prolongent la fenêtre de production hors ligne.' }, copper_memory: { name: 'Mémoire de Cuivre', description: 'Les circuits achevés se souviennent de mieux coopérer.' }, warm_start: { name: 'Démarrage à Chaud', description: 'Précharge le condensateur après Recompilation ; chaque rang acheté donne aussi 30 Charge immédiatement.' }, finger_servos: { name: 'Servos des Doigts', description: 'Assemblage manuel plus rapide sans modifier les lots automatisés.' }, family_adapter: { name: 'Adaptateur Familial', description: 'Traduit le savoir mécanique en un petit pont plafonné vers la production du Terrier.' } },
+  firmwareGroups: { control: 'Logique de contrôle', cadence: 'Cadence des lots' }, firmwareOptions: { clock: { name: 'Consensus Horloger', description: 'Privilégie un débit fiable sans surveillance.' }, spark: { name: 'Personnalité Étincelle', description: 'Dirige davantage de production vers l’assemblage manuel.' }, quick: { name: 'Loquets à Libération Rapide', description: 'Réduit les intervalles sans changer la production moyenne.' }, heavy: { name: 'Protocole de Lot Lourd', description: 'Attend plus longtemps pour une ligne stable plus puissante.' } },
+  appearancesCopy: { tin_rascal: { name: 'Fripon de Fer-blanc', description: 'Torse en boîte, doigts-fourchettes et sourire découpé dans la tôle.' }, boiler_baron: { name: 'Baron de la Chaudière', description: 'Monocle manomètre, couronne-cheminée et cœur de chaudière chaud.', unlock: 'Fermez le premier niveau du Circuit Vapeur.' }, clockwork_ancestor: { name: 'Ancêtre Horloger', description: 'Disques-mémoire en laiton, halo d’engrenages et robe lilas de circuits rapiécée.', unlock: 'Possédez un Nid Paradoxal.' } },
+  achievementsCopy: { rg_first_spark: { name: 'Il A des Opinions', description: 'Assemblez manuellement un RoboGobelin.' }, rg_unattended: { name: 'Le Problème de Quelqu’un d’Autre', description: 'Possédez un Berceau de Fer-blanc.' }, rg_bolted: { name: 'Serrez Jusqu’à ce Qu’il Proteste', description: 'Atteignez 10 unités sur une ligne.' }, rg_scrap_circuit: { name: 'Une Mauvaise Idée Complète', description: 'Fermez le premier niveau du Circuit Ferraille.' }, rg_first_million: { name: 'Un Million de Vis Desserrées', description: 'Livrez un million de RoboGobelins historiques.' }, rg_overclock: { name: 'La Fumée Est une Fonction', description: 'Activez la Surcharge.' }, rg_firmware: { name: 'La Machine N’est Pas d’Accord', description: 'Choisissez un firmware de logique de contrôle.' }, rg_recompile: { name: 'Souvenez-vous de l’Important', description: 'Effectuez une Recompilation.' }, rg_steam_circuit: { name: 'Union des Chaudières', description: 'Fermez le premier niveau du Circuit Vapeur.' }, rg_three_circuits: { name: 'Tout Est Connecté', description: 'Fermez le premier niveau des trois circuits dans une compilation.' }, rg_paradox: { name: 'Votre Petit-enfant Vous a Construit', description: 'Possédez un Nid Paradoxal.' }, rg_kernel_complete: { name: 'Un Très Petit Dieu', description: 'Maximisez les huit pistes du Kernel.' } },
+};
+
+const DE: RoboCopy = {
+  ...EN,
+  foundry: 'Nicht lizenzierte Gießerei', foundrySubtitle: 'Nicht lizenzierte mechanische Gießerei', switchToWarren: 'Zum Bau zurück', switchToRobo: 'RoboGoblins betreten', lockedFrontier: 'Mechanische Charta erforderlich', ready: 'Bereite RoboGoblins', inAssembly: 'In Montage', average: 'Durchschnittliche Montage pro Sekunde', assemble: 'Montieren', assembleAria: 'Montieren · +{amount} RoboGoblins', eachPress: 'Jeder Druck', charge: 'Ladung', charging: 'Lädt', overclock: 'Übertakten', overclockDetail: '30 s doppelte passive Montage', overclockRemaining: '{duration} verbleibend · passiv ×2', overclockReady: 'Kondensator voll · 30 s passiv ×2', chargeUntilReady: 'Noch {amount} Ladung', assemblyLines: 'Montagelinien', purchaseQuantity: 'Kaufmenge', max: 'Max', buy: '{count} kaufen', buyMax: 'Maximum kaufen', nextMilestone: 'Nächster Meilenstein', noSelling: 'Zugewiesene Roboter bleiben bis zur Neukompilierung auf ihrer Linie.', circuits: 'Schaltkreise', circuitsSubtitle: 'Vier Linien schließen jede Schaltkreisstufe.', blueprints: 'Baupläne & Firmware', kernel: 'Kernel / Neukompilieren', achievements: 'Mechanische Erfolge', appearances: 'Roboter-Erscheinungen', available: 'Verfügbar', all: 'Alle', global: 'Global', local: 'Lokal', firmware: 'Firmware', locked: 'Gesperrt', purchased: 'Installiert', choose: 'Installieren', kernelCores: 'Kernel-Kerne', cores: 'Kerne',
+  recompile: 'Neukompilieren', recompileWarning: 'Robotervorrat, Linien, Baupläne und Firmware werden zurückgesetzt. Kernel, Entdeckungen und organischer Bau bleiben.', cancel: 'Abbrechen', confirm: 'Neukompilierung bestätigen', maxed: 'Maximalrang', equip: 'Ausrüsten', equipped: 'Ausgerüstet', factoryLedger: 'Fabrikbuch', nextObjective: 'Nächstes Ziel', warrenStillProducing: 'Dein Bau produziert weiter {rate}.', foundryCollection: 'Gießerei-Sammlung', achievementCount: '{done}/{total} Erfolge', blueprintFilters: 'Bauplanfilter', currentKernel: 'Aktueller Kernel', recompileGain: 'Gewinn durch Neukompilierung', memoryTransfer: 'Speicherübertragung', recompileQuestion: 'Diese Gießerei neu kompilieren?', resets: 'Setzt zurück', preserves: 'Behält', rank: 'Rang {rank} / {max}', rankAria: 'Rang {rank} von {max}', earned: 'verdient', thisCompile: 'Diese Kompilierung', allTimeRG: 'RG insgesamt', manualAssembly: 'Manuelle Montage', bestStable: 'Bestes stabil /s', kernelEarned: 'Kernel verdient', recompiles: 'Neukompilierungen', lineLocked: 'Besitze mindestens eine Einheit der vorherigen Montagelinie, um diese Maschine zu enthüllen.', unbolted: 'Unverschraubt', masteryComplete: 'Meisterschaft vollständig', nextBatchIn: 'Nächste Charge in {duration}', assignToStart: 'Roboter zuweisen, um diese Linie zu starten', assembled: '{amount} montiert', circuitAllClosed: 'Alle vier Stufen geschlossen', circuitTier: 'Stufe {tier} / 4', circuitBringAll: 'Alle vier Linien auf {amount} bringen', circuitFullySynchronized: 'Schaltkreis vollständig synchronisiert', circuitShared: 'Gemeinsam ×{factor}', circuitNeeded: '{name}: {amount} benötigt', circuitNoBottleneck: 'Kein Engpass', localBlueprintDescription: 'Werkzeugverbesserung für {line}, gültig für diese Kompilierung.', localBlueprintEffect: 'Linienproduktion ×{factor}', localBlueprintRequirement: 'Benötigt {amount} im Besitz und den vorherigen lokalen Bauplan.', globalBlueprintDescription: 'Gemeinsame Kontrollraumanweisungen für alle aktiven Montagelinien.', globalBlueprintEffect: 'Gesamte mechanische Produktion ×{factor}', globalBlueprintRequirement: 'Zuerst den vorherigen globalen Bauplan installieren.', firmwareUnlock: 'Wird bei {amount} in dieser Kompilierung produzierten RG freigeschaltet', firmwareChoiceCommitted: 'Wahl bis zur Neukompilierung festgelegt', nextCore: 'Noch {amount} RG bis zum nächsten Kern', statusOverclocked: 'Druck außerhalb der Garantie', statusOnline: 'Montagewiege online', switchWarrenDetail: 'Organische Produktion läuft mit {rate}/s weiter', objectiveStarter: 'Weise den Startvorrat einer Blechwiege zu.', objectiveRecompile: 'Jetzt für +{amount} Kernel-Kerne neu kompilieren oder weiter wachsen.', objectiveMastery: '{line} auf {amount} bringen für {mastery}.', objectiveComplete: 'Kernel vervollständigen und jeden Schaltkreis schließen.', ariaFactoryControls: 'RoboGoblins-Fabriksteuerung', ariaAssemblyCradle: 'RoboGoblin-Montagewiege', ariaAssemblyLines: 'RoboGoblin-Montagelinien', readyRG: 'Bereite RG', averageShort: 'Durchschnitt /s', resetItems: ['Bereite RG und Kompilierungsproduktion', 'Linienbesitz und Chargenphasen', 'Baupläne und Firmware-Wahlen', 'Ladung und aktives Übertakten'], preservedItems: ['Bau und Mechanische Charta', 'Kernel-Guthaben, verdiente Kerne und Vorteile', 'Mechanische Langzeitstatistik', 'Erfolge und Roboter-Erscheinungen'], circuitNames: { scrap: 'Schrott-Schaltkreis', steam: 'Dampf-Schaltkreis', impossible: 'Unmöglicher Schaltkreis' }, masteryNames: { Bolted: 'Verschraubt', Calibrated: 'Kalibriert', Synchronized: 'Synchronisiert', 'Self-tooling': 'Selbstwerkzeugend', Replicating: 'Replizierend', Distributed: 'Verteilt', Recursive: 'Rekursiv', 'Unreasonably Alive': 'Unvernünftig Lebendig' },
+  lines: { tin_cradle: { name: 'Blechwiege', description: 'Eine Suppendose auf Kufen mit einem stolzen Elternteil.' }, windup_workbench: { name: 'Aufzieh-Werkbank', description: 'Winzige Roboter ziehen einander mit gestohlenen Schlüsseln auf.' }, cutlery_press: { name: 'Besteckpresse', description: 'Haushaltsbesteck wird zu scharfen kleinen Körpern gestanzt.' }, magnet_nursery: { name: 'Magnet-Kinderstube', description: 'Magnete fischen Neugeborene aus einem Schrottteich.' }, boiler_brood: { name: 'Kesselbrut', description: 'Eine Ofenmutter mit einem Gelege aus Druckbehältern.' }, punchcard_den: { name: 'Lochkartenbau', description: 'Maschinen lernen Unfug von angekauten Lochkarten.' }, servo_scriptorium: { name: 'Servo-Skriptorium', description: 'Roboterschreiber kopieren Pläne schneller, als sie lesen können.' }, walking_foundry: { name: 'Laufende Gießerei', description: 'Eine ganze Fabrik auf krummen Hühnerbeinen.' }, thunderhead_coil: { name: 'Gewitterspule', description: 'Ein Flaschensturm stellt Geburtsurkunden aus.' }, moonwire_loom: { name: 'Monddraht-Webstuhl', description: 'Mondlicht wird in Metallskelette gewebt.' }, clockwyrm_assembly: { name: 'Uhrwyrm-Montage', description: 'Ein Zahnrad-Drache hustet Montagelinien aus.' }, paradox_nest: { name: 'Paradoxnest', description: 'Zukünftige Roboter montieren ihre eigenen Ahnen.' } },
+  blueprintTiers: { stolen_plans: 'Gestohlene Pläne', self_inspection: 'Selbstinspektion', recursive_tooling: 'Rekursives Werkzeug' }, globalBlueprints: { common_thread: 'Gemeinsamer Faden', standard_sockets: 'Standardfassungen', distributed_mischief: 'Verteilter Unfug', factory_remembers: 'Die Fabrik Erinnert Sich', illegal_recursion: 'Illegale Rekursion', birth_without_permission: 'Geburt Ohne Erlaubnis' },
+  kernelPerks: { better_bolts: { name: 'Bessere Bolzen', description: 'Festere Verbindungen verbessern jede mechanische passive Linie.' }, boot_cache: { name: 'Start-Cache', description: 'Bewahre einige bereite Roboter zwischen Neukompilierungen; jeder Rang gibt sofort zusätzlich 100 RG.' }, night_shift: { name: 'Nachtschicht', description: 'Bringe der Gießerei bei, bei Abwesenheit weniger Arbeit zu verschwenden.' }, deep_battery: { name: 'Tiefe Batterie', description: 'Größere Speicherzellen verlängern das mechanische Offline-Fenster.' }, copper_memory: { name: 'Kupfergedächtnis', description: 'Geschlossene Schaltkreise erinnern sich an effizientere Zusammenarbeit.' }, warm_start: { name: 'Warmstart', description: 'Lädt den Kondensator nach der Neukompilierung vor; jeder gekaufte Rang gibt sofort 30 Ladung.' }, finger_servos: { name: 'Fingerservos', description: 'Schnellere manuelle Montage ohne Änderung der automatischen Chargen.' }, family_adapter: { name: 'Familienadapter', description: 'Übersetzt Maschinenwissen in eine kleine begrenzte Produktionsbrücke zum Bau.' } },
+  firmwareGroups: { control: 'Steuerlogik', cadence: 'Chargentakt' }, firmwareOptions: { clock: { name: 'Uhrwerk-Konsens', description: 'Bevorzugt zuverlässigen unbeaufsichtigten Durchsatz.' }, spark: { name: 'Funkenpersönlichkeit', description: 'Leitet mehr Fabrikleistung in die manuelle Montage.' }, quick: { name: 'Schnellverschluss', description: 'Verkürzt Chargenintervalle ohne Änderung des Durchschnitts.' }, heavy: { name: 'Schwerchargen-Protokoll', description: 'Wartet länger für eine stärkere stabile Linie.' } },
+  appearancesCopy: { tin_rascal: { name: 'Blechschlingel', description: 'Dosentorso, Gabel-Finger und ein Grinsen im Blech.' }, boiler_baron: { name: 'Kesselbaron', description: 'Manometer-Monokel, Ofenrohrkrone und warmes Kesselherz.', unlock: 'Schließe die erste Stufe des Dampf-Schaltkreises.' }, clockwork_ancestor: { name: 'Uhrwerk-Ahne', description: 'Messing-Gedächtnisscheiben, Zahnradhalo und geflickte lilafarbene Schaltkreisrobe.', unlock: 'Besitze ein Paradoxnest.' } },
+  achievementsCopy: { rg_first_spark: { name: 'Es Hat Meinungen', description: 'Montiere manuell einen RoboGoblin.' }, rg_unattended: { name: 'Das Problem Von Jemand Anderem', description: 'Besitze eine Blechwiege.' }, rg_bolted: { name: 'Festziehen Bis Es Jammert', description: 'Erreiche 10 Einheiten auf einer Linie.' }, rg_scrap_circuit: { name: 'Eine Vollständige Schlechte Idee', description: 'Schließe die erste Stufe des Schrott-Schaltkreises.' }, rg_first_million: { name: 'Eine Million Lose Schrauben', description: 'Liefere insgesamt eine Million RoboGoblins.' }, rg_overclock: { name: 'Rauch Ist Ein Feature', description: 'Aktiviere Übertakten.' }, rg_firmware: { name: 'Die Maschine Widerspricht', description: 'Wähle Steuerlogik-Firmware.' }, rg_recompile: { name: 'Das Wichtige Merken', description: 'Führe eine Neukompilierung durch.' }, rg_steam_circuit: { name: 'Union Der Kessel', description: 'Schließe die erste Stufe des Dampf-Schaltkreises.' }, rg_three_circuits: { name: 'Alles Ist Verbunden', description: 'Schließe in einer Kompilierung die erste Stufe aller drei Schaltkreise.' }, rg_paradox: { name: 'Dein Enkel Hat Dich Gebaut', description: 'Besitze ein Paradoxnest.' }, rg_kernel_complete: { name: 'Ein Sehr Kleiner Gott', description: 'Maximiere alle acht Kernel-Pfade.' } },
+};
+
+const AR: RoboCopy = {
+  ...EN,
+  foundry: 'مسبك بلا ترخيص', foundrySubtitle: 'مسبك ميكانيكي بلا ترخيص', switchToWarren: 'العودة إلى الوكر', switchToRobo: 'دخول عالم الغوبلن الآلي', lockedFrontier: 'يلزم الميثاق الميكانيكي', ready: 'الغوبلن الآلي الجاهز', inAssembly: 'قيد التجميع', average: 'متوسط التجميع في الثانية', assemble: 'تجميع', assembleAria: 'تجميع · +{amount} غوبلن آلي', eachPress: 'كل ضغطة', charge: 'الشحنة', charging: 'جارٍ الشحن', overclock: 'كسر السرعة', overclockDetail: '30 ث من التجميع السلبي المضاعف', overclockRemaining: 'متبقٍ {duration} · سلبي ×2', overclockReady: 'المكثف ممتلئ · 30 ث بسلبي ×2', chargeUntilReady: 'يلزم {amount} شحنة إضافية', assemblyLines: 'خطوط التجميع', purchaseQuantity: 'كمية الشراء', max: 'الأقصى', buy: 'شراء {count}', buyMax: 'شراء الأقصى', nextMilestone: 'المحطة التالية', noSelling: 'تبقى الروبوتات المعيّنة في خطها حتى إعادة التجميع البرمجي.', circuits: 'الدوائر', circuitsSubtitle: 'أربعة خطوط تكمل كل مستوى دائرة.', blueprints: 'المخططات والبرامج الثابتة', kernel: 'النواة / إعادة التجميع', achievements: 'إنجازات ميكانيكية', appearances: 'مظاهر الروبوت', available: 'متاح', all: 'الكل', global: 'عالمي', local: 'محلي', firmware: 'البرنامج الثابت', locked: 'مقفل', purchased: 'مثبّت', choose: 'تثبيت', kernelCores: 'أنوية Kernel', cores: 'أنوية', recompile: 'إعادة التجميع', recompileWarning: 'سيُعاد مخزون الروبوتات والخطوط والمخططات والبرامج الثابتة. تبقى النواة والاكتشافات والوكر العضوي.', cancel: 'إلغاء', confirm: 'تأكيد إعادة التجميع', maxed: 'الرتبة القصوى', equip: 'تجهيز', equipped: 'مجهز', factoryLedger: 'سجل المصنع', nextObjective: 'الهدف التالي', warrenStillProducing: 'يواصل وكرك الإنتاج بمعدل {rate}.', foundryCollection: 'مجموعة المسبك', achievementCount: '{done}/{total} إنجازات', blueprintFilters: 'مرشحات المخططات', currentKernel: 'النواة الحالية', recompileGain: 'مكسب إعادة التجميع', memoryTransfer: 'نقل الذاكرة', recompileQuestion: 'إعادة تجميع هذا المسبك؟', resets: 'يُعاد', preserves: 'يبقى', rank: 'الرتبة {rank} / {max}', rankAria: 'الرتبة {rank} من {max}', earned: 'مكتسبة', thisCompile: 'هذه التجميعة', allTimeRG: 'إجمالي RG', manualAssembly: 'التجميع اليدوي', bestStable: 'أفضل معدل ثابت /ث', kernelEarned: 'أنوية مكتسبة', recompiles: 'مرات إعادة التجميع', lineLocked: 'امتلك وحدة واحدة على الأقل من خط التجميع السابق لكشف هذه الآلة.', unbolted: 'بلا مسامير', masteryComplete: 'اكتملت الإتقان', nextBatchIn: 'الدفعة التالية بعد {duration}', assignToStart: 'عيّن روبوتات لبدء هذا الخط', assembled: 'تم تجميع {amount}', circuitAllClosed: 'أُغلقت المستويات الأربعة', circuitTier: 'المستوى {tier} / 4', circuitBringAll: 'ارفع الخطوط الأربعة إلى {amount}', circuitFullySynchronized: 'الدائرة متزامنة بالكامل', circuitShared: 'مشترك ×{factor}', circuitNeeded: '{name}: يلزم {amount}', circuitNoBottleneck: 'لا يوجد اختناق', localBlueprintDescription: 'ترقية أدوات لـ{line} تدوم لهذه التجميعة.', localBlueprintEffect: 'إنتاج الخط ×{factor}', localBlueprintRequirement: 'يتطلب امتلاك {amount} والمخطط المحلي السابق.', globalBlueprintDescription: 'تعليمات غرفة تحكم مشتركة تنتشر في كل خطوط التجميع النشطة.', globalBlueprintEffect: 'كل الإنتاج الميكانيكي ×{factor}', globalBlueprintRequirement: 'ثبّت المخطط العالمي السابق أولًا.', firmwareUnlock: 'يفتح عند إنتاج {amount} RG في هذه التجميعة', firmwareChoiceCommitted: 'الخيار ثابت حتى إعادة التجميع', nextCore: 'تبقى {amount} RG للنواة التالية', statusOverclocked: 'الضغط خارج الضمان', statusOnline: 'مهد التجميع يعمل', switchWarrenDetail: 'الإنتاج العضوي مستمر بمعدل {rate}/ث', objectiveStarter: 'عيّن المخزون الابتدائي إلى مهد صفيح واحد.', objectiveRecompile: 'أعد التجميع الآن مقابل +{amount} أنوية Kernel أو واصل التقدم.', objectiveMastery: 'ارفع {line} إلى {amount} للوصول إلى {mastery}.', objectiveComplete: 'أكمل Kernel وأغلق كل الدوائر.', ariaFactoryControls: 'تحكم مصنع الغوبلن الآلي', ariaAssemblyCradle: 'مهد تجميع الغوبلن الآلي', ariaAssemblyLines: 'خطوط تجميع الغوبلن الآلي', readyRG: 'RG جاهزة', averageShort: 'المتوسط /ث', resetItems: ['RG الجاهزة وإنتاج التجميعة', 'ملكية خطوط التجميع ومراحل الدفعات', 'المخططات وخيارات البرامج الثابتة', 'الشحنة وكسر السرعة النشط'], preservedItems: ['الوكر والميثاق الميكانيكي', 'رصيد Kernel والأنوية المكتسبة والمزايا', 'الإحصاءات الميكانيكية التاريخية', 'الإنجازات ومظاهر الروبوت'], circuitNames: { scrap: 'دائرة الخردة', steam: 'دائرة البخار', impossible: 'الدائرة المستحيلة' }, masteryNames: { Bolted: 'مثبّت', Calibrated: 'معاير', Synchronized: 'متزامن', 'Self-tooling': 'ذاتي الأدوات', Replicating: 'متكاثر', Distributed: 'موزع', Recursive: 'تكراري', 'Unreasonably Alive': 'حي بصورة غير معقولة' },
+  lines: { tin_cradle: { name: 'مهد الصفيح', description: 'علبة حساء بأقدام هزازة ووالد فخور.' }, windup_workbench: { name: 'منضدة الزنبرك', description: 'روبوتات صغيرة تشحن بعضها بمفاتيح مسروقة.' }, cutlery_press: { name: 'مكبس أدوات المائدة', description: 'أدوات منزلية تُطبع في أجسام صغيرة حادة.' }, magnet_nursery: { name: 'حضانة المغناطيس', description: 'مغناطيس يصطاد المواليد من بركة خردة.' }, boiler_brood: { name: 'حضنة الغلاية', description: 'أم فرن مع حضنة من أوعية الضغط.' }, punchcard_den: { name: 'وكر البطاقات المثقبة', description: 'آلات تتعلم الشقاوة من بطاقات ممضوغة.' }, servo_scriptorium: { name: 'دار نسخ المؤازرات', description: 'نساخ روبوتيون ينسخون الخطط أسرع مما يقرؤون.' }, walking_foundry: { name: 'المسبك الماشي', description: 'مصنع كامل على أرجل دجاج منحنية.' }, thunderhead_coil: { name: 'ملف العاصفة', description: 'عاصفة معبأة تصدر شهادات ميلاد.' }, moonwire_loom: { name: 'نول سلك القمر', description: 'ضوء القمر يُنسج في هياكل معدنية.' }, clockwyrm_assembly: { name: 'تجميع تنين الساعة', description: 'تنين من التروس يسعل خطوط تجميع.' }, paradox_nest: { name: 'عش المفارقة', description: 'روبوتات المستقبل تجمع أسلافها.' } },
+  blueprintTiers: { stolen_plans: 'مخططات مسروقة', self_inspection: 'فحص ذاتي', recursive_tooling: 'أدوات تكرارية' }, globalBlueprints: { common_thread: 'الخيط المشترك', standard_sockets: 'مقابس قياسية', distributed_mischief: 'شقاوة موزعة', factory_remembers: 'المصنع يتذكر', illegal_recursion: 'تكرار غير قانوني', birth_without_permission: 'ولادة بلا إذن' }, kernelPerks: { better_bolts: { name: 'مسامير أفضل', description: 'مثبتات أشد تحسن كل الخطوط الميكانيكية السلبية.' }, boot_cache: { name: 'ذاكرة الإقلاع', description: 'احتفظ ببعض الروبوتات الجاهزة بين مرات إعادة التجميع؛ كل رتبة تمنح أيضًا 100 RG فورًا.' }, night_shift: { name: 'الوردية الليلية', description: 'علّم المسبك أن يهدر عملًا أقل عند غياب المتصفح.' }, deep_battery: { name: 'بطارية عميقة', description: 'خلايا أكبر تمدد نافذة الإنتاج الميكانيكي دون اتصال.' }, copper_memory: { name: 'ذاكرة نحاسية', description: 'تتذكر الدوائر المكتملة كيف تتعاون بكفاءة أكبر.' }, warm_start: { name: 'بدء دافئ', description: 'يشحن المكثف مسبقًا بعد إعادة التجميع؛ كل رتبة تمنح أيضًا 30 شحنة فورًا.' }, finger_servos: { name: 'مؤازرات الأصابع', description: 'تجميع يدوي أسرع دون تغيير إنتاج الدفعات الآلي.' }, family_adapter: { name: 'مهايئ العائلة', description: 'يحوّل معرفة الآلة إلى جسر إنتاج صغير محدود نحو الوكر.' } }, firmwareGroups: { control: 'منطق التحكم', cadence: 'إيقاع الدفعات' }, firmwareOptions: { clock: { name: 'إجماع الساعة', description: 'يفضل تدفقًا موثوقًا بلا إشراف.' }, spark: { name: 'شخصية الشرارة', description: 'يوجه مزيدًا من إنتاج المصنع إلى التجميع اليدوي.' }, quick: { name: 'مزاليج التحرير السريع', description: 'يقلل الفواصل دون تغيير متوسط الإنتاج.' }, heavy: { name: 'بروتوكول الدفعة الثقيلة', description: 'ينتظر أطول مقابل خط ثابت أقوى.' } }, appearancesCopy: { tin_rascal: { name: 'مشاغب الصفيح', description: 'صدر علبة، أصابع شوك، وابتسامة محفورة في الصفائح.' }, boiler_baron: { name: 'بارون الغلاية', description: 'عدسة مقياس ضغط وتاج مدخنة وقلب غلاية دافئ.', unlock: 'أغلق المستوى الأول من دائرة البخار.' }, clockwork_ancestor: { name: 'سلف الساعة', description: 'أقراص ذاكرة نحاسية وهالة تروس ورداء دوائر بنفسجي مرقع.', unlock: 'امتلك عش مفارقة.' } }, achievementsCopy: { rg_first_spark: { name: 'لديه آراء', description: 'جمّع غوبلنًا آليًا يدويًا.' }, rg_unattended: { name: 'مشكلة شخص آخر', description: 'امتلك مهد صفيح.' }, rg_bolted: { name: 'شد حتى يشتكي', description: 'امتلك 10 من أي خط.' }, rg_scrap_circuit: { name: 'فكرة سيئة مكتملة', description: 'أغلق المستوى الأول من دائرة الخردة.' }, rg_first_million: { name: 'مليون برغي مفكوك', description: 'سلّم مليون غوبلن آلي تاريخيًا.' }, rg_overclock: { name: 'الدخان ميزة', description: 'فعّل كسر السرعة.' }, rg_firmware: { name: 'الآلة تعترض', description: 'اختر برنامج منطق التحكم.' }, rg_recompile: { name: 'تذكر المهم', description: 'أكمل إعادة تجميع واحدة.' }, rg_steam_circuit: { name: 'اتحاد الغلايات', description: 'أغلق المستوى الأول من دائرة البخار.' }, rg_three_circuits: { name: 'كل شيء متصل', description: 'أغلق المستوى الأول للدوائر الثلاث في تجميعة واحدة.' }, rg_paradox: { name: 'حفيدك بناك', description: 'امتلك عش مفارقة.' }, rg_kernel_complete: { name: 'إله صغير جدًا', description: 'بلغ الحد الأقصى لمسارات Kernel الثمانية.' } },
+};
+
+const TR: RoboCopy = {
+  ...EN,
+  foundry: 'Ruhsatsız dökümhane', foundrySubtitle: 'Ruhsatsız mekanik dökümhane', switchToWarren: 'İne dön', switchToRobo: 'RoboGoblinlere gir', lockedFrontier: 'Mekanik Sözleşme gerekli', ready: 'Hazır RoboGoblinler', inAssembly: 'Montajda', average: 'Saniyelik ortalama montaj', assemble: 'Monte et', assembleAria: 'Monte et · +{amount} RoboGoblin', eachPress: 'Her basış', charge: 'Şarj', charging: 'Şarj oluyor', overclock: 'Hız Aşırtma', overclockDetail: '30 sn boyunca çift pasif montaj', overclockRemaining: '{duration} kaldı · pasif ×2', overclockReady: 'Kapasitör dolu · 30 sn pasif ×2', chargeUntilReady: 'Hazır olmak için {amount} Şarj daha', assemblyLines: 'Montaj hatları', purchaseQuantity: 'Satın alma miktarı', max: 'Maks.', buy: '{count} satın al', buyMax: 'Maksimum satın al', nextMilestone: 'Sonraki dönüm noktası', noSelling: 'Atanan robotlar Yeniden Derlemeye kadar hatlarında kalır.', circuits: 'Devreler', circuitsSubtitle: 'Her devre kademesini dört hat tamamlar.', blueprints: 'Planlar ve ürün yazılımı', kernel: 'Kernel / Yeniden Derle', achievements: 'Mekanik başarımlar', appearances: 'Robot görünümleri', available: 'Uygun', all: 'Tümü', global: 'Küresel', local: 'Yerel', firmware: 'Ürün yazılımı', locked: 'Kilitli', purchased: 'Kurulu', choose: 'Kur', kernelCores: 'Kernel Çekirdekleri', cores: 'çekirdek', recompile: 'Yeniden Derle', recompileWarning: 'Robot stoğun, hatların, planların ve ürün yazılımın sıfırlanır. Kernel, keşifler ve organik İn kalır.', cancel: 'İptal', confirm: 'Yeniden Derlemeyi Onayla', maxed: 'Maksimum rütbe', equip: 'Kuşan', equipped: 'Kuşanıldı', factoryLedger: 'Fabrika defteri', nextObjective: 'Sonraki hedef', warrenStillProducing: 'İnin hâlâ {rate} üretiyor.', foundryCollection: 'Dökümhane koleksiyonu', achievementCount: '{done}/{total} başarım', blueprintFilters: 'Plan filtreleri', currentKernel: 'Mevcut Kernel', recompileGain: 'Yeniden Derleme kazancı', memoryTransfer: 'Hafıza aktarımı', recompileQuestion: 'Bu dökümhane yeniden derlensin mi?', resets: 'Sıfırlanır', preserves: 'Korunur', rank: 'Rütbe {rank} / {max}', rankAria: '{max} içinde {rank}. rütbe', earned: 'kazanıldı', thisCompile: 'Bu derleme', allTimeRG: 'Tüm zaman RG', manualAssembly: 'Elle montaj', bestStable: 'En iyi sabit /sn', kernelEarned: 'Kernel kazanımı', recompiles: 'Yeniden derlemeler', lineLocked: 'Bu makineyi açmak için önceki montaj hattından en az bir tane edin.', unbolted: 'Cıvatasız', masteryComplete: 'Ustalık tamam', nextBatchIn: 'Sonraki parti {duration} sonra', assignToStart: 'Bu hattı başlatmak için robot ata', assembled: '{amount} monte edildi', circuitAllClosed: 'Dört kademenin tümü kapalı', circuitTier: 'Kademe {tier} / 4', circuitBringAll: 'Dört hattı da {amount} seviyesine getir', circuitFullySynchronized: 'Devre tamamen senkronize', circuitShared: 'Ortak ×{factor}', circuitNeeded: '{name}: {amount} gerekli', circuitNoBottleneck: 'Darboğaz yok', localBlueprintDescription: '{line} için bu derleme boyunca geçerli takım yükseltmesi.', localBlueprintEffect: 'Hat üretimi ×{factor}', localBlueprintRequirement: '{amount} sahiplik ve önceki yerel plan gerekir.', globalBlueprintDescription: 'Tüm aktif montaj hatlarına yayılan ortak kontrol odası talimatları.', globalBlueprintEffect: 'Tüm mekanik üretim ×{factor}', globalBlueprintRequirement: 'Önce önceki küresel planı kur.', firmwareUnlock: 'Bu derlemede {amount} RG üretildiğinde açılır', firmwareChoiceCommitted: 'Seçim Yeniden Derlemeye kadar sabit', nextCore: 'Sonraki Çekirdeğe {amount} RG kaldı', statusOverclocked: 'Basınç garanti dışında', statusOnline: 'Montaj beşiği çevrimiçi', switchWarrenDetail: 'Organik üretim {rate}/sn hızında sürüyor', objectiveStarter: 'Başlangıç stoğunu bir Teneke Beşiğe ata.', objectiveRecompile: 'Şimdi +{amount} Kernel Çekirdeği için yeniden derle veya devam et.', objectiveMastery: '{line} hattını {amount} seviyesine getir: {mastery}.', objectiveComplete: 'Kernel’i tamamla ve tüm devreleri kapat.', ariaFactoryControls: 'RoboGoblin fabrika kontrolleri', ariaAssemblyCradle: 'RoboGoblin montaj beşiği', ariaAssemblyLines: 'RoboGoblin montaj hatları', readyRG: 'Hazır RG', averageShort: 'Ortalama /sn', resetItems: ['Hazır RG ve derleme üretimi', 'Montaj hattı sahipliği ve parti evreleri', 'Planlar ve ürün yazılımı seçimleri', 'Şarj ve etkin Hız Aşırtma'], preservedItems: ['İn ve Mekanik Sözleşme', 'Kernel bakiyesi, kazanılmış Çekirdekler ve avantajlar', 'Mekanik yaşam boyu istatistikleri', 'Başarımlar ve robot görünümleri'], circuitNames: { scrap: 'Hurda Devresi', steam: 'Buhar Devresi', impossible: 'İmkânsız Devre' }, masteryNames: { Bolted: 'Cıvatalı', Calibrated: 'Kalibreli', Synchronized: 'Senkronize', 'Self-tooling': 'Kendi Takımlı', Replicating: 'Çoğalan', Distributed: 'Dağıtık', Recursive: 'Özyinelemeli', 'Unreasonably Alive': 'Mantıksızca Canlı' },
+  lines: { tin_cradle: { name: 'Teneke Beşik', description: 'Sallanan ayaklı bir çorba tenekesi ve gururlu bir ebeveyn.' }, windup_workbench: { name: 'Kurmalı Tezgâh', description: 'Minik robotlar çalıntı anahtarlarla birbirini kuruyor.' }, cutlery_press: { name: 'Çatal Bıçak Presi', description: 'Ev tipi çatal bıçaklar sivri küçük bedenlere basılıyor.' }, magnet_nursery: { name: 'Mıknatıs Yuvası', description: 'Mıknatıslar hurda göletinden yenidoğan avlıyor.' }, boiler_brood: { name: 'Kazan Kuluçkası', description: 'Basınç kaplarıyla çevrili bir fırın anası.' }, punchcard_den: { name: 'Delikli Kart İni', description: 'Makineler çiğnenmiş kartlardan yaramazlık öğreniyor.' }, servo_scriptorium: { name: 'Servo Yazıhanesi', description: 'Robot kâtipler planları okuyabileceklerinden hızlı kopyalıyor.' }, walking_foundry: { name: 'Yürüyen Dökümhane', description: 'Eğri tavuk bacakları üstünde bütün bir fabrika.' }, thunderhead_coil: { name: 'Fırtına Bobini', description: 'Şişelenmiş bir fırtına doğum belgeleri düzenliyor.' }, moonwire_loom: { name: 'Ay Teli Tezgâhı', description: 'Ay ışığı metal iskeletlere dokunuyor.' }, clockwyrm_assembly: { name: 'Saat Ejderi Montajı', description: 'Dişli bir ejder montaj hatları öksürüyor.' }, paradox_nest: { name: 'Paradoks Yuvası', description: 'Gelecek robotları kendi atalarını monte ediyor.' } },
+  blueprintTiers: { stolen_plans: 'Çalıntı Planlar', self_inspection: 'Öz Denetim', recursive_tooling: 'Özyinelemeli Takım' }, globalBlueprints: { common_thread: 'Ortak İplik', standard_sockets: 'Standart Yuvalar', distributed_mischief: 'Dağıtık Yaramazlık', factory_remembers: 'Fabrika Hatırlar', illegal_recursion: 'Yasadışı Özyineleme', birth_without_permission: 'İzinsiz Doğum' }, kernelPerks: { better_bolts: { name: 'Daha İyi Cıvatalar', description: 'Daha sıkı bağlantılar tüm mekanik pasif hatları geliştirir.' }, boot_cache: { name: 'Önyükleme Önbelleği', description: 'Yeniden derlemeler arasında biraz hazır robot sakla; her rütbe ayrıca hemen 100 RG verir.' }, night_shift: { name: 'Gece Vardiyası', description: 'Dökümhaneye tarayıcı uzaktayken daha az iş ziyan etmeyi öğret.' }, deep_battery: { name: 'Derin Batarya', description: 'Daha büyük hücreler mekanik çevrimdışı üretim penceresini uzatır.' }, copper_memory: { name: 'Bakır Hafıza', description: 'Tamamlanan devreler daha verimli iş birliğini hatırlar.' }, warm_start: { name: 'Sıcak Başlangıç', description: 'Yeniden Derlemeden sonra kapasitörü önceden şarj eder; her rütbe ayrıca hemen 30 Şarj verir.' }, finger_servos: { name: 'Parmak Servoları', description: 'Otomatik parti üretimini değiştirmeden daha hızlı elle montaj.' }, family_adapter: { name: 'Aile Adaptörü', description: 'Makine bilgisini İn üretimine küçük, sınırlı bir köprüye çevirir.' } }, firmwareGroups: { control: 'Kontrol mantığı', cadence: 'Parti ritmi' }, firmwareOptions: { clock: { name: 'Saat Mekanizması Uzlaşısı', description: 'Güvenilir gözetimsiz üretimi tercih eder.' }, spark: { name: 'Kıvılcım Kişiliği', description: 'Daha fazla fabrika üretimini elle montaja yönlendirir.' }, quick: { name: 'Hızlı Bırakma Mandalları', description: 'Ortalama üretimi değiştirmeden aralıkları kısaltır.' }, heavy: { name: 'Ağır Parti Protokolü', description: 'Daha güçlü sabit hat için daha uzun bekler.' } }, appearancesCopy: { tin_rascal: { name: 'Teneke Yaramaz', description: 'Konserve göğüs, çatal parmaklar ve sac üzerine kesilmiş sırıtış.' }, boiler_baron: { name: 'Kazan Baronu', description: 'Basınç göstergeli monokl, soba borusu tacı ve sıcak kazan kalbi.', unlock: 'Buhar Devresinin ilk kademesini kapat.' }, clockwork_ancestor: { name: 'Saat Mekanizması Atası', description: 'Pirinç hafıza diskleri, dişli hale ve yamalı lila devre cübbesi.', unlock: 'Bir Paradoks Yuvasına sahip ol.' } }, achievementsCopy: { rg_first_spark: { name: 'Fikirleri Var', description: 'Elle bir RoboGoblin monte et.' }, rg_unattended: { name: 'Başkasının Sorunu', description: 'Bir Teneke Beşiğe sahip ol.' }, rg_bolted: { name: 'Şikâyet Edene Kadar Sık', description: 'Herhangi bir hatta 10 sahipliğe ulaş.' }, rg_scrap_circuit: { name: 'Eksiksiz Kötü Bir Fikir', description: 'Hurda Devresinin ilk kademesini kapat.' }, rg_first_million: { name: 'Bir Milyon Gevşek Vida', description: 'Toplam bir milyon RoboGoblin teslim et.' }, rg_overclock: { name: 'Duman Bir Özelliktir', description: 'Hız Aşırtmayı etkinleştir.' }, rg_firmware: { name: 'Makine İtiraz Ediyor', description: 'Kontrol mantığı ürün yazılımı seç.' }, rg_recompile: { name: 'Önemli Kısımları Hatırla', description: 'Bir Yeniden Derleme tamamla.' }, rg_steam_circuit: { name: 'Kazanlar Birliği', description: 'Buhar Devresinin ilk kademesini kapat.' }, rg_three_circuits: { name: 'Her Şey Bağlı', description: 'Tek derlemede üç devrenin de ilk kademesini kapat.' }, rg_paradox: { name: 'Torunun Seni İnşa Etti', description: 'Bir Paradoks Yuvasına sahip ol.' }, rg_kernel_complete: { name: 'Çok Küçük Bir Tanrı', description: 'Sekiz Kernel yolunun tamamını maksimuma çıkar.' } },
+};
+
+const COPY: Record<LanguageCode, RoboCopy> = { en: EN, es: ES, zh: ZH, fr: FR, de: DE, ar: AR, tr: TR };
+
+export const ROBO_COPY = EN;
+
+export function getRoboCopy(language: LanguageCode): RoboCopy {
+  return COPY[language] ?? EN;
+}
+
+export function formatRobo(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, token: string) => String(values[token] ?? `{${token}}`));
+}

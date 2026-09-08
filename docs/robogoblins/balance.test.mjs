@@ -4,7 +4,7 @@ import { TUNING, LINES, MILESTONES, KERNEL_PERKS, createState, corePotential, co
   perkCost, mastery, circuitLevels, rates, totalRate, clickPower, bulkCost, integrateLine, advance, recompile, simulate } from './balance-model.mjs';
 
 const near = (a, b) => assert.ok(Math.abs(a - b) <= Math.max(1e-7, Math.abs(b) * 1e-10), `${a} ≈ ${b}`);
-test('charter gate maps to existing lifetime prestige, not remaining wallet', () => {
+test('organic Cunning threshold helper maps lifetime prestige independently of remaining wallet', () => {
   assert.equal(cunningThreshold(TUNING.permitLifetimeCunning), 31_250_000_000_000);
   assert.equal(Math.floor(Math.sqrt(cunningThreshold(2500) / 5000000)), 2500);
   assert.equal(TUNING.permitCost / TUNING.permitLifetimeCunning, 0.04);

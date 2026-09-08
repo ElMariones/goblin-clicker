@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Icon } from '../Icon';
-import { ROBO_COPY } from '../../i18n/robogoblins';
+import { useI18n } from '../../i18n';
+import { formatRobo, getRoboCopy } from '../../i18n/robogoblins';
 
 export interface RoboAssemblyStageProps {
   readyLabel: string;
@@ -27,8 +28,10 @@ function clamp01(value: number) { return Math.max(0, Math.min(1, Number.isFinite
 export function RoboAssemblyStage({
   readyLabel, averagePerSecondLabel, inAssemblyLabel, clickPowerLabel, robotImageSrc, robotAppearanceName,
   charge, maxCharge, overclockActive, overclockStatusLabel, canOverclock, onAssemble, onOverclock,
-  kicker = ROBO_COPY.foundry, statusLabel = ROBO_COPY.world, worldSwitch, effectsLayer,
+  kicker, statusLabel, worldSwitch, effectsLayer,
 }: RoboAssemblyStageProps) {
+  const { language } = useI18n();
+  const copy = getRoboCopy(language);
   const safeMaxCharge = Math.max(1, maxCharge);
   const safeCharge = Math.max(0, Math.min(safeMaxCharge, charge));
   const chargePercent = clamp01(safeCharge / safeMaxCharge) * 100;
@@ -36,16 +39,16 @@ export function RoboAssemblyStage({
     <section className={`robo-assembly-stage${overclockActive ? ' is-overclocked' : ''}`} aria-labelledby="robo-stage-heading" data-testid="robo-assembly-stage">
       <span className="robo-assembly-stage__plate-seam" aria-hidden="true" />
       <header className="robo-assembly-stage__heading">
-        <span>{kicker}</span>
-        <h1 id="robo-stage-heading">{statusLabel}</h1>
+        <span>{kicker ?? copy.foundry}</span>
+        <h1 id="robo-stage-heading">{statusLabel ?? copy.world}</h1>
       </header>
       <div className="robo-assembly-stage__wallet">
-        <span>{ROBO_COPY.ready}</span>
+        <span>{copy.ready}</span>
         <strong>{readyLabel}</strong>
-        <small>+{averagePerSecondLabel}/s · {ROBO_COPY.inAssembly}: {inAssemblyLabel}</small>
+        <small>+{averagePerSecondLabel}/s · {copy.inAssembly}: {inAssemblyLabel}</small>
       </div>
 
-      <div className="robo-cradle" aria-label={`${ROBO_COPY.assemble} · +${clickPowerLabel} RoboGoblins`}>
+      <div className="robo-cradle" aria-label={formatRobo(copy.assembleAria, { amount: clickPowerLabel })}>
         <span className="robo-cradle__gantry robo-cradle__gantry--left" aria-hidden="true" />
         <span className="robo-cradle__gantry robo-cradle__gantry--right" aria-hidden="true" />
         <span className="robo-cradle__wire robo-cradle__wire--one" aria-hidden="true" />
@@ -54,7 +57,7 @@ export function RoboAssemblyStage({
           <span className="robo-cradle__jig" aria-hidden="true" />
           <span className="robo-cradle__heart" aria-hidden="true" />
           <img src={robotImageSrc} alt="" draggable={false} />
-          <span className="robo-cradle__cta">{ROBO_COPY.assemble} <strong>+{clickPowerLabel}</strong></span>
+          <span className="robo-cradle__cta">{copy.assemble} <strong>+{clickPowerLabel}</strong></span>
         </button>
         <span className="robo-cradle__appearance" aria-hidden="true">{robotAppearanceName}</span>
         {effectsLayer}
@@ -62,19 +65,18 @@ export function RoboAssemblyStage({
 
       <div className="robo-charge-panel">
         <div className="robo-charge-panel__meter">
-          <div className="robo-charge-panel__labels"><span>{ROBO_COPY.charge}</span><strong>{Math.floor(safeCharge)}/{safeMaxCharge}</strong></div>
-          <div className="robo-progress" role="progressbar" aria-label={ROBO_COPY.charge} aria-valuemin={0} aria-valuemax={safeMaxCharge} aria-valuenow={safeCharge}>
+          <div className="robo-charge-panel__labels"><span>{copy.charge}</span><strong>{Math.floor(safeCharge)}/{safeMaxCharge}</strong></div>
+          <div className="robo-progress" role="progressbar" aria-label={copy.charge} aria-valuemin={0} aria-valuemax={safeMaxCharge} aria-valuenow={safeCharge}>
             <span style={{ width: `${chargePercent}%` }} />
           </div>
         </div>
         <button className="robo-overclock" type="button" onClick={onOverclock} disabled={!canOverclock || overclockActive} aria-pressed={overclockActive}>
           <span className="robo-overclock__icon" aria-hidden="true"><Icon name="sparkles" size={18} /></span>
-          <span><strong>{ROBO_COPY.overclock}</strong><small>{overclockStatusLabel || ROBO_COPY.overclockDetail}</small></span>
+          <span><strong>{copy.overclock}</strong><small>{overclockStatusLabel || copy.overclockDetail}</small></span>
         </button>
       </div>
-      <div className="robo-click-readout"><Icon name="click" size={16} /><span>{ROBO_COPY.eachPress}</span><strong>+{clickPowerLabel} RG</strong></div>
+      <div className="robo-click-readout"><Icon name="click" size={16} /><span>{copy.eachPress}</span><strong>+{clickPowerLabel} RG</strong></div>
       {worldSwitch}
     </section>
   );
 }
-

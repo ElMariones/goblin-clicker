@@ -18,7 +18,7 @@ import {
   getPermanentUpgradeCost,
   getPrestigeShardGain,
 } from './math';
-import { clampResource, createEmptyBuildings, creditGoblins } from './state';
+import { clampResource, createEmptyBuildings, creditGoblins, ensureRobogoblinsEligibility } from './state';
 import type { BuildingId, ContractInstance, ContractKind, GameState, PermanentUpgradeId } from './types';
 import { awardRoboAchievements } from './robo/achievements';
 import { advanceRoboBetween } from './robo/production';
@@ -37,6 +37,7 @@ export interface ContractClaimResult {
 }
 
 function awardAchievements(state: GameState, now: number): GameState {
+  state = ensureRobogoblinsEligibility(state);
   const unlocked = getNewlyUnlockedAchievements(state, now);
   const additions = Object.fromEntries(unlocked.map((id) => [id, now]));
   let next = unlocked.length === 0

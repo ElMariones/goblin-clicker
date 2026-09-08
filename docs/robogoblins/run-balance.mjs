@@ -89,9 +89,7 @@ All eight permanent tracks total **${number(maxPerksCost)} cores**. Maxing them 
 
 ## Entry price in the current game
 
-The Mechanical Charter costs 100 unspent Ancestral Cunning, requires 2,500 earned Cunning and three completed Great Migrations. The earned-Cunning gate corresponds to **${number(cunningThreshold(2500))} lifetime organic goblins** under the current formula. At that gate the price consumes 4% of the minimum earned total, provided the player has kept 100 unspent. This is a resource gate, not a claimed number of play hours. The existing game economy and its event luck were not simulated here.
-
-Sensitivity: 500 earned Cunning means ${number(cunningThreshold(500))} goblins; 1,000 means ${number(cunningThreshold(1000))}; 5,000 means ${number(cunningThreshold(5000))}. Raising the gate from 2,500 to 5,000 quadruples the lifetime requirement. The draft uses 2,500 so entry follows meaningful original-warren investment without demanding 100 of every original expansion.
+The Mechanical Charter costs 100 current Ancestral Cunning after the player has revealed all twelve default Warren buildings. That reveal is latched permanently, so a later Great Migration cannot hide the purchase option again. There is no migration-count or total-earned-Cunning gate. This report therefore treats entry timing as an organic-game progression/playtest question rather than deriving it from a Cunning threshold.
 
 ## Analytic checks
 

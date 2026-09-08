@@ -26,21 +26,21 @@ Twelve assembly expansions; eight ownership milestones each; three circuits with
 
 There is no recurring robot contract board, random disaster, upkeep debt, multiplayer market or third spendable currency in this release. Keep attention focused on building, batch timing, circuit completion and reset decisions. Later ideas are listed at the end and are not required to finish this chapter.
 
-## 3. Entry through Great Migration
+## 3. Entry after discovering the full Warren
 
-Add a **New frontiers** section to the existing Great Migration modal, above its ranked bloodline perks. Its first item is:
+The mirrored top-right RoboGoblins control is the only purchase entry point. Before the frontier is discovered it is subdued and explains that every default Warren building must first be revealed. Once the player has revealed the complete twelve-building roster, permanently latch RoboGoblins purchase eligibility. A later Great Migration may reset current building ownership, but it must never remove that eligibility.
 
-> **Mechanical Charter** — 100 Ancestral Cunning  
-> Open the RoboGoblins foundry. Your Warren continues producing.  
-> Requires 3 completed migrations and 2,500 total Cunning earned.
+Clicking the eligible top-right control opens a compact purchase popup:
 
-Use three independent requirements: `resets >= 3`, `totalShardsEarned >= 2500`, `shards >= 100`. All must pass at the action timestamp. The total-earned gate corresponds to 31.25 trillion lifetime organic goblins under the current formula. It suggests prior experience with the original late economy without requiring a particular currently owned building after a reset. Show exact progress toward each requirement; the price is not an extra 100 earned-Cunning threshold.
+> **Mechanical Charter** — 100 Ancestral Cunning
+> Open the RoboGoblins foundry. Your Warren continues producing in parallel.
+> Requires every default Warren building to have been discovered at least once.
 
-Reveal the locked frontier card and a subdued locked tab after the first Great Migration. Before then, keep the original interface uncluttered. Clicking the locked tab opens the Charter detail, not an empty second game. On purchase, subtract 100 from the wallet, preserve total earned Cunning, create mechanical state once, persist immediately, and highlight the now-available tab. Keep the player in the current modal with **Enter RoboGoblins** as the next action; do not force navigation.
+There is no migration-count or lifetime-earned-Cunning requirement. At purchase time the only remaining economic check is `shards >= 100`. On success, subtract 100 from the current wallet, preserve total earned Cunning, create mechanical state once and persist immediately. Keep **Enter RoboGoblins** as the next explicit action rather than forcing navigation.
 
 The purchase is a permanent entitlement, not a rank, migration or reset. No organic resources or buildings are consumed except the stated Cunning price. Repeated clicks return a no-op after success. No further entrance fee. Switching tabs never resets, pauses or converts anything.
 
-Treat 2,500 earned Cunning as a draft progression gate. It is mathematically grounded in the current formula, but time-to-entry in the organic game remains a playtest question.
+The building-roster gate makes the frontier a direct reward for seeing the complete default expansion rather than for hitting an abstract prestige counter. Hover/focus text and the purchase popup should state both the requirement and that eligibility survives future resets.
 
 ## 4. Currencies and accounting language
 

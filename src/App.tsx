@@ -1,6 +1,7 @@
 import { ExpeditionEntry, ExpeditionMap } from './components/ExpeditionMap';
 import { startExpedition, cancelExpedition, claimExpedition, creditGoblins, getClaimableExpeditionReward, getExpeditionReservation } from './game';
 import { EXPEDITION_COPY } from './i18n/expeditions';
+import { formatRoboUnlock, getRoboUnlockCopy } from './i18n/roboUnlock';
 import { RoboGameWorld, RoboWorldSwitch, type RoboBuyAmount } from './components/robo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -11,6 +12,7 @@ import {
   FloatingNumbers,
   GameShell,
   Icon,
+  Modal,
   MoonDial,
   MoonDialModal,
   PrestigeModal,
@@ -28,10 +30,10 @@ import {
   type ToastView,
 } from './components';
 import {
-  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, COSMETICS, COSMETIC_BY_ID, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
-  createInitialGameState, deserializeGame, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
+  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, COSMETICS, COSMETIC_BY_ID, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchaseMechanicalCharter, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
+  createInitialGameState, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
   getContractProgress, getContractRewardAmount, getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
-  getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, performPrestigeReset,
+  getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, isWarrenBuildingRevealed, performPrestigeReset,
   equipCosmetic, importGameSave, isContractComplete, purchaseBuilding, purchaseCosmetic, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
   type BuildingId, type ContractKind, type CosmeticId, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
@@ -60,6 +62,8 @@ import {
 } from './game';
 import { playSound } from './audio';
 import { BackgroundMusicPlayer, MUSIC_TRACKS } from './music';
+import { createBrowserSaveOwnership, type SaveOwnershipSnapshot } from './browser/saveOwnership';
+import { loadStoredGame, type SaveLoadWarning } from './browser/saveLifecycle';
 import {
   I18nProvider, detectPreferredLanguage, formatCompact, getLanguageMeta, isLanguageCode, localizedName, localizedPerkDescription, translate,
   type LanguageCode, type TranslationKey,
@@ -71,10 +75,12 @@ import './App.css';
 const SAVE_KEY = 'goblin-clicker.save';
 const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'goblin-clicker.save.v1'] as const;
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | null;
+const SAVE_OWNERSHIP = createBrowserSaveOwnership(SAVE_KEY);
+const INITIAL_SAVE_OWNERSHIP = SAVE_OWNERSHIP.claimInitial(Date.now());
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | 'roboUnlock' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
-type WarningCode = 'storageUnavailable' | 'unreadable' | null;
+type WarningCode = SaveLoadWarning;
 interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; language: LanguageCode; activeWorld: WorldId }
 type ResetEffect = 'prestige-vacuum' | null;
 
@@ -113,28 +119,18 @@ function loadSettings(): UiSettings {
   }
 }
 
-function loadInitialState(): { state: GameState; offline: number; warning: WarningCode } {
+function loadStoredState(applyOffline: boolean): { state: GameState; offline: number; warning: WarningCode } {
   const now = Date.now();
-  let raw: string | null;
   try {
-    raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) {
-      for (const legacyKey of LEGACY_SAVE_KEYS) {
-        raw = localStorage.getItem(legacyKey);
-        if (raw) break;
-      }
-    }
+    const loaded = loadStoredGame(localStorage, SAVE_KEY, LEGACY_SAVE_KEYS, now, applyOffline);
+    return { state: loaded.state, offline: loaded.offline, warning: loaded.warning };
+  } catch {
+    return { state: createInitialGameState(now), offline: 0, warning: 'storageUnavailable' };
   }
-  catch { return { state: createInitialGameState(now), offline: 0, warning: 'storageUnavailable' }; }
-  if (!raw) return { state: createInitialGameState(now), offline: 0, warning: null };
-  try {
-    const loaded = deserializeGame(raw, now);
-    const offline = applyOfflineProgress(loaded.state, now);
-    return { state: offline.state, offline: offline.progress.goblinsProduced, warning: null };
-  } catch (error) {
-    console.error('Unable to load save:', error);
-    return { state: createInitialGameState(now), offline: 0, warning: 'unreadable' };
-  }
+}
+
+function loadInitialState() {
+  return loadStoredState(INITIAL_SAVE_OWNERSHIP.role !== 'secondary');
 }
 
 function buildingArtPath(id: BuildingId): string { return buildingArtAsset(id); }
@@ -148,6 +144,7 @@ function App() {
   const [toasts, setToasts] = useState<ToastView[]>([]);
   const [floating, setFloating] = useState<FloatingNumberView[]>([]);
   const [saveStatus, setSaveStatus] = useState('');
+  const [saveOwnership, setSaveOwnership] = useState<SaveOwnershipSnapshot>(INITIAL_SAVE_OWNERSHIP);
   const [contractRewardNotice, setContractRewardNotice] = useState<string | null>(null);
   const [contractRewardFxKey, setContractRewardFxKey] = useState(0);
   const [resetEffect, setResetEffect] = useState<ResetEffect>(null);
@@ -159,12 +156,14 @@ function App() {
   const resetOverlayRef = useRef<HTMLDivElement>(null);
   const contractNoticeTimer = useRef<number | null>(null);
   const gameRef = useRef(game);
+  const saveOwnershipRef = useRef(saveOwnership);
   const previousAchievements = useRef(game.unlockedAchievements);
   const previousRoboAchievements = useRef(game.robo?.achievements ?? {});
   const bootToastShown = useRef(false);
   const musicPlayerRef = useRef<BackgroundMusicPlayer | null>(null);
 
   const language = settings.language;
+  const roboUnlockCopy = getRoboUnlockCopy(language);
   const activeWorld: WorldId = settings.activeWorld === 'robogoblins' && game.unlocks.robogoblins && game.robo ? 'robogoblins' : 'warren';
   const locale = getLanguageMeta(language).locale;
   const t = useCallback((key: TranslationKey, values?: Record<string, string | number>) => translate(language, key, values), [language]);
@@ -176,7 +175,21 @@ function App() {
   useEffect(() => {
     if (!resetInProgress.current) gameRef.current = game;
   }, [game]);
-  const commitGame = useCallback((next: GameState) => { gameRef.current = next; setGame(next); }, []);
+  const replaceGame = useCallback((next: GameState) => { gameRef.current = next; setGame(next); }, []);
+  const commitGame = useCallback((next: GameState) => {
+    if (!SAVE_OWNERSHIP.canWrite(Date.now())) return false;
+    replaceGame(next);
+    return true;
+  }, [replaceGame]);
+  const persistOwnedSave = useCallback((state: GameState, savedAt: number) => {
+    if (!SAVE_OWNERSHIP.canWrite(savedAt)) return false;
+    try {
+      localStorage.setItem(SAVE_KEY, serializeGame(state, savedAt));
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
   useEffect(() => () => {
     resetTimers.current.forEach((timer) => window.clearTimeout(timer));
     resetTimers.current = [];
@@ -218,6 +231,47 @@ function App() {
     if (boot.offline > 0.5) addToast({ title: t('offline.title'), message: t('offline.message', { amount: fmtNumber(boot.offline) }), icon: 'cps', tone: 'success' });
     if (boot.warning) addToast({ title: t('save.notice'), message: t(boot.warning === 'storageUnavailable' ? 'save.storageUnavailable' : 'save.unreadable'), icon: 'settings' });
   }, [addToast, boot.offline, boot.warning, fmtNumber, t]);
+
+  const acceptOwnershipSnapshot = useCallback((snapshot: SaveOwnershipSnapshot) => {
+    const previous = saveOwnershipRef.current;
+    saveOwnershipRef.current = snapshot;
+    setSaveOwnership(snapshot);
+    if (previous.role !== 'secondary' && snapshot.role === 'secondary') {
+      // Another document now owns the lease. Drop any unsaved local divergence
+      // and mirror the latest persisted snapshot without accruing offline time.
+      resetTimers.current.forEach((timer) => window.clearTimeout(timer));
+      resetTimers.current = [];
+      resetInProgress.current = false;
+      setResetEffect(null);
+      setModal(null);
+      replaceGame(loadStoredState(false).state);
+    }
+  }, [replaceGame]);
+
+  useEffect(() => SAVE_OWNERSHIP.start(acceptOwnershipSnapshot), [acceptOwnershipSnapshot]);
+
+  const takeOverSave = useCallback(() => {
+    const now = Date.now();
+    if (!SAVE_OWNERSHIP.tryTakeOver(now)) {
+      acceptOwnershipSnapshot(SAVE_OWNERSHIP.getSnapshot(now));
+      return;
+    }
+    // Ownership is acquired before loading, so the former owner cannot write a
+    // stale state over this settlement. The UI stays read-only until the newest
+    // persisted timestamp has been loaded and its offline interval settled.
+    const latest = loadStoredState(true);
+    replaceGame(latest.state);
+    previousAchievements.current = latest.state.unlockedAchievements;
+    previousRoboAchievements.current = latest.state.robo?.achievements ?? {};
+    persistOwnedSave(latest.state, latest.state.lastUpdateAt);
+    acceptOwnershipSnapshot(SAVE_OWNERSHIP.getSnapshot(now));
+    if (latest.offline > 0.5) {
+      addToast({ title: t('offline.title'), message: t('offline.message', { amount: fmtNumber(latest.offline) }), icon: 'cps', tone: 'success' });
+    }
+    if (latest.warning) {
+      addToast({ title: t('save.notice'), message: t(latest.warning === 'storageUnavailable' ? 'save.storageUnavailable' : 'save.unreadable'), icon: 'settings' });
+    }
+  }, [acceptOwnershipSnapshot, addToast, fmtNumber, persistOwnedSave, replaceGame, t]);
 
   const achievementDescription = useCallback((achievement: (typeof ACHIEVEMENTS)[number]) => {
     if (language === 'en') return achievement.description;
@@ -262,6 +316,7 @@ function App() {
       if (resetInProgress.current || document.visibilityState === 'hidden') return;
       const current = gameRef.current;
       const now = Date.now();
+      if (!SAVE_OWNERSHIP.canWrite(now)) return;
       const elapsed = now - current.lastUpdateAt;
       if (elapsed > 60_000) commitGame(applyOfflineProgress(current, now).state);
       else commitGame(tickGame(current, now));
@@ -270,8 +325,13 @@ function App() {
   }, [commitGame]);
 
   const saveNow = useCallback((key: 'settings.saved' | 'settings.autosaved' = 'settings.saved') => {
+    const savedAt = Date.now();
+    if (!SAVE_OWNERSHIP.canWrite(savedAt)) {
+      setSaveStatus('Read-only: this save is active in another tab.');
+      return;
+    }
     try {
-      localStorage.setItem(SAVE_KEY, serializeGame(gameRef.current, Date.now()));
+      localStorage.setItem(SAVE_KEY, serializeGame(gameRef.current, savedAt));
       setSaveStatus(`${t(key)} ${new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`);
     } catch (error) {
       console.error('Save failed:', error);
@@ -286,10 +346,14 @@ function App() {
     const onVisibility = () => {
       const now = Date.now();
       if (document.visibilityState === 'hidden') {
+        if (!SAVE_OWNERSHIP.canWrite(now)) return;
         const advanced = tickGame(gameRef.current, now);
         commitGame(advanced);
-        try { localStorage.setItem(SAVE_KEY, serializeGame(advanced, now)); }
-        catch { /* autosave will retry */ }
+        persistOwnedSave(advanced, now);
+        return;
+      }
+      if (!SAVE_OWNERSHIP.canWrite(now)) {
+        acceptOwnershipSnapshot(SAVE_OWNERSHIP.getSnapshot(now));
         return;
       }
       const offline = applyOfflineProgress(gameRef.current, now);
@@ -305,14 +369,17 @@ function App() {
     };
     const onBeforeUnload = () => {
       const now = Date.now();
-      const advanced = document.visibilityState === 'hidden' ? gameRef.current : tickGame(gameRef.current, now);
-      gameRef.current = advanced;
-      try { localStorage.setItem(SAVE_KEY, serializeGame(advanced, now)); } catch { /* page is unloading */ }
+      if (SAVE_OWNERSHIP.canWrite(now)) {
+        const advanced = document.visibilityState === 'hidden' ? gameRef.current : tickGame(gameRef.current, now);
+        gameRef.current = advanced;
+        persistOwnedSave(advanced, now);
+      }
+      SAVE_OWNERSHIP.release();
     };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('beforeunload', onBeforeUnload); };
-  }, [addToast, commitGame, fmtNumber, saveNow, t]);
+  }, [acceptOwnershipSnapshot, addToast, commitGame, fmtNumber, persistOwnedSave, saveNow, t]);
 
 
   useEffect(() => {
@@ -406,13 +473,13 @@ function App() {
   };
 
   const buyMechanicalCharter = () => {
-    const purchasedAt = Date.now();
+    const purchasedAt = gameRef.current.lastUpdateAt;
     const result = purchaseMechanicalCharter(gameRef.current, purchasedAt);
     commitGame(result.state);
     if (!result.success) return;
     playSound('prestige', settings.sound);
-    try { localStorage.setItem(SAVE_KEY, serializeGame(result.state, purchasedAt)); } catch { /* autosave will retry */ }
-    addToast({ title: 'Mechanical Charter signed', message: 'The foundry is online. Your Warren continues producing while you are away.', icon: 'hammer', tone: 'prestige' });
+    persistOwnedSave(result.state, purchasedAt);
+    addToast({ title: roboUnlockCopy.purchasedTitle, message: roboUnlockCopy.purchasedMessage, icon: 'hammer', tone: 'prestige' });
   };
 
   const assembleRobot = () => {
@@ -471,7 +538,7 @@ function App() {
   };
 
   const prestige = () => {
-    if (prestigeGain <= 0 || resetInProgress.current) return;
+    if (prestigeGain <= 0 || resetInProgress.current || !SAVE_OWNERSHIP.canWrite(Date.now())) return;
     const resetAt = Date.now();
     const result = performPrestigeReset(gameRef.current, resetAt); if (!result.success) return;
     const announceReset = () => {
@@ -497,7 +564,7 @@ function App() {
     // frame visible just long enough for the vacuum transition to consume it.
     resetInProgress.current = true;
     gameRef.current = result.state;
-    try { localStorage.setItem(SAVE_KEY, serializeGame(result.state, resetAt)); } catch { /* in-memory reset remains authoritative */ }
+    persistOwnedSave(result.state, resetAt);
     setResetEffect('prestige-vacuum');
     resetTimers.current.push(window.setTimeout(() => {
       setGame(gameRef.current);
@@ -555,8 +622,9 @@ function App() {
 
   const exportSave = () => {
     const exportedAt = Date.now();
-    const snapshot = tickGame(gameRef.current, exportedAt);
-    commitGame(snapshot);
+    const writable = SAVE_OWNERSHIP.canWrite(exportedAt);
+    const snapshot = writable ? tickGame(gameRef.current, exportedAt) : gameRef.current;
+    if (writable) commitGame(snapshot);
     try {
       const blob = new Blob([exportGameSave(snapshot, exportedAt)], { type: 'application/json;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -569,7 +637,7 @@ function App() {
       // Some browsers do not begin reading a blob URL synchronously. Revoking it
       // on the same tick can cancel an otherwise valid download.
       window.setTimeout(() => { URL.revokeObjectURL(url); anchor.remove(); }, 1_000);
-      try { localStorage.setItem(SAVE_KEY, serializeGame(snapshot, exportedAt)); } catch { /* export itself still succeeded */ }
+      if (writable) persistOwnedSave(snapshot, exportedAt);
       addToast({ title: t('settings.exportTitle'), message: t('settings.exportMessage'), icon: 'settings', tone: 'success' });
     } catch (error) {
       console.error('Export failed:', error);
@@ -578,15 +646,20 @@ function App() {
   };
 
   const importSave = async (file: File) => {
+    if (!SAVE_OWNERSHIP.canWrite(Date.now())) return;
     try {
+      const text = await file.text();
+      if (!SAVE_OWNERSHIP.canWrite(Date.now())) return;
       const importedAt = Date.now();
-      const imported = importGameSave(await file.text(), importedAt);
+      const imported = importGameSave(text, importedAt);
       const withOffline = applyOfflineProgress(imported.state, importedAt);
       commitGame(withOffline.state);
       previousAchievements.current = withOffline.state.unlockedAchievements;
       let persisted = true;
-      try { localStorage.setItem(SAVE_KEY, serializeGame(withOffline.state, importedAt)); }
-      catch (error) { persisted = false; console.error('Imported save could not be persisted:', error); }
+      if (!persistOwnedSave(withOffline.state, importedAt)) {
+        persisted = false;
+        console.error('Imported save could not be persisted.');
+      }
       setSaveStatus(persisted
         ? `${t('settings.imported')} ${new Date(importedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`
         : t('settings.saveFailed'));
@@ -600,7 +673,9 @@ function App() {
   };
 
   const hardReset = () => {
+    if (!SAVE_OWNERSHIP.canWrite(Date.now())) return;
     if (!window.confirm(t('settings.resetConfirm1')) || !window.confirm(t('settings.resetConfirm2'))) return;
+    if (!SAVE_OWNERSHIP.canWrite(Date.now())) return;
     const fresh = createInitialGameState(Date.now()); try { localStorage.removeItem(SAVE_KEY); for (const key of LEGACY_SAVE_KEYS) localStorage.removeItem(key); } catch { /* in-memory reset still succeeds */ }
     commitGame(fresh); previousAchievements.current = {}; setModal(null); addToast({ title: t('settings.resetTitle'), message: t('settings.resetMessage'), icon: 'settings' });
   };
@@ -778,7 +853,11 @@ function App() {
   const expeditionReservation = getExpeditionReservation(game, now);
   const expeditionHeldPercent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(expeditionReservation);
   const charterProgress = getMechanicalCharterProgress(game);
-  const canSignMechanicalCharter = !charterProgress.owned && charterProgress.migrations.met && charterProgress.totalCunning.met && charterProgress.availableCunning.met;
+  const canBuyRoboGoblins = canPurchaseMechanicalCharter(game);
+  const revealedWarrenBuildings = charterProgress.eligible
+    ? BUILDINGS.length
+    : BUILDINGS.filter((_, index) => isWarrenBuildingRevealed(game, index)).length;
+  const missingRoboCunning = Math.max(0, charterProgress.availableCunning.required - charterProgress.availableCunning.current);
   const roboStableRps = game.robo ? getRoboStableRps(game) : 0;
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
@@ -820,13 +899,18 @@ function App() {
       onOpen={() => setModal('moonDial')}
       labels={{ title: t('moonDial.title'), charge: t('moonDial.charge') }}
     />
-  } worldSwitch={game.prestige.resets > 0 ? <RoboWorldSwitch
+  } worldSwitch={<RoboWorldSwitch
     direction="to-robo"
-    label={game.unlocks.robogoblins ? 'Enter RoboGoblins' : 'RoboGoblins locked'}
-    detail={game.unlocks.robogoblins ? `Foundry running at ${fmtNumber(roboStableRps)}/s` : 'Sign the Mechanical Charter in Great Migration.'}
-    locked={!game.unlocks.robogoblins}
-    onActivate={() => game.unlocks.robogoblins ? switchWorld('robogoblins') : setModal('prestige')}
-  /> : undefined}>
+    label={charterProgress.owned ? roboUnlockCopy.switchOwnedLabel : charterProgress.eligible ? roboUnlockCopy.switchReadyLabel : roboUnlockCopy.switchLockedLabel}
+    detail={charterProgress.owned
+      ? `${roboUnlockCopy.switchOwnedDetail} ${fmtNumber(roboStableRps)}/s`
+      : charterProgress.eligible
+        ? roboUnlockCopy.switchReadyDetail
+        : roboUnlockCopy.switchLockedDetail}
+    locked={!charterProgress.owned && !charterProgress.eligible}
+    badge={!charterProgress.owned && charterProgress.eligible ? '100' : undefined}
+    onActivate={() => charterProgress.owned ? switchWorld('robogoblins') : setModal('roboUnlock')}
+  />}>
     <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
       id: building.id,
       name: localizedName(language, 'building', building.id, building.name),
@@ -937,6 +1021,54 @@ function App() {
       }}
     />
     <CosmeticsModal open={modal === 'cosmetics'} currencyLabel={fmtInteger(game.prestige.shards)} cosmetics={cosmeticViews} onPurchase={buyCosmetic} onEquip={equipGoblinCosmetic} onClose={() => setModal(null)} />
+    <Modal
+      open={modal === 'roboUnlock'}
+      title={roboUnlockCopy.title}
+      subtitle={roboUnlockCopy.subtitle}
+      icon={<Icon name="hammer" />}
+      onClose={() => setModal(null)}
+      size="sm"
+      className="robo-unlock-modal"
+    >
+      <section className={`mechanical-charter${charterProgress.owned ? ' is-owned' : ''}`}>
+        <div className="mechanical-charter__header">
+          <span className="mechanical-charter__icon" aria-hidden="true"><Icon name="hammer" size={22} /></span>
+          <div>
+            <small>{roboUnlockCopy.frontier}</small>
+            <strong>RoboGoblins</strong>
+            <p>{roboUnlockCopy.permanent}</p>
+          </div>
+          <b>{charterProgress.owned ? 'ONLINE' : roboUnlockCopy.price}</b>
+        </div>
+        <div className="mechanical-charter__requirements mechanical-charter__requirements--robo" aria-label={roboUnlockCopy.requirement}>
+          <span className={charterProgress.eligible ? 'is-met' : ''}>
+            <Icon name={charterProgress.eligible ? 'sparkles' : 'lock'} size={13} />
+            {charterProgress.eligible
+              ? roboUnlockCopy.requirementMet
+              : formatRoboUnlock(roboUnlockCopy.requirementProgress, { current: fmtInteger(revealedWarrenBuildings), total: fmtInteger(BUILDINGS.length) })}
+          </span>
+          <span className={charterProgress.availableCunning.met || charterProgress.owned ? 'is-met' : ''}>
+            <Icon name={charterProgress.availableCunning.met || charterProgress.owned ? 'crown' : 'lock'} size={13} />
+            {formatRoboUnlock(roboUnlockCopy.balance, { amount: fmtInteger(game.prestige.shards) })} / {roboUnlockCopy.price}
+          </span>
+        </div>
+        <button
+          className="mechanical-charter__action"
+          type="button"
+          disabled={!charterProgress.owned && !canBuyRoboGoblins}
+          onClick={charterProgress.owned ? () => switchWorld('robogoblins') : buyMechanicalCharter}
+        >
+          <Icon name={charterProgress.owned ? 'chevron' : charterProgress.eligible ? 'hammer' : 'lock'} size={15} />{' '}
+          {charterProgress.owned
+            ? roboUnlockCopy.enter
+            : !charterProgress.eligible
+              ? roboUnlockCopy.requirement
+              : canBuyRoboGoblins
+                ? roboUnlockCopy.buy
+                : formatRoboUnlock(roboUnlockCopy.needMore, { amount: fmtInteger(missingRoboCunning) })}
+        </button>
+      </section>
+    </Modal>
     <PrestigeModal
       open={modal === 'prestige'}
       currentCurrencyLabel={fmtInteger(game.prestige.shards)}
@@ -947,21 +1079,6 @@ function App() {
       onPrestige={prestige}
       onBuyPerk={buyPermanent}
       onOpenCosmetics={() => setModal('cosmetics')}
-      frontiers={game.prestige.resets > 0 ? <section className={`mechanical-charter${charterProgress.owned ? ' is-owned' : ''}`}>
-        <div className="mechanical-charter__header">
-          <span className="mechanical-charter__icon" aria-hidden="true"><Icon name="hammer" size={22} /></span>
-          <div><small>New frontier</small><strong>Mechanical Charter</strong><p>Open the RoboGoblins foundry. Your Warren continues producing in parallel.</p></div>
-          <b>{charterProgress.owned ? 'SIGNED' : '100 CUNNING'}</b>
-        </div>
-        <div className="mechanical-charter__requirements" aria-label="Mechanical Charter requirements">
-          <span className={charterProgress.migrations.met ? 'is-met' : ''}><Icon name={charterProgress.migrations.met ? 'sparkles' : 'lock'} size={13} /> Migrations {fmtInteger(charterProgress.migrations.current)} / {fmtInteger(charterProgress.migrations.required)}</span>
-          <span className={charterProgress.totalCunning.met ? 'is-met' : ''}><Icon name={charterProgress.totalCunning.met ? 'sparkles' : 'lock'} size={13} /> Total Cunning {fmtInteger(charterProgress.totalCunning.current)} / {fmtInteger(charterProgress.totalCunning.required)}</span>
-          <span className={charterProgress.availableCunning.met ? 'is-met' : ''}><Icon name={charterProgress.availableCunning.met ? 'sparkles' : 'lock'} size={13} /> Available Cunning {fmtInteger(charterProgress.availableCunning.current)} / {fmtInteger(charterProgress.availableCunning.required)}</span>
-        </div>
-        <button className="mechanical-charter__action" type="button" disabled={!charterProgress.owned && !canSignMechanicalCharter} onClick={charterProgress.owned ? () => switchWorld('robogoblins') : buyMechanicalCharter}>
-          <Icon name={charterProgress.owned ? 'chevron' : 'hammer'} size={15} /> {charterProgress.owned ? 'Enter RoboGoblins' : canSignMechanicalCharter ? 'Sign Mechanical Charter' : 'Requirements not met'}
-        </button>
-      </section> : undefined}
       onClose={() => setModal(null)}
     />
     <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} musicVolume={settings.musicVolume} musicMuted={musicMuted} onMusicVolumeChange={changeMusicVolume} toggles={[
@@ -1004,7 +1121,10 @@ function App() {
   /> : null;
 
   return <I18nProvider language={language}>
-    <div className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}>
+    <div
+      className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}
+      inert={saveOwnership.role === 'secondary' ? true : undefined}
+    >
       {activeWorld === 'robogoblins' && roboWorld ? roboWorld : <GameShell
         className={`${resetEffect === 'prestige-vacuum' ? 'game-frame--prestige-reset ' : ''}${sevenfoldActive ? 'game-frame--sevenfold' : ''}`.trim()}
         header={header}
@@ -1033,6 +1153,17 @@ function App() {
         overlay={overlay}
       />}
     </div>
+    {saveOwnership.role === 'secondary' && <aside className="save-ownership-notice" role="status" aria-live="polite">
+      <div>
+        <strong>This save is active in another tab.</strong>
+        <span>{saveOwnership.canTakeOver
+          ? 'The other tab released or lost its lease. Reload the latest save to continue here.'
+          : 'This tab is read-only so two copies cannot generate or overwrite the same progress.'}</span>
+      </div>
+      <button type="button" onClick={takeOverSave} disabled={!saveOwnership.canTakeOver}>
+        {saveOwnership.canTakeOver ? 'Take over save' : 'Other tab is active'}
+      </button>
+    </aside>}
   </I18nProvider>;
 }
 

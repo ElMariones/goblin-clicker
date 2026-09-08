@@ -124,7 +124,7 @@ Every normal action validates its input, advances both planes once, revalidates 
 
 | Action | Inputs | Authoritative checks / result |
 | --- | --- | --- |
-| `purchaseMechanicalCharter` | now | All three requirements; not owned; subtract Cunning once; initialize robo |
+| `purchaseMechanicalCharter` | now | Permanent all-Warren-buildings eligibility; not owned; at least 100 current Cunning; subtract once; initialize robo |
 | `assembleRoboGoblin` | now | Entitlement; compute current unbuffed click basis; credit RG and manual stats |
 | `purchaseRoboLine` | lineId, amount or `max`/`nextMilestone`, now | Predecessor owned, finite cost, enough ready RG, valid cap |
 | `purchaseRoboBlueprint` | discriminated line/global ID, now | Prior ranks, ownership, budget; increase one rank |
@@ -216,8 +216,8 @@ Do not derive total cores earned from current wallet or from pending potential. 
 
 ## 8. UI flow contracts
 
-- Top-level tab selection uses accessible tablist semantics and visible selection/focus. Locked entry is a clearly labeled button opening Charter details; it is not a selectable empty tabpanel. After unlock it becomes a real tab.
-- Mechanical header shows RG, average assembly rate and cores. The original Cunning wallet stays in the original world's header/Charter panel. Use labeled currencies on every price.
+- The mirrored top-right world control is the purchase/entry surface. Before eligibility it is visibly locked and explains that all default Warren buildings must be discovered; once eligible it opens the 100-Cunning Charter popup. After purchase it enters the mechanical world.
+- Mechanical header shows RG, average assembly rate and cores. The original Cunning wallet stays in the original world's header and the top-right Charter popup. Use labeled currencies on every price.
 - Mount only the active world's heavy visual tree. Keep simulation outside both trees. Switching during a modal closes that world-specific modal and restores focus to the selected tab; shared Settings can stay open if navigation is unavailable behind it.
 - Blueprint/perk purchase previews use live selectors; disable a button while its action is being committed if necessary to avoid duplicate UI feedback. Engine idempotence remains the real protection.
 - Recompile preview and confirm share a pure selector. Include pending output in both. Default confirmation focus is Cancel; Escape cancels; confirm settles the action once. Return focus to Kernel after completion.
@@ -230,7 +230,7 @@ Do not derive total cores earned from current wallet or from pending potential. 
 
 | Milestone | Work | Required evidence before completion |
 | --- | --- | --- |
-| 1. Save and entitlement | Add v6 state, Charter action, locked/unlocked tab skeleton | v1–v5 fixtures retain organic values; duplicate/unaffordable Charter tests; export/import includes both worlds |
+| 1. Save and entitlement | Add v6 state, persistent full-Warren reveal eligibility, Charter action, locked/unlocked world control | v1–v5 fixtures retain organic values; reveal survives migration; duplicate/unaffordable Charter tests; export/import includes both worlds |
 | 2. Autonomous mechanical loop | Twelve lines, batches, manual spawn, bulk purchases, core selectors | Price/production tests; partition invariance; pending conservation; usable fresh-entry browser flow |
 | 3. Mechanical strategy | All blueprints, mastery/circuits, firmware and Overclock | Port analytic fixtures; all four firmware combinations; timing boundaries; no retroactive gain; complete localized controls |
 | 4. Prestige and bridges | Recompile, all Kernel perks, ancestry/Family Adapter | Reset matrix; first/second run fixtures; grant exactly once; both bridge caps; original event/expedition regressions |
@@ -244,7 +244,7 @@ These are implementation slices within one feature, not permission checkpoints. 
 Port the 26 reference tests against the actual production functions rather than maintaining a second hand-copied equation inside assertions. Add integration fixtures for behaviors the model intentionally does not implement:
 
 1. Original game's existing tests remain green, with explicit default-no-bridge fixtures preserving old math.
-2. Exact Charter requirement boundaries; insufficient unspent Cunning despite enough earned; second click spends nothing; root lifetime unaffected.
+2. Exact full-Warren reveal boundary; eligibility latches before/through migration; insufficient current Cunning; second click spends nothing; root lifetime unaffected.
 3. Distinct-wallet operations; no change to organic achievements/statistics from robot clicks or batches.
 4. One 10-minute root tick versus equivalent segmented ticks; both planes advance; same timestamp is a no-op for income.
 5. Purchase midway through a batch and a buff-expiry boundary; joining a phase never amplifies accumulated value.

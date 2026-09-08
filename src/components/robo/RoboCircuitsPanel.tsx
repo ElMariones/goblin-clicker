@@ -1,4 +1,5 @@
-import { ROBO_COPY } from '../../i18n/robogoblins';
+import { useI18n } from '../../i18n';
+import { getRoboCopy } from '../../i18n/robogoblins';
 import type { RoboCircuitView } from './types';
 
 export interface RoboCircuitsPanelProps {
@@ -10,10 +11,12 @@ export interface RoboCircuitsPanelProps {
   onOpenKernel?: () => void;
 }
 
-export function RoboCircuitsPanel({ circuits, onBuyBottleneck, title = ROBO_COPY.circuits, subtitle = 'Four lines complete each circuit tier.', onOpenBlueprints, onOpenKernel }: RoboCircuitsPanelProps) {
+export function RoboCircuitsPanel({ circuits, onBuyBottleneck, title, subtitle, onOpenBlueprints, onOpenKernel }: RoboCircuitsPanelProps) {
+  const { language } = useI18n();
+  const copy = getRoboCopy(language);
   return (
     <section className="robo-circuits-panel" aria-labelledby="robo-circuits-heading" data-testid="robo-circuits-panel">
-      <header><div><span>{ROBO_COPY.foundry}</span><h2 id="robo-circuits-heading">{title}</h2><p>{subtitle}</p></div></header>
+      <header><div><span>{copy.foundry}</span><h2 id="robo-circuits-heading">{title ?? copy.circuits}</h2><p>{subtitle ?? copy.circuitsSubtitle}</p></div></header>
       <div className="robo-circuit-list">
         {circuits.map((circuit) => (
           <article key={circuit.id} className={`robo-circuit robo-circuit--${circuit.id}`}>
@@ -30,10 +33,9 @@ export function RoboCircuitsPanel({ circuits, onBuyBottleneck, title = ROBO_COPY
         ))}
       </div>
       {(onOpenBlueprints || onOpenKernel) && <div className="robo-panel-actions">
-        {onOpenBlueprints && <button type="button" onClick={onOpenBlueprints}>{ROBO_COPY.blueprints}</button>}
-        {onOpenKernel && <button type="button" className="is-kernel" onClick={onOpenKernel}>{ROBO_COPY.kernel}</button>}
+        {onOpenBlueprints && <button type="button" onClick={onOpenBlueprints}>{copy.blueprints}</button>}
+        {onOpenKernel && <button type="button" className="is-kernel" onClick={onOpenKernel}>{copy.kernel}</button>}
       </div>}
     </section>
   );
 }
-

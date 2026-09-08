@@ -221,7 +221,11 @@ export interface GameState {
   contracts: ContractBoardState;
   expeditions: ExpeditionState;
   statistics: GameStatistics;
-  unlocks: { robogoblins: boolean };
+  unlocks: {
+    robogoblins: boolean;
+    /** Permanently latched once every Warren building has been revealed. */
+    robogoblinsEligible: boolean;
+  };
   robo: RoboState | null;
 }
 

@@ -35,6 +35,8 @@ import {
   type RoboPurchaseAmount,
 } from '../../game';
 import { robogoblinAppearanceArt, robogoblinLineArt } from '../../utils/robogoblinAssets';
+import { useI18n, type LanguageCode } from '../../i18n';
+import { formatRobo, getRoboCopy } from '../../i18n/robogoblins';
 import { CRTWarp } from '../CRTWarp';
 import { FloatingNumbers, type FloatingNumberView } from '../FloatingNumbers';
 import { GameShell } from '../GameShell';
@@ -91,21 +93,60 @@ interface RoboGameWorldProps {
 
 type RoboModal = 'blueprints' | 'kernel' | 'collection' | null;
 
-const APPEARANCE_COPY: Record<RoboAppearanceId, { name: string; description: string; unlock?: string }> = {
-  tin_rascal: { name: 'Tin Rascal', description: 'Soup-can chest, fork fingers and a grin cut into sheet metal.' },
-  boiler_baron: { name: 'Boiler Baron', description: 'Pressure-gauge monocle, stovepipe crown and a warm boiler heart.', unlock: 'Close the first Steam circuit tier.' },
-  clockwork_ancestor: { name: 'Clockwork Ancestor', description: 'Brass memory discs, gear halo and a patched lilac circuit robe.', unlock: 'Own a Paradox Nest.' },
+const KERNEL_EFFECT_COPY: Record<LanguageCode, Record<KernelPerkId, (rank: number) => string>> = {
+  en: {
+    better_bolts: (rank) => `Passive assembly ×${(1 + rank * 0.05).toFixed(2)}`,
+    boot_cache: (rank) => `Start future compiles with ${20 + rank * 100} RG`,
+    night_shift: (rank) => `${Math.min(100, 80 + rank * 5)}% offline efficiency`, deep_battery: (rank) => `${8 + rank * 2}h offline cap`,
+    copper_memory: (rank) => `Each circuit tier adds +${10 + rank}%`, warm_start: (rank) => `Start future compiles with ${Math.min(120, rank * 30)} Charge`,
+    finger_servos: (rank) => `Manual assembly ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `Organic bridge rank ${rank}/5`,
+  },
+  es: {
+    better_bolts: (rank) => `Montaje pasivo ×${(1 + rank * 0.05).toFixed(2)}`, boot_cache: (rank) => `Futuras compilaciones empiezan con ${20 + rank * 100} RG`,
+    night_shift: (rank) => `${Math.min(100, 80 + rank * 5)}% de eficiencia sin conexión`, deep_battery: (rank) => `Límite sin conexión: ${8 + rank * 2} h`,
+    copper_memory: (rank) => `Cada nivel de circuito añade +${10 + rank}%`, warm_start: (rank) => `Futuras compilaciones empiezan con ${Math.min(120, rank * 30)} de Carga`,
+    finger_servos: (rank) => `Montaje manual ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `Rango del puente orgánico ${rank}/5`,
+  },
+  zh: {
+    better_bolts: (rank) => `被动装配 ×${(1 + rank * 0.05).toFixed(2)}`, boot_cache: (rank) => `未来编译以 ${20 + rank * 100} RG 开始`,
+    night_shift: (rank) => `离线效率 ${Math.min(100, 80 + rank * 5)}%`, deep_battery: (rank) => `离线上限 ${8 + rank * 2} 小时`,
+    copper_memory: (rank) => `每个回路等级 +${10 + rank}%`, warm_start: (rank) => `未来编译以 ${Math.min(120, rank * 30)} 电荷开始`,
+    finger_servos: (rank) => `手动装配 ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `有机桥梁等级 ${rank}/5`,
+  },
+  fr: {
+    better_bolts: (rank) => `Assemblage passif ×${(1 + rank * 0.05).toFixed(2)}`, boot_cache: (rank) => `Prochaines compilations : ${20 + rank * 100} RG au départ`,
+    night_shift: (rank) => `${Math.min(100, 80 + rank * 5)} % d’efficacité hors ligne`, deep_battery: (rank) => `Plafond hors ligne : ${8 + rank * 2} h`,
+    copper_memory: (rank) => `Chaque niveau de circuit ajoute +${10 + rank} %`, warm_start: (rank) => `Prochaines compilations : ${Math.min(120, rank * 30)} Charge au départ`,
+    finger_servos: (rank) => `Assemblage manuel ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `Rang du pont organique ${rank}/5`,
+  },
+  de: {
+    better_bolts: (rank) => `Passive Montage ×${(1 + rank * 0.05).toFixed(2)}`, boot_cache: (rank) => `Künftige Kompilierungen starten mit ${20 + rank * 100} RG`,
+    night_shift: (rank) => `${Math.min(100, 80 + rank * 5)} % Offline-Effizienz`, deep_battery: (rank) => `${8 + rank * 2} Std. Offline-Limit`,
+    copper_memory: (rank) => `Jede Schaltkreisstufe gibt +${10 + rank} %`, warm_start: (rank) => `Künftige Kompilierungen starten mit ${Math.min(120, rank * 30)} Ladung`,
+    finger_servos: (rank) => `Manuelle Montage ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `Organischer Brückenrang ${rank}/5`,
+  },
+  ar: {
+    better_bolts: (rank) => `التجميع السلبي ×${(1 + rank * 0.05).toFixed(2)}`, boot_cache: (rank) => `ابدأ التجميعات المقبلة بـ${20 + rank * 100} RG`,
+    night_shift: (rank) => `كفاءة دون اتصال ${Math.min(100, 80 + rank * 5)}٪`, deep_battery: (rank) => `حد دون اتصال ${8 + rank * 2} ساعة`,
+    copper_memory: (rank) => `كل مستوى دائرة يضيف +${10 + rank}٪`, warm_start: (rank) => `ابدأ التجميعات المقبلة بـ${Math.min(120, rank * 30)} شحنة`,
+    finger_servos: (rank) => `التجميع اليدوي ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `رتبة الجسر العضوي ${rank}/5`,
+  },
+  tr: {
+    better_bolts: (rank) => `Pasif montaj ×${(1 + rank * 0.05).toFixed(2)}`, boot_cache: (rank) => `Gelecek derlemelere ${20 + rank * 100} RG ile başla`,
+    night_shift: (rank) => `%${Math.min(100, 80 + rank * 5)} çevrimdışı verimlilik`, deep_battery: (rank) => `${8 + rank * 2} saat çevrimdışı sınırı`,
+    copper_memory: (rank) => `Her devre kademesi +%${10 + rank} ekler`, warm_start: (rank) => `Gelecek derlemelere ${Math.min(120, rank * 30)} Şarj ile başla`,
+    finger_servos: (rank) => `Elle montaj ×${(1 + rank * 0.1).toFixed(2)}`, family_adapter: (rank) => `Organik köprü rütbesi ${rank}/5`,
+  },
 };
 
-const KERNEL_COPY: Record<KernelPerkId, { description: string; effect: (rank: number) => string }> = {
-  better_bolts: { description: 'Tighter fasteners improve every mechanical passive line.', effect: (rank) => `Passive assembly ×${(1 + rank * 0.05).toFixed(2)}` },
-  boot_cache: { description: 'Keep a small pile of ready robots between recompiles; each rank also grants 100 RG now.', effect: (rank) => `Start future compiles with ${20 + rank * 100} RG` },
-  night_shift: { description: 'Teach the foundry to waste less work while the browser is away.', effect: (rank) => `${Math.min(100, 80 + rank * 5)}% offline efficiency` },
-  deep_battery: { description: 'Larger storage cells extend the mechanical offline production window.', effect: (rank) => `${8 + rank * 2}h offline cap` },
-  copper_memory: { description: 'Circuit completions remember how to cooperate more efficiently.', effect: (rank) => `Each circuit tier adds +${10 + rank}%` },
-  warm_start: { description: 'Pre-charge the capacitor after Recompile; each purchased rank also grants 30 Charge now.', effect: (rank) => `Start future compiles with ${Math.min(120, rank * 30)} Charge` },
-  finger_servos: { description: 'Faster manual assembly without changing automated batch output.', effect: (rank) => `Manual assembly ×${(1 + rank * 0.1).toFixed(2)}` },
-  family_adapter: { description: 'Translate hard-earned machine knowledge into a small capped Warren production bridge.', effect: (rank) => `Organic bridge rank ${rank}/5` },
+const FIRMWARE_EFFECT_COPY: Record<LanguageCode, Record<string, string>> = {
+  en: { clock: '×1.20 passive assembly', spark: 'Manual CPS share 3% → 15%', quick: 'Batch cycles ×0.50', heavy: 'Cycles ×2 · passive ×1.15' },
+  es: { clock: 'Montaje pasivo ×1,20', spark: 'Porción manual 3% → 15%', quick: 'Ciclos de lote ×0,50', heavy: 'Ciclos ×2 · pasivo ×1,15' },
+  zh: { clock: '被动装配 ×1.20', spark: '手动产量占比 3% → 15%', quick: '批次周期 ×0.50', heavy: '周期 ×2 · 被动 ×1.15' },
+  fr: { clock: 'Assemblage passif ×1,20', spark: 'Part manuelle 3 % → 15 %', quick: 'Cycles de lot ×0,50', heavy: 'Cycles ×2 · passif ×1,15' },
+  de: { clock: 'Passive Montage ×1,20', spark: 'Manueller Anteil 3 % → 15 %', quick: 'Chargenzyklen ×0,50', heavy: 'Zyklen ×2 · passiv ×1,15' },
+  ar: { clock: 'التجميع السلبي ×1.20', spark: 'حصة اليدوي 3٪ → 15٪', quick: 'دورات الدفعات ×0.50', heavy: 'الدورات ×2 · السلبي ×1.15' },
+  tr: { clock: 'Pasif montaj ×1,20', spark: 'Elle üretim payı %3 → %15', quick: 'Parti döngüleri ×0,50', heavy: 'Döngüler ×2 · pasif ×1,15' },
 };
 
 function nextMastery(owned: number) {
@@ -123,6 +164,8 @@ export function RoboGameWorld({
   musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic, effects, reducedMotion, floating = [], overlay,
   formatNumber, formatInteger, formatDuration, formatDate, warrenRate,
 }: RoboGameWorldProps) {
+  const { language, t } = useI18n();
+  const copy = getRoboCopy(language);
   const [modal, setModal] = useState<RoboModal>(null);
   // This screen is mounted only after the one-time Mechanical Charter creates robo state.
   const robo = game.robo!;
@@ -149,27 +192,29 @@ export function RoboGameWorld({
     const hasBatch = line.owned > 0 && cycle > 0;
     return {
       id: definition.id,
-      name: definition.name,
-      description: definition.description,
+      name: copy.lines[definition.id]?.name ?? definition.name,
+      description: copy.lines[definition.id]?.description ?? definition.description,
       circuit: definition.circuit,
       artSrc: revealed ? robogoblinLineArt[definition.id] : undefined,
       ownedLabel: formatInteger(line.owned),
       averageRateLabel: formatNumber(getRoboLineRate(game, definition.id)),
       batchProgress: hasBatch ? Math.max(0, Math.min(1, line.phaseSeconds / cycle)) : 0,
-      nextBatchLabel: hasBatch ? `Next batch in ${formatDuration(Math.max(0, cycle - line.phaseSeconds) * 1_000)}` : 'Assign robots to start this line',
-      pendingLabel: `${formatNumber(line.pendingRG)} assembled`,
+      nextBatchLabel: hasBatch ? formatRobo(copy.nextBatchIn, { duration: formatDuration(Math.max(0, cycle - line.phaseSeconds) * 1_000) }) : copy.assignToStart,
+      pendingLabel: formatRobo(copy.assembled, { amount: formatNumber(line.pendingRG) }),
       priceLabel: Number.isFinite(cost) ? formatNumber(cost) : '—',
-      buyQuantityLabel: buyAmount === 'max' ? (selectedQuantity > 0 ? `Buy ${formatInteger(selectedQuantity)}` : 'Buy Max') : `Buy ${formatInteger(selectedQuantity)}`,
+      buyQuantityLabel: buyAmount === 'max'
+        ? (selectedQuantity > 0 ? formatRobo(copy.buy, { count: formatInteger(selectedQuantity) }) : copy.buyMax)
+        : formatRobo(copy.buy, { count: formatInteger(selectedQuantity) }),
       canAfford: revealed && selectedQuantity > 0 && Number.isFinite(cost) && robo.readyRG >= cost,
       locked: !revealed,
-      lockLabel: 'Own at least one of the preceding assembly line to reveal this machine.',
-      masteryLabel: mastery?.name ?? 'Unbolted',
+      lockLabel: copy.lineLocked,
+      masteryLabel: mastery ? copy.masteryNames[mastery.name] ?? mastery.name : copy.unbolted,
       masteryFactorLabel: `×${formatNumber(getRoboLineMastery(game, definition.id), 2)}`,
-      nextMilestoneLabel: next ? `${next.name} · ${formatInteger(next.threshold)}` : 'Mastery complete',
+      nextMilestoneLabel: next ? `${copy.masteryNames[next.name] ?? next.name} · ${formatInteger(next.threshold)}` : copy.masteryComplete,
       nextMilestoneCostLabel: next && Number.isFinite(nextCost) ? formatNumber(nextCost) : undefined,
       canBuyNextMilestone: Boolean(next && revealed && Number.isFinite(nextCost) && robo.readyRG >= nextCost),
     };
-  }), [buyAmount, formatDuration, formatInteger, formatNumber, game, robo]);
+  }), [buyAmount, copy, formatDuration, formatInteger, formatNumber, game, robo]);
 
   const circuitSummaries = getRoboCircuitSummary(game);
   const circuitFactor = getRoboCircuitMultiplier(robo);
@@ -181,42 +226,43 @@ export function RoboGameWorld({
       : 0;
     return {
       id: summary.id,
-      name: summary.id === 'scrap' ? 'Scrap Circuit' : summary.id === 'steam' ? 'Steam Circuit' : 'Impossible Circuit',
-      tierLabel: summary.tiers >= 4 ? 'All four tiers closed' : `Tier ${summary.tiers} / 4`,
-      tierProgressLabel: threshold ? `Bring all four lines to ${formatInteger(threshold)}` : 'Circuit fully synchronized',
-      bonusLabel: `Shared ×${formatNumber(circuitFactor, 2)}`,
+      name: copy.circuitNames[summary.id],
+      tierLabel: summary.tiers >= 4 ? copy.circuitAllClosed : formatRobo(copy.circuitTier, { tier: summary.tiers }),
+      tierProgressLabel: threshold ? formatRobo(copy.circuitBringAll, { amount: formatInteger(threshold) }) : copy.circuitFullySynchronized,
+      bonusLabel: formatRobo(copy.circuitShared, { factor: formatNumber(circuitFactor, 2) }),
       members: ROBO_CIRCUITS[summary.id].map((id) => ({
         id,
-        name: ROBO_LINES.find((line) => line.id === id)?.name ?? id,
+        name: copy.lines[id]?.name ?? ROBO_LINES.find((line) => line.id === id)?.name ?? id,
         ownedLabel: formatInteger(robo.lines[id].owned),
         ready: threshold === null || robo.lines[id].owned >= threshold,
       })),
-      bottleneckLabel: bottleneck ? `${ROBO_LINES.find((line) => line.id === bottleneck.lineId)?.name}: ${formatInteger(bottleneck.needed)} needed` : 'No bottleneck',
+      bottleneckLabel: bottleneck ? formatRobo(copy.circuitNeeded, { name: copy.lines[bottleneck.lineId]?.name ?? bottleneck.lineId, amount: formatInteger(bottleneck.needed) }) : copy.circuitNoBottleneck,
       bottleneckCostLabel: bottleneck && Number.isFinite(bottleneckCost) ? formatNumber(bottleneckCost) : undefined,
       canBuyBottleneck: Boolean(bottleneck && bottleneck.needed > 0 && Number.isFinite(bottleneckCost) && robo.readyRG >= bottleneckCost),
     };
-  }), [circuitFactor, circuitSummaries, formatInteger, formatNumber, game, robo]);
+  }), [circuitFactor, circuitSummaries, copy, formatInteger, formatNumber, game, robo]);
 
   const blueprints = useMemo<RoboBlueprintView[]>(() => {
     const local = ROBO_LOCAL_BLUEPRINTS.map((blueprint) => {
       const line = robo.lines[blueprint.lineId];
+      const localizedLine = copy.lines[blueprint.lineId]?.name ?? ROBO_LINES.find((item) => item.id === blueprint.lineId)?.name ?? blueprint.lineId;
       const lineBlueprints = ROBO_LOCAL_BLUEPRINTS.filter((item) => item.lineId === blueprint.lineId);
       const index = lineBlueprints.findIndex((item) => item.id === blueprint.id);
       const purchased = line.blueprintRank > index;
       const unlocked = purchased || (line.blueprintRank === index && line.owned >= blueprint.threshold);
       return {
         id: blueprint.id,
-        name: blueprint.name,
-        description: `A permanent-for-this-compile tooling upgrade for ${ROBO_LINES.find((item) => item.id === blueprint.lineId)?.name ?? blueprint.lineId}.`,
+        name: `${localizedLine}: ${copy.blueprintTiers[blueprint.tierId] ?? blueprint.name.split(': ').at(-1) ?? blueprint.name}`,
+        description: formatRobo(copy.localBlueprintDescription, { line: localizedLine }),
         kind: 'local' as const,
         circuit: ROBO_LINES.find((item) => item.id === blueprint.lineId)?.circuit,
-        lineName: ROBO_LINES.find((item) => item.id === blueprint.lineId)?.name,
-        effectLabel: `×${formatNumber(blueprint.multiplier, 2)} line output`,
+        lineName: localizedLine,
+        effectLabel: formatRobo(copy.localBlueprintEffect, { factor: formatNumber(blueprint.multiplier, 2) }),
         priceLabel: formatNumber(blueprint.cost),
         purchased,
         unlocked,
         canAfford: unlocked && !purchased && robo.readyRG >= blueprint.cost,
-        requirementLabel: purchased ? undefined : `Requires ${formatInteger(blueprint.threshold)} owned and the previous local blueprint.`,
+        requirementLabel: purchased ? undefined : formatRobo(copy.localBlueprintRequirement, { amount: formatInteger(blueprint.threshold) }),
       };
     });
     const anyLine = ROBO_LINES.some((line) => robo.lines[line.id].owned > 0);
@@ -225,114 +271,120 @@ export function RoboGameWorld({
       const unlocked = purchased || (robo.globalBlueprintRank === index && anyLine);
       return {
         id: blueprint.id,
-        name: blueprint.name,
-        description: 'Shared control-room instructions propagated through every active assembly line.',
+        name: copy.globalBlueprints[blueprint.id] ?? blueprint.name,
+        description: copy.globalBlueprintDescription,
         kind: 'global' as const,
-        effectLabel: `×${formatNumber(blueprint.multiplier, 2)} all mechanical output`,
+        effectLabel: formatRobo(copy.globalBlueprintEffect, { factor: formatNumber(blueprint.multiplier, 2) }),
         priceLabel: formatNumber(blueprint.cost),
         purchased,
         unlocked,
         canAfford: unlocked && !purchased && robo.readyRG >= blueprint.cost,
-        requirementLabel: purchased ? undefined : 'Install the preceding global blueprint first.',
+        requirementLabel: purchased ? undefined : copy.globalBlueprintRequirement,
       };
     });
     return [...local, ...global];
-  }, [formatInteger, formatNumber, robo]);
+  }, [copy, formatInteger, formatNumber, robo]);
 
   const firmwareGroups = useMemo<RoboFirmwareGroupView[]>(() => ([
     {
       id: 'control',
-      name: 'Control logic',
-      unlockLabel: `Unlocks at ${formatNumber(ROBO_FIRMWARE.control.unlockProducedRG)} RG produced this compile`,
+      name: copy.firmwareGroups.control,
+      unlockLabel: formatRobo(copy.firmwareUnlock, { amount: formatNumber(ROBO_FIRMWARE.control.unlockProducedRG) }),
       unlocked: robo.runProducedRG >= ROBO_FIRMWARE.control.unlockProducedRG,
-      lockedChoiceLabel: robo.firmware.control ? 'Choice committed until Recompile' : undefined,
+      lockedChoiceLabel: robo.firmware.control ? copy.firmwareChoiceCommitted : undefined,
       options: [
-        { id: 'clock', name: 'Clockwork Consensus', description: 'Prefer reliable unattended throughput.', effectLabel: '×1.20 passive assembly', priceLabel: formatNumber(ROBO_FIRMWARE.control.cost), selected: robo.firmware.control === 'clock', locked: robo.firmware.control !== null && robo.firmware.control !== 'clock', canAfford: robo.readyRG >= ROBO_FIRMWARE.control.cost },
-        { id: 'spark', name: 'Spark Personality', description: 'Route more factory output through manual assembly.', effectLabel: 'Manual CPS share 3% → 15%', priceLabel: formatNumber(ROBO_FIRMWARE.control.cost), selected: robo.firmware.control === 'spark', locked: robo.firmware.control !== null && robo.firmware.control !== 'spark', canAfford: robo.readyRG >= ROBO_FIRMWARE.control.cost },
+        { id: 'clock', name: copy.firmwareOptions.clock.name, description: copy.firmwareOptions.clock.description, effectLabel: FIRMWARE_EFFECT_COPY[language].clock, priceLabel: formatNumber(ROBO_FIRMWARE.control.cost), selected: robo.firmware.control === 'clock', locked: robo.firmware.control !== null && robo.firmware.control !== 'clock', canAfford: robo.readyRG >= ROBO_FIRMWARE.control.cost },
+        { id: 'spark', name: copy.firmwareOptions.spark.name, description: copy.firmwareOptions.spark.description, effectLabel: FIRMWARE_EFFECT_COPY[language].spark, priceLabel: formatNumber(ROBO_FIRMWARE.control.cost), selected: robo.firmware.control === 'spark', locked: robo.firmware.control !== null && robo.firmware.control !== 'spark', canAfford: robo.readyRG >= ROBO_FIRMWARE.control.cost },
       ],
     },
     {
       id: 'cadence',
-      name: 'Batch cadence',
-      unlockLabel: `Unlocks at ${formatNumber(ROBO_FIRMWARE.cadence.unlockProducedRG)} RG produced this compile`,
+      name: copy.firmwareGroups.cadence,
+      unlockLabel: formatRobo(copy.firmwareUnlock, { amount: formatNumber(ROBO_FIRMWARE.cadence.unlockProducedRG) }),
       unlocked: robo.runProducedRG >= ROBO_FIRMWARE.cadence.unlockProducedRG,
-      lockedChoiceLabel: robo.firmware.cadence ? 'Choice committed until Recompile' : undefined,
+      lockedChoiceLabel: robo.firmware.cadence ? copy.firmwareChoiceCommitted : undefined,
       options: [
-        { id: 'quick', name: 'Quick-release Latches', description: 'Release smaller intervals without changing average production.', effectLabel: 'Batch cycles ×0.50', priceLabel: formatNumber(ROBO_FIRMWARE.cadence.cost), selected: robo.firmware.cadence === 'quick', locked: robo.firmware.cadence !== null && robo.firmware.cadence !== 'quick', canAfford: robo.readyRG >= ROBO_FIRMWARE.cadence.cost },
-        { id: 'heavy', name: 'Heavy Batch Protocol', description: 'Wait longer for a stronger stable production line.', effectLabel: 'Cycles ×2 · passive ×1.15', priceLabel: formatNumber(ROBO_FIRMWARE.cadence.cost), selected: robo.firmware.cadence === 'heavy', locked: robo.firmware.cadence !== null && robo.firmware.cadence !== 'heavy', canAfford: robo.readyRG >= ROBO_FIRMWARE.cadence.cost },
+        { id: 'quick', name: copy.firmwareOptions.quick.name, description: copy.firmwareOptions.quick.description, effectLabel: FIRMWARE_EFFECT_COPY[language].quick, priceLabel: formatNumber(ROBO_FIRMWARE.cadence.cost), selected: robo.firmware.cadence === 'quick', locked: robo.firmware.cadence !== null && robo.firmware.cadence !== 'quick', canAfford: robo.readyRG >= ROBO_FIRMWARE.cadence.cost },
+        { id: 'heavy', name: copy.firmwareOptions.heavy.name, description: copy.firmwareOptions.heavy.description, effectLabel: FIRMWARE_EFFECT_COPY[language].heavy, priceLabel: formatNumber(ROBO_FIRMWARE.cadence.cost), selected: robo.firmware.cadence === 'heavy', locked: robo.firmware.cadence !== null && robo.firmware.cadence !== 'heavy', canAfford: robo.readyRG >= ROBO_FIRMWARE.cadence.cost },
       ],
     },
-  ]), [formatNumber, robo]);
+  ]), [copy, formatNumber, language, robo]);
 
   const kernelPerks = useMemo<RoboKernelPerkView[]>(() => KERNEL_PERKS.map((perk) => {
     const rank = getKernelPerkRank(game, perk.id);
     const cost = getKernelPerkCost(game, perk.id);
-    const copy = KERNEL_COPY[perk.id];
+    const perkCopy = copy.kernelPerks[perk.id];
     const iconName = perk.id === 'deep_battery' || perk.id === 'warm_start' ? 'hourglass' : perk.id === 'finger_servos' ? 'click' : perk.id === 'family_adapter' ? 'burrow' : perk.id === 'better_bolts' ? 'hammer' : 'memory';
     return {
       id: perk.id,
-      name: perk.name,
-      description: copy.description,
-      effectLabel: copy.effect(rank),
+      name: perkCopy?.name ?? perk.name,
+      description: perkCopy?.description ?? perk.name,
+      effectLabel: KERNEL_EFFECT_COPY[language][perk.id](rank),
       rank,
       maxRank: perk.maxRank,
       costLabel: Number.isFinite(cost) ? formatInteger(cost) : '—',
       affordable: Number.isFinite(cost) && robo.kernel.cores >= cost,
       icon: <Icon name={iconName} size={19} />,
     };
-  }), [formatInteger, game, robo.kernel.cores]);
+  }), [copy, formatInteger, game, language, robo.kernel.cores]);
 
-  const appearances = useMemo<RoboAppearanceView[]>(() => (Object.keys(APPEARANCE_COPY) as RoboAppearanceId[]).map((id) => ({
+  const appearances = useMemo<RoboAppearanceView[]>(() => (['tin_rascal', 'boiler_baron', 'clockwork_ancestor'] as const satisfies readonly RoboAppearanceId[]).map((id) => ({
     id,
-    name: APPEARANCE_COPY[id].name,
-    description: APPEARANCE_COPY[id].description,
+    name: copy.appearancesCopy[id]?.name ?? id,
+    description: copy.appearancesCopy[id]?.description ?? id,
     imageSrc: robogoblinAppearanceArt[id],
     unlocked: isRoboAppearanceUnlocked(robo, id),
     equipped: robo.appearance === id,
-    unlockLabel: APPEARANCE_COPY[id].unlock,
-  })), [robo]);
+    unlockLabel: copy.appearancesCopy[id]?.unlock,
+  })), [copy, robo]);
 
   const achievements = useMemo<RoboAchievementView[]>(() => ROBO_ACHIEVEMENTS.map((achievement) => {
     const unlockedAt = robo.achievements[achievement.id];
     return {
       id: achievement.id,
-      name: achievement.name,
-      description: achievement.description,
+      name: copy.achievementsCopy[achievement.id]?.name ?? achievement.name,
+      description: copy.achievementsCopy[achievement.id]?.description ?? achievement.description,
       unlocked: unlockedAt !== undefined,
-      unlockedAtLabel: unlockedAt !== undefined ? `Unlocked ${formatDate(unlockedAt)}` : undefined,
+      unlockedAtLabel: unlockedAt !== undefined ? t('achievement.unlockedAt', { date: formatDate(unlockedAt) }) : undefined,
     };
-  }), [formatDate, robo.achievements]);
+  }), [copy, formatDate, robo.achievements, t]);
 
   const eligibleLifetime = robo.lifetimeProducedRG + totalPending;
   const nextCoreIndex = Math.min(1_000_000_000, robo.kernel.totalCoresEarned + 1);
   const nextCoreThreshold = 10_000_000 * nextCoreIndex ** 3;
   const overclockStatus = overclockActive && robo.capacitor.overclockEndsAt
-    ? `${formatDuration(Math.max(0, robo.capacitor.overclockEndsAt - now))} remaining · ×2 passive`
+    ? formatRobo(copy.overclockRemaining, { duration: formatDuration(Math.max(0, robo.capacitor.overclockEndsAt - now)) })
     : robo.capacitor.charge >= ROBO_CHARGE_CAP
-      ? 'Capacitor full · 30s at ×2 passive'
-      : `${formatInteger(Math.ceil(ROBO_CHARGE_CAP - robo.capacitor.charge))} Charge until ready`;
+      ? copy.overclockReady
+      : formatRobo(copy.chargeUntilReady, { amount: formatInteger(Math.ceil(ROBO_CHARGE_CAP - robo.capacitor.charge)) });
   const anyLineOwned = ROBO_LINES.some((line) => robo.lines[line.id].owned > 0);
   const unlockedAchievements = Object.keys(robo.achievements).length;
-  const appearanceName = APPEARANCE_COPY[robo.appearance].name;
+  const appearanceName = copy.appearancesCopy[robo.appearance]?.name ?? robo.appearance;
   const objective = !anyLineOwned
-    ? 'Assign the starter stock to one Tin Cradle.'
+    ? copy.objectiveStarter
     : recompileGain > 0
-      ? `Recompile now for +${formatInteger(recompileGain)} Kernel Cores, or push farther.`
+      ? formatRobo(copy.objectiveRecompile, { amount: formatInteger(recompileGain) })
       : (() => {
           const target = ROBO_LINES.find((line) => nextMastery(robo.lines[line.id].owned));
           const milestone = target ? nextMastery(robo.lines[target.id].owned) : null;
-          return target && milestone ? `Bring ${target.name} to ${formatInteger(milestone.threshold)} for ${milestone.name}.` : 'Complete the Kernel and close every circuit.';
+          return target && milestone
+            ? formatRobo(copy.objectiveMastery, {
+                line: copy.lines[target.id]?.name ?? target.name,
+                amount: formatInteger(milestone.threshold),
+                mastery: copy.masteryNames[milestone.name] ?? milestone.name,
+              })
+            : copy.objectiveComplete;
         })();
 
   const left = <div className="left-stack">
     <RoboFactoryLedger
       stats={[
-        { id: 'compile', label: 'This compile', value: formatNumber(robo.runProducedRG), accent: 'blue' },
-        { id: 'lifetime', label: 'All-time RG', value: formatNumber(robo.lifetimeProducedRG) },
-        { id: 'manual', label: 'Manual assembly', value: formatNumber(robo.statistics.manuallyAssembledRG), accent: 'copper' },
-        { id: 'best', label: 'Best stable /s', value: formatNumber(robo.statistics.highestStableRps) },
-        { id: 'cores', label: 'Kernel earned', value: formatInteger(robo.kernel.totalCoresEarned), accent: 'lilac' },
-        { id: 'recompiles', label: 'Recompiles', value: formatInteger(robo.kernel.recompiles) },
+        { id: 'compile', label: copy.thisCompile, value: formatNumber(robo.runProducedRG), accent: 'blue' },
+        { id: 'lifetime', label: copy.allTimeRG, value: formatNumber(robo.lifetimeProducedRG) },
+        { id: 'manual', label: copy.manualAssembly, value: formatNumber(robo.statistics.manuallyAssembledRG), accent: 'copper' },
+        { id: 'best', label: copy.bestStable, value: formatNumber(robo.statistics.highestStableRps) },
+        { id: 'cores', label: copy.kernelEarned, value: formatInteger(robo.kernel.totalCoresEarned), accent: 'lilac' },
+        { id: 'recompiles', label: copy.recompiles, value: formatInteger(robo.kernel.recompiles) },
       ]}
       warrenRateLabel={`${formatNumber(warrenRate)}/s`}
       nextGoalLabel={objective}
@@ -365,8 +417,8 @@ export function RoboGameWorld({
     canOverclock={anyLineOwned && robo.capacitor.charge >= ROBO_CHARGE_CAP}
     onAssemble={onAssemble}
     onOverclock={onOverclock}
-    statusLabel={overclockActive ? 'Pressure beyond warranty' : 'Assembly cradle online'}
-    worldSwitch={<RoboWorldSwitch direction="to-warren" label="Return to Warren" detail={`Organic production continues at ${formatNumber(warrenRate)}/s`} onActivate={onSwitchToWarren} />}
+    statusLabel={overclockActive ? copy.statusOverclocked : copy.statusOnline}
+    worldSwitch={<RoboWorldSwitch direction="to-warren" label={copy.switchToWarren} detail={formatRobo(copy.switchWarrenDetail, { rate: formatNumber(warrenRate) })} onActivate={onSwitchToWarren} />}
     effectsLayer={effects ? <FloatingNumbers items={floating} /> : undefined}
   />;
 
@@ -396,13 +448,13 @@ export function RoboGameWorld({
       totalEarnedLabel={formatInteger(robo.kernel.totalCoresEarned)}
       claimableCoresLabel={formatInteger(recompileGain)}
       canRecompile={recompileGain > 0}
-      nextCoreLabel={recompileGain > 0 ? undefined : `${formatNumber(Math.max(0, nextCoreThreshold - eligibleLifetime))} RG until the next Core`}
+      nextCoreLabel={recompileGain > 0 ? undefined : formatRobo(copy.nextCore, { amount: formatNumber(Math.max(0, nextCoreThreshold - eligibleLifetime)) })}
       preview={{
         gainLabel: formatInteger(recompileGain),
         currentMultiplierLabel: `×${formatNumber(currentMultiplier, 2)}`,
         nextMultiplierLabel: `×${formatNumber(nextMultiplier, 2)}`,
-        resetItems: ['Ready RG and compile production', 'Assembly-line ownership and batch phases', 'Blueprints and firmware choices', 'Charge and active Overclock'],
-        preservedItems: ['Warren and Mechanical Charter', 'Kernel wallet, earned Cores and perks', 'Mechanical lifetime statistics', 'Achievements and robot appearances'],
+        resetItems: copy.resetItems,
+        preservedItems: copy.preservedItems,
       }}
       perks={kernelPerks}
       onBuyPerk={(id) => onBuyKernelPerk(id as KernelPerkId)}
@@ -415,14 +467,14 @@ export function RoboGameWorld({
 
   return <GameShell
     className="world--robogoblins"
-    ariaLabels={{ left: 'RoboGoblins factory controls', center: 'RoboGoblin assembly cradle', right: 'RoboGoblin assembly lines' }}
+    ariaLabels={{ left: copy.ariaFactoryControls, center: copy.ariaAssemblyCradle, right: copy.ariaAssemblyLines }}
     header={<ResourceHeader
-      title="RoboGoblins"
-      subtitle="Unlicensed mechanical foundry"
+      title={copy.world}
+      subtitle={copy.foundrySubtitle}
       stats={[
-        { id: 'ready-rg', label: 'Ready RG', value: formatNumber(robo.readyRG), icon: 'brood', accent: true },
-        { id: 'assembly-rps', label: 'Average /s', value: formatNumber(stableRps), icon: 'cps' },
-        { id: 'kernel-cores', label: 'Kernel Cores', value: formatInteger(robo.kernel.cores), icon: 'memory' },
+        { id: 'ready-rg', label: copy.readyRG, value: formatNumber(robo.readyRG), icon: 'brood', accent: true },
+        { id: 'assembly-rps', label: copy.averageShort, value: formatNumber(stableRps), icon: 'cps' },
+        { id: 'kernel-cores', label: copy.kernelCores, value: formatInteger(robo.kernel.cores), icon: 'memory' },
       ]}
       onOpenAchievements={() => setModal('collection')}
       onOpenPrestige={() => setModal('kernel')}

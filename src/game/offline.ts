@@ -3,6 +3,8 @@ import { scheduleNextMooncap } from './events';
 import { getBaseCps, getBuildingBaseCps, getOfflineEfficiencyResearchBonus, getPermanentRank } from './math';
 import { clampResource } from './state';
 import type { GameState, OfflineProgress } from './types';
+import { applyRoboOfflineProgress } from './robo/offline';
+import type { RoboOfflineProgress } from './robo/types';
 
 export const BASE_OFFLINE_CAP_MS = 8 * 60 * 60 * 1_000;
 export const OFFLINE_CAP_PER_RANK_MS = 2 * 60 * 60 * 1_000;
@@ -32,8 +34,9 @@ export function calculateOfflineProgress(state: GameState, now: number): Offline
  * Applies capped offline production without temporary buffs or Mooncap spawns.
  * Call once after deserializing a save before entering the foreground tick loop.
  */
-export function applyOfflineProgress(state: GameState, now: number): { state: GameState; progress: OfflineProgress } {
+export function applyOfflineProgress(state: GameState, now: number): { state: GameState; progress: OfflineProgress; roboProgress: RoboOfflineProgress | null } {
   const progress = calculateOfflineProgress(state, now);
+  const roboOffline = applyRoboOfflineProgress(state, now);
   const timestamp = Math.max(state.lastUpdateAt, Math.floor(now));
   const lifetimeProducedByBuilding = { ...state.statistics.lifetimeProducedByBuilding };
   const baseCps = getBaseCps(state);
@@ -51,6 +54,7 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
     buffs: [],
     mooncap: { ...state.mooncap, active: false, family: null, spawnedAt: null, expiresAt: null },
     statistics: { ...state.statistics, lifetimeProducedByBuilding },
+    robo: roboOffline.robo,
   };
   const mission = state.expeditions.active;
   if (mission) {
@@ -59,5 +63,5 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
       reserved: clampResource(mission.reserved + baseCps * reservedMs / 1000 * progress.efficiency * mission.reservation) } };
   }
   next = scheduleNextMooncap(next, timestamp);
-  return { state: next, progress };
+  return { state: next, progress, roboProgress: roboOffline.progress };
 }

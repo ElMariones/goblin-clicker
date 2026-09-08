@@ -1,4 +1,8 @@
-export const CURRENT_SAVE_VERSION = 5 as const;
+import type { RoboState } from './robo/types';
+
+export const CURRENT_SAVE_VERSION = 6 as const;
+
+export type WorldId = 'warren' | 'robogoblins';
 
 export type BuildingId =
   | 'brood_matron'
@@ -217,6 +221,8 @@ export interface GameState {
   contracts: ContractBoardState;
   expeditions: ExpeditionState;
   statistics: GameStatistics;
+  unlocks: { robogoblins: boolean };
+  robo: RoboState | null;
 }
 
 export type ExpeditionDestination = 'mine' | 'ruins' | 'cellar';

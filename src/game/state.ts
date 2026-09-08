@@ -65,6 +65,8 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
       highestCps: 0,
       lifetimeProducedByBuilding: createEmptyBuildingProduction(),
     },
+    unlocks: { robogoblins: false },
+    robo: null,
   };
 
   return ensureContracts(scheduleNextMooncap(initial, timestamp), timestamp);

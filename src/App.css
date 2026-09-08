@@ -134,3 +134,23 @@
 @media (max-width: 940px) { .ledger-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 680px) { .language-select { min-width: 120px; max-width: 50%; } [dir="rtl"] .toast-stack { left: 10px; right: auto; } }
 @media (max-width: 430px) { .ledger-grid { grid-template-columns: 1fr 1fr; } .panel-primary-button { min-height: 42px; } .setting-row--language { align-items: stretch; flex-direction: column; } .language-select { width: 100%; max-width: none; } }
+
+/* One-time frontier from Great Migration into the mechanical plane. */
+.mechanical-charter { position: relative; display: grid; margin: 14px 0 16px; padding: 13px; gap: 10px; overflow: hidden; border: 1px solid rgba(136,200,222,.22); border-radius: 6px; background: linear-gradient(rgba(136,200,222,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(136,200,222,.015) 1px,transparent 1px),linear-gradient(135deg,rgba(34,54,68,.42),rgba(15,23,30,.75)); background-size: 7px 7px,7px 7px,auto; box-shadow: inset 0 0 26px rgba(136,200,222,.025); }
+.mechanical-charter::after { position:absolute; right:-34px; bottom:-38px; width:105px; height:105px; border:1px dashed rgba(233,174,117,.12); border-radius:50%; content:""; pointer-events:none; }
+.mechanical-charter.is-owned { border-color: rgba(233,174,117,.28); }
+.mechanical-charter__header { display:grid; grid-template-columns:40px minmax(0,1fr) auto; align-items:start; gap:9px; }
+.mechanical-charter__icon { display:grid; width:38px; height:38px; place-items:center; border:1px solid rgba(136,200,222,.2); color:#9bd7e8; background:rgba(58,111,130,.1); }
+.mechanical-charter__header > div { min-width:0; }
+.mechanical-charter__header small { display:block; color:#88c8de; font-family:var(--font-pixel); font-size:7px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.mechanical-charter__header strong { display:block; margin-top:2px; color:#dce7e7; font-family:var(--font-display); font-size:15px; }
+.mechanical-charter__header p { margin:3px 0 0; color:var(--ink-muted); font-size:9px; line-height:1.4; }
+.mechanical-charter__header > b { padding:3px 5px; border:1px solid rgba(233,174,117,.23); color:#e9ae75; background:rgba(121,73,42,.08); font-family:var(--font-pixel); font-size:7px; white-space:nowrap; }
+.mechanical-charter__requirements { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+.mechanical-charter__requirements span { display:flex; min-height:34px; padding:5px 6px; align-items:center; gap:4px; border:1px solid rgba(169,181,187,.11); color:#7f8c92; background:rgba(255,255,255,.012); font-family:var(--font-pixel); font-size:6.5px; line-height:1.3; }
+.mechanical-charter__requirements span.is-met { border-color:rgba(136,200,222,.18); color:#a8cad2; background:rgba(55,105,123,.055); }
+.mechanical-charter__requirements span.is-met svg { color:#88c8de; }
+.mechanical-charter__action { min-height:39px; border:1px solid rgba(233,174,117,.25); border-radius:3px; color:#e9ae75; background:linear-gradient(180deg,rgba(128,78,44,.16),rgba(86,51,31,.1)); font-family:var(--font-pixel); font-size:8px; font-weight:800; }
+.mechanical-charter__action:not(:disabled):hover { border-color:rgba(233,174,117,.46); box-shadow:0 0 18px rgba(233,174,117,.06); }
+.mechanical-charter__action:disabled { opacity:.42; }
+@media (max-width:620px) { .mechanical-charter__header { grid-template-columns:36px minmax(0,1fr); } .mechanical-charter__header > b { grid-column:1/-1; width:fit-content; } .mechanical-charter__requirements { grid-template-columns:1fr; } }

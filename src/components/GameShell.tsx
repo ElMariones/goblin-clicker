@@ -9,9 +9,10 @@ export interface GameShellProps {
   background?: ReactNode;
   overlay?: ReactNode;
   className?: string;
+  ariaLabels?: Partial<{ left: string; center: string; right: string }>;
 }
 
-export function GameShell({ header, left, center, right, background, overlay, className = '' }: GameShellProps) {
+export function GameShell({ header, left, center, right, background, overlay, className = '', ariaLabels }: GameShellProps) {
   const { t } = useI18n();
   return (
     <div className={`game-frame ${className}`.trim()}>
@@ -19,9 +20,9 @@ export function GameShell({ header, left, center, right, background, overlay, cl
       <div className="game-frame__ambient" aria-hidden="true" />
       <header className="game-frame__header">{header}</header>
       <main className="game-shell">
-        <aside className="game-shell__rail game-shell__rail--left" aria-label={t('aria.goblinOperations')}>{left}</aside>
-        <section className="game-shell__stage" aria-label={t('aria.broodPit')}>{center}</section>
-        <aside className="game-shell__rail game-shell__rail--right" aria-label={t('aria.denShop')}>{right}</aside>
+        <aside className="game-shell__rail game-shell__rail--left" aria-label={ariaLabels?.left ?? t('aria.goblinOperations')}>{left}</aside>
+        <section className="game-shell__stage" aria-label={ariaLabels?.center ?? t('aria.broodPit')}>{center}</section>
+        <aside className="game-shell__rail game-shell__rail--right" aria-label={ariaLabels?.right ?? t('aria.denShop')}>{right}</aside>
       </main>
       <div className="game-overlay-root">{overlay}</div>
     </div>

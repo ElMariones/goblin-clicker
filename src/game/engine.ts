@@ -20,6 +20,8 @@ import {
 } from './math';
 import { clampResource, createEmptyBuildings, creditGoblins } from './state';
 import type { BuildingId, ContractInstance, ContractKind, GameState, PermanentUpgradeId } from './types';
+import { awardRoboAchievements } from './robo/achievements';
+import { advanceRoboBetween } from './robo/production';
 
 export interface EconomyActionResult {
   state: GameState;
@@ -36,9 +38,15 @@ export interface ContractClaimResult {
 
 function awardAchievements(state: GameState, now: number): GameState {
   const unlocked = getNewlyUnlockedAchievements(state, now);
-  if (unlocked.length === 0) return state;
   const additions = Object.fromEntries(unlocked.map((id) => [id, now]));
-  return { ...state, unlockedAchievements: { ...state.unlockedAchievements, ...additions } };
+  let next = unlocked.length === 0
+    ? state
+    : { ...state, unlockedAchievements: { ...state.unlockedAchievements, ...additions } };
+  if (next.unlocks.robogoblins && next.robo) {
+    const robo = awardRoboAchievements(next.robo, now);
+    if (robo !== next.robo) next = { ...next, robo };
+  }
+  return next;
 }
 
 /** Integrates temporary CPS buffs exactly across their start/end boundaries. */
@@ -73,6 +81,9 @@ export function tickGame(state: GameState, now: number): GameState {
   }
 
   const produced = calculateProductionBetween(state, state.lastUpdateAt, timestamp);
+  const robo = state.unlocks.robogoblins && state.robo
+    ? advanceRoboBetween(state.robo, state.lastUpdateAt, timestamp, state.prestige.totalShardsEarned)
+    : state.robo;
   const baseCps = getBaseCps(state);
   const lifetimeProducedByBuilding = { ...state.statistics.lifetimeProducedByBuilding };
   if (produced > 0 && baseCps > 0) {
@@ -97,6 +108,7 @@ export function tickGame(state: GameState, now: number): GameState {
       highestCps: Math.max(state.statistics.highestCps, getCps(state, timestamp)),
       lifetimeProducedByBuilding,
     },
+    robo,
   };
   const mission = state.expeditions.active;
   if (mission && state.lastUpdateAt < mission.endsAt) {

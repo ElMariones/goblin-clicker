@@ -24,14 +24,16 @@ export interface ResourceHeaderProps {
   musicArtist?: string;
   onToggleMusic?: () => void;
   onSkipMusic?: () => void;
+  brandLogoSrc?: string;
+  brandLogoAlt?: string;
 }
 
-export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onOpenPrestige, onOpenCosmetics, onOpenSettings, musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic }: ResourceHeaderProps) {
+export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onOpenPrestige, onOpenCosmetics, onOpenSettings, musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic, brandLogoSrc = gameArt.brandLogo, brandLogoAlt = '' }: ResourceHeaderProps) {
   const { t } = useI18n();
   return (
     <div className="resource-header">
       <div className="resource-header__brand">
-        <img src={gameArt.brandLogo} alt="" className="resource-header__logo" draggable={false} />
+        <img src={brandLogoSrc} alt={brandLogoAlt} className="resource-header__logo" draggable={false} />
         <div className="resource-header__brand-copy">
           <div className="resource-header__eyebrow">{subtitle ?? t('brand.subtitle')}</div>
           <h1 className="sr-only">{title ?? 'Brood & Burrow'}</h1>

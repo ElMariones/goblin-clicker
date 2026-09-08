@@ -19,6 +19,8 @@ import type {
   UpgradeExclusiveGroup,
   UpgradeEffect,
 } from './types';
+import { getFamilyAdapterFactor } from './robo/math';
+import { getRawKernelPerkRank } from './robo/state';
 
 const EPSILON = 1e-9;
 const MAX_MASTERY_VETERANCY_BONUS_PER_LEVEL = 0.18;
@@ -95,6 +97,14 @@ export function getAncestralMomentumMultiplier(state: GameState): number {
   const rank = getPermanentRank(state, 'ancestral_momentum');
   const countedMigrations = Math.min(25, Math.max(0, Math.floor(state.prestige.resets)));
   return 1 + countedMigrations * rank * 0.01;
+}
+
+export function getFamilyAdapterOrganicMultiplier(state: GameState): number {
+  if (!state.unlocks.robogoblins || !state.robo) return 1;
+  return getFamilyAdapterFactor(
+    state.robo.kernel.totalCoresEarned,
+    getRawKernelPerkRank(state.robo, 'family_adapter'),
+  );
 }
 
 export function getBuildingCostMultiplier(state: GameState, buildingId?: BuildingId): number {
@@ -206,7 +216,8 @@ export function getBuildingProductionMultiplier(state: GameState, buildingId: Bu
 export function getGlobalCpsMultiplier(state: GameState): number {
   let multiplier = (1 + getPermanentRank(state, 'ancestral_fertility') * 0.05)
     * getExpansionMasteryNetworkMultiplier(state)
-    * getAncestralMomentumMultiplier(state);
+    * getAncestralMomentumMultiplier(state)
+    * getFamilyAdapterOrganicMultiplier(state);
   for (const effect of getPurchasedEffects(state)) {
     if (effect.type === 'globalCpsMultiplier') multiplier *= effect.multiplier;
   }

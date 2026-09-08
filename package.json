@@ -8,8 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
-    "check": "npm run lint && npm run test && npm run build"
+    "test": "vitest run src",
+    "check": "npm run lint && npm run test && npm run test:robo-balance && npm run build",
+    "test:robo-balance": "node --test docs/robogoblins/balance.test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -32,7 +33,9 @@
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
   },
-  "description": "Brood & Burrow — a polished incremental goblin reproduction clicker",
-  "engines": { "node": ">=22.12.0" },
+  "description": "Brood & Burrow \u2014 a polished incremental goblin reproduction clicker",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "license": "UNLICENSED"
 }

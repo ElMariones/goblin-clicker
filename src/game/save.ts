@@ -6,6 +6,8 @@ import { MAX_LUNAR_CHARGE } from './events';
 import { normalizeSeed, seedFromTimestamp } from './rng';
 import { clampResource, createEmptyBuildingProduction, createInitialGameState } from './state';
 import { CURRENT_SAVE_VERSION, type BuffInstance, type BuildingId, type ContractInstance, type ContractKind, type ContractObjective, type CosmeticId, type DeserializeResult, type ExpansionMasteryLevelId, type GameState, type MooncapFamily, type PermanentUpgradeId, type SaveEnvelope, type UpgradeDefinition, type UpgradeExclusiveGroup } from './types';
+import { sanitizeRoboState } from './robo/save';
+import { createInitialRoboState } from './robo/state';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -84,7 +86,7 @@ function sanitizeContract(raw: unknown, expectedKind: ContractKind): ContractIns
   };
 }
 
-function sanitizeState(raw: Record<string, unknown>, now: number, warnings: string[]): GameState {
+function sanitizeState(raw: Record<string, unknown>, now: number, warnings: string[], declaredVersion: number): GameState {
   const createdAt = integer(raw.createdAt, now);
   const base = createInitialGameState(createdAt, seedFromTimestamp(createdAt));
   const rawBuildings = isRecord(raw.buildings) ? raw.buildings : {};
@@ -223,6 +225,25 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
   if (!state.mooncap.active) state.mooncap.family = null;
   if (state.mooncap.active && state.mooncap.family === null) state.mooncap.family = 'clutch';
   state.expeditions = sanitizeExpeditions(raw.expeditions, state.lastUpdateAt);
+  if (declaredVersion >= 6) {
+    const rawUnlocks = isRecord(raw.unlocks) ? raw.unlocks : {};
+    const unlocked = rawUnlocks.robogoblins === true;
+    state.unlocks = { robogoblins: unlocked };
+    if (!unlocked) {
+      state.robo = null;
+      if (raw.robo !== null && raw.robo !== undefined) {
+        warnings.push('Locked RoboGoblins data was ignored because the Mechanical Charter is not owned.');
+      }
+    } else if (isRecord(raw.robo)) {
+      state.robo = sanitizeRoboState(raw.robo, state.lastUpdateAt, warnings);
+    } else {
+      state.robo = createInitialRoboState();
+      warnings.push('RoboGoblins was unlocked but its state was missing or corrupt; an empty mechanical run was recovered.');
+    }
+  } else {
+    state.unlocks = { robogoblins: false };
+    state.robo = null;
+  }
   state = ensureContracts(state, state.lastUpdateAt);
   return state;
 }
@@ -267,7 +288,7 @@ export function deserializeGame(serialized: string, now = Date.now()): Deseriali
   if (declaredVersion < CURRENT_SAVE_VERSION) {
     warnings.push(`Save migrated from version ${declaredVersion} to ${CURRENT_SAVE_VERSION}.`);
   }
-  const state = sanitizeState(rawState, Math.max(0, Math.floor(now)), warnings);
+  const state = sanitizeState(rawState, Math.max(0, Math.floor(now)), warnings, declaredVersion);
   return { state, migratedFrom: declaredVersion < CURRENT_SAVE_VERSION ? declaredVersion : null, warnings };
 }
 

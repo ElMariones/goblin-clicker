@@ -1,6 +1,7 @@
 import { ExpeditionEntry, ExpeditionMap } from './components/ExpeditionMap';
 import { startExpedition, cancelExpedition, claimExpedition, creditGoblins, getClaimableExpeditionReward, getExpeditionReservation } from './game';
 import { EXPEDITION_COPY } from './i18n/expeditions';
+import { RoboGameWorld, RoboWorldSwitch, type RoboBuyAmount } from './components/robo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AchievementModal,
@@ -34,6 +35,29 @@ import {
   equipCosmetic, importGameSave, isContractComplete, purchaseBuilding, purchaseCosmetic, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
   type BuildingId, type ContractKind, type CosmeticId, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
+import {
+  ROBO_ACHIEVEMENTS,
+  activateRoboOverclock,
+  assembleRoboGoblin,
+  equipRoboAppearance,
+  getMechanicalCharterProgress,
+  getRoboStableRps,
+  performRoboRecompile,
+  purchaseKernelPerk,
+  purchaseMechanicalCharter,
+  purchaseRoboBlueprint,
+  purchaseRoboFirmware,
+  purchaseRoboLine,
+  type CadenceFirmware,
+  type ControlFirmware,
+  type KernelPerkId,
+  type RoboAppearanceId,
+  type RoboBlueprintId,
+  type RoboFirmwareGroup,
+  type RoboLineId,
+  type RoboPurchaseAmount,
+  type WorldId,
+} from './game';
 import { playSound } from './audio';
 import { BackgroundMusicPlayer, MUSIC_TRACKS } from './music';
 import {
@@ -51,7 +75,7 @@ type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contra
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = 'storageUnavailable' | 'unreadable' | null;
-interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; language: LanguageCode }
+interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; language: LanguageCode; activeWorld: WorldId }
 type ResetEffect = 'prestige-vacuum' | null;
 
 const PERK_ICONS: Record<PermanentUpgradeId, IconName> = {
@@ -82,9 +106,10 @@ function loadSettings(): UiSettings {
       musicVolume,
       musicMuted: typeof source.musicMuted === 'boolean' ? source.musicMuted : musicVolume === 0,
       language: isLanguageCode(source.language) ? source.language : fallbackLanguage,
+      activeWorld: source.activeWorld === 'robogoblins' ? 'robogoblins' : 'warren',
     };
   } catch {
-    return { sound: true, effects: true, reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, musicVolume: 0.32, musicMuted: false, language: fallbackLanguage };
+    return { sound: true, effects: true, reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, musicVolume: 0.32, musicMuted: false, language: fallbackLanguage, activeWorld: 'warren' };
   }
 }
 
@@ -135,10 +160,12 @@ function App() {
   const contractNoticeTimer = useRef<number | null>(null);
   const gameRef = useRef(game);
   const previousAchievements = useRef(game.unlockedAchievements);
+  const previousRoboAchievements = useRef(game.robo?.achievements ?? {});
   const bootToastShown = useRef(false);
   const musicPlayerRef = useRef<BackgroundMusicPlayer | null>(null);
 
   const language = settings.language;
+  const activeWorld: WorldId = settings.activeWorld === 'robogoblins' && game.unlocks.robogoblins && game.robo ? 'robogoblins' : 'warren';
   const locale = getLanguageMeta(language).locale;
   const t = useCallback((key: TranslationKey, values?: Record<string, string | number>) => translate(language, key, values), [language]);
   const fmtNumber = useCallback((value: number, precision = 2) => formatNumber(value, precision, locale), [locale]);
@@ -220,9 +247,24 @@ function App() {
   }, [achievementDescription, addToast, game.unlockedAchievements, language, settings.sound, t]);
 
   useEffect(() => {
+    const current = game.robo?.achievements ?? {};
+    const previous = previousRoboAchievements.current;
+    const newlyUnlocked = ROBO_ACHIEVEMENTS.filter(({ id }) => current[id] !== undefined && previous[id] === undefined);
+    previousRoboAchievements.current = current;
+    if (newlyUnlocked.length === 0) return;
+    const newest = newlyUnlocked[newlyUnlocked.length - 1];
+    playSound('achievement', settings.sound);
+    addToast({ title: `Robo achievement: ${newest.name}`, message: newest.description, icon: 'trophy', tone: 'success' });
+  }, [addToast, game.robo?.achievements, settings.sound]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
-      if (resetInProgress.current) return;
-      commitGame(tickGame(gameRef.current, Date.now()));
+      if (resetInProgress.current || document.visibilityState === 'hidden') return;
+      const current = gameRef.current;
+      const now = Date.now();
+      const elapsed = now - current.lastUpdateAt;
+      if (elapsed > 60_000) commitGame(applyOfflineProgress(current, now).state);
+      else commitGame(tickGame(current, now));
     }, 100);
     return () => window.clearInterval(timer);
   }, [commitGame]);
@@ -238,13 +280,40 @@ function App() {
   }, [locale, t]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => saveNow('settings.autosaved'), 15_000);
-    const onVisibility = () => { if (document.visibilityState === 'hidden') saveNow('settings.saved'); };
-    const onBeforeUnload = () => saveNow('settings.saved');
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== 'hidden') saveNow('settings.autosaved');
+    }, 15_000);
+    const onVisibility = () => {
+      const now = Date.now();
+      if (document.visibilityState === 'hidden') {
+        const advanced = tickGame(gameRef.current, now);
+        commitGame(advanced);
+        try { localStorage.setItem(SAVE_KEY, serializeGame(advanced, now)); }
+        catch { /* autosave will retry */ }
+        return;
+      }
+      const offline = applyOfflineProgress(gameRef.current, now);
+      commitGame(offline.state);
+      const roboProduced = offline.roboProgress?.producedRG ?? 0;
+      if (offline.progress.goblinsProduced > 0.5 || roboProduced > 0.5) {
+        const rows = [
+          offline.progress.goblinsProduced > 0.5 ? `Warren +${fmtNumber(offline.progress.goblinsProduced)}` : null,
+          roboProduced > 0.5 ? `RoboGoblins +${fmtNumber(roboProduced)} RG` : null,
+        ].filter(Boolean).join(' · ');
+        addToast({ title: t('offline.title'), message: rows, icon: 'cps', tone: 'success' });
+      }
+    };
+    const onBeforeUnload = () => {
+      const now = Date.now();
+      const advanced = document.visibilityState === 'hidden' ? gameRef.current : tickGame(gameRef.current, now);
+      gameRef.current = advanced;
+      try { localStorage.setItem(SAVE_KEY, serializeGame(advanced, now)); } catch { /* page is unloading */ }
+    };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('beforeunload', onBeforeUnload); };
-  }, [saveNow]);
+  }, [addToast, commitGame, fmtNumber, saveNow, t]);
+
 
   useEffect(() => {
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
@@ -323,6 +392,80 @@ function App() {
   const equipGoblinCosmetic = (rawId: string | null) => {
     const id = rawId === null ? null : rawId as CosmeticId;
     const result = equipCosmetic(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('buy', settings.sound);
+  };
+
+  const switchWorld = (world: WorldId) => {
+    if (world === 'robogoblins' && (!gameRef.current.unlocks.robogoblins || !gameRef.current.robo)) {
+      setModal('prestige');
+      return;
+    }
+    setModal(null);
+    setSettings((current) => ({ ...current, activeWorld: world }));
+  };
+
+  const buyMechanicalCharter = () => {
+    const purchasedAt = Date.now();
+    const result = purchaseMechanicalCharter(gameRef.current, purchasedAt);
+    commitGame(result.state);
+    if (!result.success) return;
+    playSound('prestige', settings.sound);
+    try { localStorage.setItem(SAVE_KEY, serializeGame(result.state, purchasedAt)); } catch { /* autosave will retry */ }
+    addToast({ title: 'Mechanical Charter signed', message: 'The foundry is online. Your Warren continues producing while you are away.', icon: 'hammer', tone: 'prestige' });
+  };
+
+  const assembleRobot = () => {
+    const result = assembleRoboGoblin(gameRef.current, Date.now());
+    commitGame(result.state);
+    if (!result.success) return;
+    playSound('spawn', settings.sound);
+    if (!settings.effects) return;
+    const sequence = floatSequence.current++;
+    const id = `robo-float-${sequence}`;
+    const angle = sequence * 2.399963229728653;
+    const radius = 4.5 + (sequence % 4) * 1.35;
+    setFloating((items) => [...items.slice(-8), { id, text: `+${fmtNumber(result.amount)}`, x: 50 + Math.cos(angle) * radius, y: 49 + Math.sin(angle) * radius * 0.72 }]);
+    window.setTimeout(() => setFloating((items) => items.filter((item) => item.id !== id)), 1_000);
+  };
+
+  const buyRoboLine = (id: RoboLineId, amount: RoboPurchaseAmount) => {
+    const result = purchaseRoboLine(gameRef.current, id, amount, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('buy', settings.sound);
+  };
+  const buyRoboBlueprint = (id: RoboBlueprintId) => {
+    const result = purchaseRoboBlueprint(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('upgrade', settings.sound);
+  };
+  const chooseRoboFirmware = (group: RoboFirmwareGroup, choice: ControlFirmware | CadenceFirmware) => {
+    const result = purchaseRoboFirmware(gameRef.current, group, choice, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('upgrade', settings.sound);
+  };
+  const overclockRobo = () => {
+    const result = activateRoboOverclock(gameRef.current, Date.now());
+    commitGame(result.state);
+    if (result.success) {
+      playSound('mooncap', settings.sound);
+      addToast({ title: 'Overclock engaged', message: 'Mechanical passive assembly is doubled for 30 seconds.', icon: 'sparkles', tone: 'success' });
+    }
+  };
+  const buyRoboKernelPerk = (id: KernelPerkId) => {
+    const result = purchaseKernelPerk(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('upgrade', settings.sound);
+  };
+  const recompileRobo = () => {
+    const result = performRoboRecompile(gameRef.current, Date.now());
+    commitGame(result.state);
+    if (!result.success) return;
+    playSound('prestige', settings.sound);
+    addToast({ title: 'Recompile complete', message: `The foundry remembered ${fmtInteger(result.amount)} new Kernel Core${result.amount === 1 ? '' : 's'}.`, icon: 'memory', tone: 'prestige' });
+  };
+  const equipRobotAppearance = (id: RoboAppearanceId) => {
+    const result = equipRoboAppearance(gameRef.current, id, Date.now());
     commitGame(result.state);
     if (result.success) playSound('buy', settings.sound);
   };
@@ -634,6 +777,9 @@ function App() {
   const musicMuted = settings.musicMuted || settings.musicVolume <= 0;
   const expeditionReservation = getExpeditionReservation(game, now);
   const expeditionHeldPercent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(expeditionReservation);
+  const charterProgress = getMechanicalCharterProgress(game);
+  const canSignMechanicalCharter = !charterProgress.owned && charterProgress.migrations.met && charterProgress.totalCunning.met && charterProgress.availableCunning.met;
+  const roboStableRps = game.robo ? getRoboStableRps(game) : 0;
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
@@ -674,7 +820,13 @@ function App() {
       onOpen={() => setModal('moonDial')}
       labels={{ title: t('moonDial.title'), charge: t('moonDial.charge') }}
     />
-  }>
+  } worldSwitch={game.prestige.resets > 0 ? <RoboWorldSwitch
+    direction="to-robo"
+    label={game.unlocks.robogoblins ? 'Enter RoboGoblins' : 'RoboGoblins locked'}
+    detail={game.unlocks.robogoblins ? `Foundry running at ${fmtNumber(roboStableRps)}/s` : 'Sign the Mechanical Charter in Great Migration.'}
+    locked={!game.unlocks.robogoblins}
+    onActivate={() => game.unlocks.robogoblins ? switchWorld('robogoblins') : setModal('prestige')}
+  /> : undefined}>
     <WarrenBuildingField buildings={BUILDINGS.map((building) => ({
       id: building.id,
       name: localizedName(language, 'building', building.id, building.name),
@@ -785,7 +937,33 @@ function App() {
       }}
     />
     <CosmeticsModal open={modal === 'cosmetics'} currencyLabel={fmtInteger(game.prestige.shards)} cosmetics={cosmeticViews} onPurchase={buyCosmetic} onEquip={equipGoblinCosmetic} onClose={() => setModal(null)} />
-    <PrestigeModal open={modal === 'prestige'} currentCurrencyLabel={fmtInteger(game.prestige.shards)} gainLabel={fmtInteger(prestigeGain)} requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')} canPrestige={prestigeGain > 0} perks={prestigePerks} onPrestige={prestige} onBuyPerk={buyPermanent} onOpenCosmetics={() => setModal('cosmetics')} onClose={() => setModal(null)} />
+    <PrestigeModal
+      open={modal === 'prestige'}
+      currentCurrencyLabel={fmtInteger(game.prestige.shards)}
+      gainLabel={fmtInteger(prestigeGain)}
+      requirementLabel={prestigeGain > 0 ? t('prestige.requirementReady') : t('prestige.requirementLocked')}
+      canPrestige={prestigeGain > 0}
+      perks={prestigePerks}
+      onPrestige={prestige}
+      onBuyPerk={buyPermanent}
+      onOpenCosmetics={() => setModal('cosmetics')}
+      frontiers={game.prestige.resets > 0 ? <section className={`mechanical-charter${charterProgress.owned ? ' is-owned' : ''}`}>
+        <div className="mechanical-charter__header">
+          <span className="mechanical-charter__icon" aria-hidden="true"><Icon name="hammer" size={22} /></span>
+          <div><small>New frontier</small><strong>Mechanical Charter</strong><p>Open the RoboGoblins foundry. Your Warren continues producing in parallel.</p></div>
+          <b>{charterProgress.owned ? 'SIGNED' : '100 CUNNING'}</b>
+        </div>
+        <div className="mechanical-charter__requirements" aria-label="Mechanical Charter requirements">
+          <span className={charterProgress.migrations.met ? 'is-met' : ''}><Icon name={charterProgress.migrations.met ? 'sparkles' : 'lock'} size={13} /> Migrations {fmtInteger(charterProgress.migrations.current)} / {fmtInteger(charterProgress.migrations.required)}</span>
+          <span className={charterProgress.totalCunning.met ? 'is-met' : ''}><Icon name={charterProgress.totalCunning.met ? 'sparkles' : 'lock'} size={13} /> Total Cunning {fmtInteger(charterProgress.totalCunning.current)} / {fmtInteger(charterProgress.totalCunning.required)}</span>
+          <span className={charterProgress.availableCunning.met ? 'is-met' : ''}><Icon name={charterProgress.availableCunning.met ? 'sparkles' : 'lock'} size={13} /> Available Cunning {fmtInteger(charterProgress.availableCunning.current)} / {fmtInteger(charterProgress.availableCunning.required)}</span>
+        </div>
+        <button className="mechanical-charter__action" type="button" disabled={!charterProgress.owned && !canSignMechanicalCharter} onClick={charterProgress.owned ? () => switchWorld('robogoblins') : buyMechanicalCharter}>
+          <Icon name={charterProgress.owned ? 'chevron' : 'hammer'} size={15} /> {charterProgress.owned ? 'Enter RoboGoblins' : canSignMechanicalCharter ? 'Sign Mechanical Charter' : 'Requirements not met'}
+        </button>
+      </section> : undefined}
+      onClose={() => setModal(null)}
+    />
     <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} musicVolume={settings.musicVolume} musicMuted={musicMuted} onMusicVolumeChange={changeMusicVolume} toggles={[
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },
@@ -795,9 +973,39 @@ function App() {
     <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
   </>;
 
+  const roboWorld = game.robo ? <RoboGameWorld
+    game={game}
+    buyAmount={buyAmount as RoboBuyAmount}
+    onBuyAmountChange={(amount) => setBuyAmount(amount)}
+    onAssemble={assembleRobot}
+    onBuyLine={buyRoboLine}
+    onBuyBlueprint={buyRoboBlueprint}
+    onChooseFirmware={chooseRoboFirmware}
+    onOverclock={overclockRobo}
+    onBuyKernelPerk={buyRoboKernelPerk}
+    onRecompile={recompileRobo}
+    onEquipAppearance={equipRobotAppearance}
+    onSwitchToWarren={() => switchWorld('warren')}
+    onOpenSettings={() => setModal('settings')}
+    musicMuted={musicMuted}
+    musicTitle={currentMusicTrack.title}
+    musicArtist={currentMusicTrack.artist}
+    onToggleMusic={toggleMusic}
+    onSkipMusic={() => musicPlayerRef.current?.skip()}
+    effects={settings.effects}
+    reducedMotion={settings.reducedMotion}
+    floating={floating}
+    overlay={overlay}
+    formatNumber={fmtNumber}
+    formatInteger={fmtInteger}
+    formatDuration={fmtDuration}
+    formatDate={fmtDate}
+    warrenRate={cps}
+  /> : null;
+
   return <I18nProvider language={language}>
     <div className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}>
-      <GameShell
+      {activeWorld === 'robogoblins' && roboWorld ? roboWorld : <GameShell
         className={`${resetEffect === 'prestige-vacuum' ? 'game-frame--prestige-reset ' : ''}${sevenfoldActive ? 'game-frame--sevenfold' : ''}`.trim()}
         header={header}
         left={left}
@@ -823,7 +1031,7 @@ function App() {
           paused={settings.reducedMotion || !settings.effects}
         />}
         overlay={overlay}
-      />
+      />}
     </div>
   </I18nProvider>;
 }

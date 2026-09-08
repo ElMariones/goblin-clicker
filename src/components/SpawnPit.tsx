@@ -24,44 +24,62 @@ export interface SpawnPitProps {
   contractGiver?: ReactNode;
   expeditionGiver?: ReactNode;
   moonDial?: ReactNode;
+  worldSwitch?: ReactNode;
   goblinArtSrc?: string;
   children?: ReactNode;
+  labels?: Partial<{
+    kicker: string;
+    population: string;
+    perSecond: string;
+    button: string;
+    each: string;
+    aria: string;
+  }>;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, goblinArtSrc = gameArt.goblinSpawn, children }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, worldSwitch, goblinArtSrc = gameArt.goblinSpawn, children, labels }: SpawnPitProps) {
   const { t } = useI18n();
+  const copy = {
+    kicker: labels?.kicker ?? t('spawn.kicker'),
+    population: labels?.population ?? t('spawn.population'),
+    perSecond: labels?.perSecond ?? t('spawn.perSecond'),
+    button: labels?.button ?? t('spawn.button'),
+    each: labels?.each ?? t('spawn.each'),
+    aria: labels?.aria ?? t('spawn.aria', { power: clickPowerLabel }),
+  };
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
       <div className="spawn-pit__heading">
-        <span className="spawn-pit__kicker">{t('spawn.kicker')}</span>
+        <span className="spawn-pit__kicker">{copy.kicker}</span>
         <strong>{statusLabel ?? t('status.start')}</strong>
       </div>
 
       <div className="spawn-pit__counter">
-        <span className="spawn-pit__counter-label">{t('spawn.population')}</span>
+        <span className="spawn-pit__counter-label">{copy.population}</span>
         <span className="spawn-pit__counter-value">{totalLabel}</span>
-        <span className="spawn-pit__rate">+{perSecondLabel} {t('spawn.perSecond')}</span>
+        <span className="spawn-pit__rate">+{perSecondLabel} {copy.perSecond}</span>
       </div>
 
       <div className="spawn-pit__arena" data-activity={activityLevel}>
         <span className="spawn-pit__ring spawn-pit__ring--outer" aria-hidden="true" />
         <span className="spawn-pit__ring spawn-pit__ring--inner" aria-hidden="true" />
         <span className="spawn-pit__embers" aria-hidden="true" />
-        <button className={`spawn-target spawn-target--${activityLevel}`} type="button" onClick={onSpawn} disabled={disabled} aria-label={t('spawn.aria', { power: clickPowerLabel })}>
+        <button className={`spawn-target spawn-target--${activityLevel}`} type="button" onClick={onSpawn} disabled={disabled} aria-label={copy.aria}>
           <span className="spawn-target__glow spawn-target__glow--core" aria-hidden="true" />
           <img key={goblinArtSrc} className="spawn-target__goblin" src={goblinArtSrc} alt="" draggable={false} />
-          <span className="spawn-target__cta">{t('spawn.button')}</span>
+          <span className="spawn-target__cta">{copy.button}</span>
         </button>
         {children}
       </div>
 
       <div className="spawn-pit__click-power">
         <Icon name="click" size={17} />
-        <span>{t('spawn.each')}</span>
+        <span>{copy.each}</span>
         <strong>+{clickPowerLabel}</strong>
       </div>
 
       {moonDial}
+      {worldSwitch}
       {expeditionGiver}
       {contractGiver}
 

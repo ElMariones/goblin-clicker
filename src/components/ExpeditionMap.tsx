@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { BUILDING_BY_ID, EXPEDITION_BANDS, EXPEDITION_CREWS, EXPEDITION_DESTINATIONS, getBaseCps, getCps, getExpeditionQuote, getExpeditionReservation, isExpeditionUnlocked, type ExpeditionBand, type ExpeditionCrew, type ExpeditionDestination, type ExpeditionPlan, type GameState } from '../game';
 import { useI18n, getLanguageMeta, localizedName } from '../i18n';
 import { EXPEDITION_COPY } from '../i18n/expeditions';
-import { formatDuration, formatNumber } from '../utils/format';
+import { formatDuration, formatNumber, formatPercent } from '../utils/format';
 import mapArt from '../images/surface-expeditions.webp';
 import expeditionGiverArt from '../images/expedition.png';
 import { Icon, type IconName } from './Icon';
@@ -42,7 +42,7 @@ export function ExpeditionMap({ open, state, onClose, onLaunch, onCancel, onClai
   const c = EXPEDITION_COPY[language];
   const locale = getLanguageMeta(language).locale;
   const n = (value: number) => formatNumber(value, 2, locale);
-  const pct = (value: number) => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(value);
+  const pct = (value: number) => formatPercent(value, locale);
   const duration = (ms: number) => formatDuration(ms, locale);
   const [destination, setDestination] = useState<ExpeditionDestination>('mine');
   const [crew, setCrew] = useState<ExpeditionCrew>('scouts');
@@ -51,6 +51,10 @@ export function ExpeditionMap({ open, state, onClose, onLaunch, onCancel, onClai
   const [hovered, setHovered] = useState<ExpeditionDestination | null>(null);
   const [notice, setNotice] = useState<'departed' | 'returned' | 'recalled' | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Every hook above runs unconditionally; bail out before the planner is
+  // derived so a closed map costs nothing on the game's 10 Hz render loop.
+  if (!open) return null;
+
   const mission = state.expeditions.active;
   const selected = mission?.destination ?? destination;
   const plan = { destination, crew, band, complication };

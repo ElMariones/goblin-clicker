@@ -1,18 +1,53 @@
 const SHORT_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td', 'Qad', 'Qid', 'Sxd', 'Spd', 'Ocd', 'Nod', 'Vg'] as const;
 
+/**
+ * Constructing an Intl formatter costs roughly fifty times more than using one,
+ * and the UI formats several hundred values per animation frame. Formatters are
+ * immutable and locale-scoped, so one instance per locale/option pair is reused
+ * for the lifetime of the page.
+ */
+const numberFormatters = new Map<string, Intl.NumberFormat>();
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function cacheKey(locale: string | undefined, options: Record<string, unknown>): string {
+  let key = locale ?? '';
+  for (const name of Object.keys(options).sort()) key += `|${name}:${options[name]}`;
+  return key;
+}
+
+export function numberFormatter(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const key = cacheKey(locale, options as Record<string, unknown>);
+  let formatter = numberFormatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, options);
+    numberFormatters.set(key, formatter);
+  }
+  return formatter;
+}
+
+function dateFormatter(locale: string | undefined, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = cacheKey(locale, options as Record<string, unknown>);
+  let formatter = dateFormatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, options);
+    dateFormatters.set(key, formatter);
+  }
+  return formatter;
+}
+
 function decimal(value: number, digits: number, locale: string): string {
-  return new Intl.NumberFormat(locale, { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(value);
+  return numberFormatter(locale, { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(value);
 }
 
 export function formatNumber(value: number, precision = 2, locale = 'en-US'): string {
   if (!Number.isFinite(value)) return value > 0 ? '∞' : '0';
   const abs = Math.abs(value);
   if (abs < 1_000) {
-    if (abs >= 100) return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Math.floor(value));
+    if (abs >= 100) return numberFormatter(locale, { maximumFractionDigits: 0 }).format(Math.floor(value));
     if (abs >= 10) return decimal(value, 1, locale);
     if (abs >= 1) return decimal(value, 2, locale);
     if (abs === 0) return '0';
-    return new Intl.NumberFormat(locale, { maximumSignificantDigits: Math.max(1, precision) }).format(value);
+    return numberFormatter(locale, { maximumSignificantDigits: Math.max(1, precision) }).format(value);
   }
 
   const tier = Math.floor(Math.log10(abs) / 3);
@@ -27,7 +62,12 @@ export function formatNumber(value: number, precision = 2, locale = 'en-US'): st
 export function formatInteger(value: number, locale = 'en-US'): string {
   if (!Number.isFinite(value)) return value > 0 ? '∞' : '0';
   if (Math.abs(value) >= 1_000_000) return formatNumber(value, 2, locale);
-  return Math.floor(value).toLocaleString(locale);
+  return numberFormatter(locale, {}).format(Math.floor(value));
+}
+
+export function formatPercent(fraction: number, locale = 'en-US', maximumFractionDigits = 0): string {
+  if (!Number.isFinite(fraction)) return '—';
+  return numberFormatter(locale, { style: 'percent', maximumFractionDigits }).format(fraction);
 }
 
 const UNITS: Record<string, { d: string; h: string; m: string; s: string }> = {
@@ -42,7 +82,8 @@ export function formatDuration(ms: number, locale = 'en-US'): string {
   const minutes = Math.floor((seconds % 3_600) / 60);
   const secs = seconds % 60;
   const unit = UNITS[locale.toLowerCase().split('-')[0]] ?? UNITS.en;
-  const n = (value: number) => new Intl.NumberFormat(locale).format(value);
+  const format = numberFormatter(locale, {});
+  const n = (value: number) => format.format(value);
   if (days > 0) return `${n(days)}${unit.d} ${n(hours)}${unit.h}`;
   if (hours > 0) return `${n(hours)}${unit.h} ${n(minutes)}${unit.m}`;
   if (minutes > 0) return `${n(minutes)}${unit.m} ${n(secs)}${unit.s}`;
@@ -50,5 +91,5 @@ export function formatDuration(ms: number, locale = 'en-US'): string {
 }
 
 export function formatDateTime(timestamp: number, locale?: string): string {
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(timestamp);
+  return dateFormatter(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(timestamp);
 }

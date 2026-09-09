@@ -254,11 +254,17 @@ export function getBuildingCps(state: GameState, buildingId: BuildingId, now = s
 }
 
 export function getBaseCps(state: GameState): number {
+  // The global multiplier is identical for every expansion, so it is resolved
+  // once and applied to the sum. Resolving it per building made this function —
+  // which runs several times per simulation tick and per render — an order of
+  // magnitude more expensive for the same result.
   let total = 0;
   for (const definition of BUILDINGS) {
-    total += getBuildingBaseCps(state, definition.id);
+    total += Math.max(0, state.buildings[definition.id])
+      * definition.baseCps
+      * getBuildingProductionMultiplier(state, definition.id);
   }
-  return total;
+  return total * getGlobalCpsMultiplier(state);
 }
 
 export function getCps(state: GameState, now = state.lastUpdateAt): number {

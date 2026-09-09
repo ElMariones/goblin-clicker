@@ -4,6 +4,7 @@ export * from './contracts';
 export * from './rng';
 export * from './state';
 export * from './math';
+export * from './scale';
 export * from './events';
 export * from './engine';
 export * from './offline';

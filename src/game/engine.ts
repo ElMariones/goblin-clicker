@@ -115,8 +115,8 @@ export function tickGame(state: GameState, now: number): GameState {
   if (mission && state.lastUpdateAt < mission.endsAt) {
     const end = Math.min(timestamp, mission.endsAt);
     const net = calculateProductionBetween(state, Math.max(state.lastUpdateAt, mission.startedAt), end);
-    next.expeditions = { ...state.expeditions, active: { ...mission,
-      reserved: clampResource(mission.reserved + net * mission.reservation / (1 - mission.reservation)) } };
+    next = { ...next, expeditions: { ...state.expeditions, active: { ...mission,
+      reserved: clampResource(mission.reserved + net * mission.reservation / (1 - mission.reservation)) } } };
   }
   next = advanceMooncap(next, timestamp);
   return awardAchievements(ensureContracts(next, timestamp), timestamp);

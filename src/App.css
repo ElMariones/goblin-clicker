@@ -69,6 +69,7 @@
 .notification-badge { min-width: 22px; padding: 3px 6px; border: 1px solid rgba(149,201,79,.26); border-radius: 3px; color: var(--moss-bright); background: rgba(149,201,79,.08); font-family: var(--font-pixel); font-size: 11px; font-weight: 850; text-align: center; }
 
 .panel-copy { margin: 0 0 11px; color: var(--ink-muted); font-size: 12px; line-height: 1.5; }
+.panel-copy--scale { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--line); color: var(--ember); font-family: var(--font-pixel); font-size: 11px; text-wrap: balance; }
 .panel-primary-button {
   display: flex;
   width: 100%;

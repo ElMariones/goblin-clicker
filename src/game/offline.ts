@@ -59,8 +59,8 @@ export function applyOfflineProgress(state: GameState, now: number): { state: Ga
   const mission = state.expeditions.active;
   if (mission) {
     const reservedMs = Math.max(0, Math.min(state.lastUpdateAt + progress.creditedMs, mission.endsAt) - Math.max(state.lastUpdateAt, mission.startedAt));
-    next.expeditions = { ...state.expeditions, active: { ...mission,
-      reserved: clampResource(mission.reserved + baseCps * reservedMs / 1000 * progress.efficiency * mission.reservation) } };
+    next = { ...next, expeditions: { ...state.expeditions, active: { ...mission,
+      reserved: clampResource(mission.reserved + baseCps * reservedMs / 1000 * progress.efficiency * mission.reservation) } } };
   }
   next = scheduleNextMooncap(next, timestamp);
   return { state: next, progress, roboProgress: roboOffline.progress };

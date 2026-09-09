@@ -4,6 +4,28 @@ All notable user-visible changes to Brood & Burrow should be documented here.
 
 The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and intends to use semantic versioning once public builds begin.
 
+## [Unreleased]
+
+### Added
+
+- **Brood scale**: the spawn-chamber heading and the Warren Ledger now describe the brood against a 50-rung ladder of real-world quantities — a busload of commuters, every car on Earth, every human alive, every chicken alive, the seconds since the Big Bang, the grains of salt in the oceans, the atoms in the Moon, the photons in the observable universe, and on to the Planck volumes in it. Each rung also carries a goblin-voice remark drawn from one of six escalating bands, and the next rung to overtake is on the heading's tooltip. Localized in all seven interface languages and meaningful all the way to the `1e300` resource ceiling.
+- RoboGoblins, the multi-tab save-ownership lease, the adjustable UI scale and the release-check commands are now documented in the README.
+
+### Changed
+
+- The spawn chamber's mood line ("An old instinct guides the new brood.") is replaced by the brood-scale comparison, which says something concrete about the number underneath it.
+- Number, percentage, duration and date formatters are cached per locale instead of being constructed on every call. A mid-game warren formats roughly 3,500 values per second, which cost about 70 ms of main thread per second and now costs about 3 ms.
+- Research, achievement, prestige, cosmetics and contract view models are only built while their panel is open, instead of on every frame of the 10 Hz simulation loop.
+- The surface expedition planner no longer derives its whole layout while the map is closed.
+- `getBaseCps` resolves the global production multiplier once per call rather than once per expansion; the result is unchanged.
+- The Overclock, Recompile and mechanical-achievement notices, and the second-tab save notice, now use the existing translations instead of hardcoded English.
+- Game state is updated immutably in `tickGame` and `applyOfflineProgress`; both previously mutated a freshly built state object in place.
+- The version shown in Warren Settings is read from `package.json` at build time.
+
+### Removed
+
+- `src/content/`, an unreferenced duplicate of the flavour text in `src/game/content.ts` that had already drifted out of date.
+
 ## [1.2.0] - 2026-09-07
 
 ### Added

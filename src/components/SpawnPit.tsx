@@ -11,6 +11,16 @@ export interface BonusEventView {
   onClaim: () => void;
 }
 
+/** Flavour line describing the brood against real-world quantities. */
+export interface BroodScaleView {
+  /** How many times over the brood beats its largest matched reference. */
+  headline: string | null;
+  /** Goblin-voice remark for the band the brood has reached. */
+  remark: string | null;
+  /** The reference still to overtake, or the end-of-ladder message. */
+  next: string;
+}
+
 export interface SpawnPitProps {
   totalLabel: string;
   perSecondLabel: string;
@@ -26,6 +36,7 @@ export interface SpawnPitProps {
   moonDial?: ReactNode;
   worldSwitch?: ReactNode;
   goblinArtSrc?: string;
+  scale?: BroodScaleView | null;
   children?: ReactNode;
   labels?: Partial<{
     kicker: string;
@@ -37,7 +48,7 @@ export interface SpawnPitProps {
   }>;
 }
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, worldSwitch, goblinArtSrc = gameArt.goblinSpawn, children, labels }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, worldSwitch, goblinArtSrc = gameArt.goblinSpawn, scale = null, children, labels }: SpawnPitProps) {
   const { t } = useI18n();
   const copy = {
     kicker: labels?.kicker ?? t('spawn.kicker'),
@@ -49,9 +60,10 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
   };
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
-      <div className="spawn-pit__heading">
+      <div className="spawn-pit__heading" title={scale?.next}>
         <span className="spawn-pit__kicker">{copy.kicker}</span>
-        <strong>{statusLabel ?? t('status.start')}</strong>
+        <strong>{scale?.headline ?? statusLabel ?? t('status.start')}</strong>
+        {scale?.remark && <em className="spawn-pit__remark">{scale.remark}</em>}
       </div>
 
       <div className="spawn-pit__counter">

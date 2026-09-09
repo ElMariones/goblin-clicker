@@ -1,6 +1,7 @@
-import { ExpeditionEntry, ExpeditionMap } from './components/ExpeditionMap';
 import { startExpedition, cancelExpedition, claimExpedition, creditGoblins, getClaimableExpeditionReward, getExpeditionReservation } from './game';
 import { EXPEDITION_COPY } from './i18n/expeditions';
+import { SCALE_COPY, formatScale } from './i18n/scale';
+import { getRoboCopy } from './i18n/robogoblins';
 import { formatRoboUnlock, getRoboUnlockCopy } from './i18n/roboUnlock';
 import { RoboGameWorld, RoboWorldSwitch, type RoboBuyAmount } from './components/robo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,6 +10,8 @@ import {
   ContractModal,
   CosmeticsModal,
   CRTWarp,
+  ExpeditionEntry,
+  ExpeditionMap,
   FloatingNumbers,
   GameShell,
   Icon,
@@ -35,6 +38,7 @@ import {
   getContractProgress, getContractRewardAmount, getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
   getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, isWarrenBuildingRevealed, performPrestigeReset,
   equipCosmetic, importGameSave, isContractComplete, purchaseBuilding, purchaseCosmetic, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
+  getScaleComparison,
   type BuildingId, type ContractKind, type CosmeticId, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
 import {
@@ -69,8 +73,11 @@ import {
   type LanguageCode, type TranslationKey,
 } from './i18n';
 import { buildingArtAsset, cosmeticArt, gameArt, goblinCosmeticArt } from './utils/assets';
-import { formatDateTime, formatDuration, formatInteger, formatNumber } from './utils/format';
+import { formatDateTime, formatDuration, formatInteger, formatNumber, formatPercent } from './utils/format';
 import './App.css';
+
+/** `__APP_VERSION__` is undefined under Vitest, which does not apply Vite's `define`. */
+const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0-dev';
 
 const SAVE_KEY = 'goblin-clicker.save';
 const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'goblin-clicker.save.v1'] as const;
@@ -83,6 +90,9 @@ type BuyAmount = 1 | 10 | 100 | 'max';
 type WarningCode = SaveLoadWarning;
 interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; uiScale: number; language: LanguageCode; activeWorld: WorldId }
 type ResetEffect = 'prestige-vacuum' | null;
+
+/** Golden angle, in radians — spreads consecutive floating values evenly. */
+const GOLDEN_ANGLE_RADIANS = Math.PI * (3 - Math.sqrt(5));
 
 const PERK_ICONS: Record<PermanentUpgradeId, IconName> = {
   ancestral_fertility: 'bloodline',
@@ -135,8 +145,6 @@ function loadInitialState() {
   return loadStoredState(INITIAL_SAVE_OWNERSHIP.role !== 'secondary');
 }
 
-function buildingArtPath(id: BuildingId): string { return buildingArtAsset(id); }
-
 function App() {
   const [boot] = useState(loadInitialState);
   const [game, setGame] = useState<GameState>(() => boot.state);
@@ -166,6 +174,7 @@ function App() {
 
   const language = settings.language;
   const roboUnlockCopy = getRoboUnlockCopy(language);
+  const roboCopy = getRoboCopy(language);
   const activeWorld: WorldId = settings.activeWorld === 'robogoblins' && game.unlocks.robogoblins && game.robo ? 'robogoblins' : 'warren';
   const locale = getLanguageMeta(language).locale;
   const t = useCallback((key: TranslationKey, values?: Record<string, string | number>) => translate(language, key, values), [language]);
@@ -309,9 +318,15 @@ function App() {
     previousRoboAchievements.current = current;
     if (newlyUnlocked.length === 0) return;
     const newest = newlyUnlocked[newlyUnlocked.length - 1];
+    const localized = roboCopy.achievementsCopy[newest.id];
     playSound('achievement', settings.sound);
-    addToast({ title: `Robo achievement: ${newest.name}`, message: newest.description, icon: 'trophy', tone: 'success' });
-  }, [addToast, game.robo?.achievements, settings.sound]);
+    addToast({
+      title: `${roboCopy.achievements}: ${localized?.name ?? newest.name}`,
+      message: localized?.description ?? newest.description,
+      icon: 'trophy',
+      tone: 'success',
+    });
+  }, [addToast, game.robo?.achievements, roboCopy, settings.sound]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -329,7 +344,7 @@ function App() {
   const saveNow = useCallback((key: 'settings.saved' | 'settings.autosaved' = 'settings.saved') => {
     const savedAt = Date.now();
     if (!SAVE_OWNERSHIP.canWrite(savedAt)) {
-      setSaveStatus('Read-only: this save is active in another tab.');
+      setSaveStatus(t('save.otherTabTitle'));
       return;
     }
     try {
@@ -425,21 +440,30 @@ function App() {
     return t('status.start');
   }, [cps, game.prestige.resets, game.statistics.totalClicks, t]);
 
+  /**
+   * Scatters one rising value near the pit centre. Successive bursts are placed
+   * on the golden angle so rapid clicking spreads instead of stacking.
+   */
+  const showFloatingValue = useCallback((prefix: string, amount: number) => {
+    if (!settings.effects) return;
+    const sequence = floatSequence.current++;
+    const id = `${prefix}-${sequence}`;
+    const angle = sequence * GOLDEN_ANGLE_RADIANS;
+    const radius = 4.5 + (sequence % 4) * 1.35;
+    setFloating((items) => [...items.slice(-8), {
+      id,
+      text: `+${fmtNumber(amount)}`,
+      x: 50 + Math.cos(angle) * radius,
+      y: 49 + Math.sin(angle) * radius * 0.72,
+    }]);
+    window.setTimeout(() => setFloating((items) => items.filter((item) => item.id !== id)), 1_000);
+  }, [fmtNumber, settings.effects]);
+
   const spawn = () => {
-    const result = hatchGoblin(gameRef.current, Date.now()); commitGame(result.state); playSound('spawn', settings.sound);
-    if (settings.effects) {
-      const sequence = floatSequence.current++;
-      const id = `float-${sequence}`;
-      const angle = sequence * 2.399963229728653;
-      const radius = 4.5 + (sequence % 4) * 1.35;
-      setFloating((items) => [...items.slice(-8), {
-        id,
-        text: `+${fmtNumber(result.amount)}`,
-        x: 50 + Math.cos(angle) * radius,
-        y: 49 + Math.sin(angle) * radius * 0.72,
-      }]);
-      window.setTimeout(() => setFloating((items) => items.filter((item) => item.id !== id)), 1_000);
-    }
+    const result = hatchGoblin(gameRef.current, Date.now());
+    commitGame(result.state);
+    playSound('spawn', settings.sound);
+    showFloatingValue('float', result.amount);
   };
 
   const resolveBuyQuantity = (state: GameState, id: BuildingId) => buyAmount === 'max' ? getMaxAffordableBuildingCount(state, id) : buyAmount;
@@ -493,13 +517,7 @@ function App() {
     commitGame(result.state);
     if (!result.success) return;
     playSound('spawn', settings.sound);
-    if (!settings.effects) return;
-    const sequence = floatSequence.current++;
-    const id = `robo-float-${sequence}`;
-    const angle = sequence * 2.399963229728653;
-    const radius = 4.5 + (sequence % 4) * 1.35;
-    setFloating((items) => [...items.slice(-8), { id, text: `+${fmtNumber(result.amount)}`, x: 50 + Math.cos(angle) * radius, y: 49 + Math.sin(angle) * radius * 0.72 }]);
-    window.setTimeout(() => setFloating((items) => items.filter((item) => item.id !== id)), 1_000);
+    showFloatingValue('robo-float', result.amount);
   };
 
   const buyRoboLine = (id: RoboLineId, amount: RoboPurchaseAmount) => {
@@ -522,7 +540,7 @@ function App() {
     commitGame(result.state);
     if (result.success) {
       playSound('mooncap', settings.sound);
-      addToast({ title: 'Overclock engaged', message: 'Mechanical passive assembly is doubled for 30 seconds.', icon: 'sparkles', tone: 'success' });
+      addToast({ title: roboCopy.overclock, message: roboCopy.overclockDetail, icon: 'sparkles', tone: 'success' });
     }
   };
   const buyRoboKernelPerk = (id: KernelPerkId) => {
@@ -535,7 +553,7 @@ function App() {
     commitGame(result.state);
     if (!result.success) return;
     playSound('prestige', settings.sound);
-    addToast({ title: 'Recompile complete', message: `The foundry remembered ${fmtInteger(result.amount)} new Kernel Core${result.amount === 1 ? '' : 's'}.`, icon: 'memory', tone: 'prestige' });
+    addToast({ title: roboCopy.recompile, message: `${roboCopy.kernelCores} ${roboCopy.earned}: +${fmtInteger(result.amount)}`, icon: 'memory', tone: 'prestige' });
   };
   const equipRobotAppearance = (id: RoboAppearanceId) => {
     const result = equipRoboAppearance(gameRef.current, id, Date.now());
@@ -720,7 +738,7 @@ function App() {
 
   const doctrineGroupLabel = useCallback((group: UpgradeExclusiveGroup) => t(`research.doctrine.${group}` as TranslationKey), [t]);
 
-  const upgradesView = useMemo(() => UPGRADES.map((upgrade) => {
+  const upgradesView = useMemo(() => modal !== 'upgrades' ? [] : UPGRADES.map((upgrade) => {
     const exclusiveGroup = 'exclusiveGroup' in upgrade ? upgrade.exclusiveGroup : undefined;
     const sibling = exclusiveGroup
       ? UPGRADES.find((candidate) => candidate.id !== upgrade.id && 'exclusiveGroup' in candidate && candidate.exclusiveGroup === exclusiveGroup)
@@ -745,14 +763,14 @@ function App() {
       tier: upgradeTierLabel(upgrade),
       icon: 'sparkles' as const,
     };
-  }), [doctrineGroupLabel, fmtNumber, game, language, t, upgradeEffectLabel, upgradeTierLabel]);
+  }), [doctrineGroupLabel, fmtNumber, game, language, modal, t, upgradeEffectLabel, upgradeTierLabel]);
 
-  const achievementViews = useMemo(() => ACHIEVEMENTS.map((achievement) => ({
+  const achievementViews = useMemo(() => modal !== 'achievements' ? [] : ACHIEVEMENTS.map((achievement) => ({
     id: achievement.id, name: localizedName(language, 'achievement', achievement.id, achievement.name), description: achievementDescription(achievement),
     unlocked: Boolean(game.unlockedAchievements[achievement.id]), unlockedAtLabel: game.unlockedAchievements[achievement.id] ? t('achievement.unlockedAt', { date: fmtDate(game.unlockedAchievements[achievement.id]) }) : undefined,
-  })), [achievementDescription, fmtDate, game.unlockedAchievements, language, t]);
+  })), [achievementDescription, fmtDate, game.unlockedAchievements, language, modal, t]);
 
-  const prestigePerks = useMemo(() => PERMANENT_UPGRADES.map((perk) => {
+  const prestigePerks = useMemo(() => modal !== 'prestige' ? [] : PERMANENT_UPGRADES.map((perk) => {
     const rank = getPermanentRank(game, perk.id); const cost = getPermanentUpgradeCost(game, perk.id);
     let effectLabel: string;
     switch (perk.id) {
@@ -781,9 +799,9 @@ function App() {
       icon: PERK_ICONS[perk.id],
       effectLabel,
     };
-  }), [fmtInteger, game, language, t]);
+  }), [fmtInteger, game, language, modal, t]);
 
-  const cosmeticViews = useMemo(() => [{
+  const cosmeticViews = useMemo(() => modal !== 'cosmetics' ? [] : [{
     id: 'default',
     name: t('cosmetics.defaultName'),
     description: t('cosmetics.defaultDescription'),
@@ -801,11 +819,13 @@ function App() {
     owned: Boolean(game.prestige.cosmetics.owned[cosmetic.id]),
     equipped: game.prestige.cosmetics.equipped === cosmetic.id,
     affordable: game.prestige.shards >= cosmetic.cost,
-  }))], [fmtInteger, game.prestige.cosmetics, game.prestige.shards, t]);
+  }))], [fmtInteger, game.prestige.cosmetics, game.prestige.shards, modal, t]);
 
   const activeBuffs = game.buffs.filter((buff) => buff.expiresAt > now);
   const sevenfoldActive = activeBuffs.some((buff) => buff.id === 'moon_frenzy' && buff.target === 'cps');
-  const contractViews = CONTRACT_KINDS.map((kind) => {
+  // Only the ready-count feeds the always-visible contract giver; the full view
+  // models are built when the board is actually open.
+  const contractViews = modal !== 'contracts' ? [] : CONTRACT_KINDS.map((kind) => {
     const contract = game.contracts.active[kind];
     if (!contract) return null;
     const objective = contract.objective;
@@ -843,7 +863,10 @@ function App() {
       complete: isContractComplete(game, contract),
     };
   }).filter((contract): contract is NonNullable<typeof contract> => contract !== null);
-  const readyContracts = contractViews.filter(({ complete }) => complete).length;
+  const readyContracts = CONTRACT_KINDS.reduce((count, kind) => {
+    const contract = game.contracts.active[kind];
+    return contract && isContractComplete(game, contract) ? count + 1 : count;
+  }, 0);
   const mooncapFamily = game.mooncap.family;
   const mooncapCopy = mooncapFamily ? {
     clutch: { label: t('mooncap.clutchcap'), detail: t('mooncap.clutchcapDetail') },
@@ -857,7 +880,7 @@ function App() {
   const canExtendMoon = activeBuffs.some((buff) => buff.id === 'moon_frenzy' || buff.id === 'hatching_fever' || buff.id === 'eclipse');
   const musicMuted = settings.musicMuted || settings.musicVolume <= 0;
   const expeditionReservation = getExpeditionReservation(game, now);
-  const expeditionHeldPercent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(expeditionReservation);
+  const expeditionHeldPercent = formatPercent(expeditionReservation, locale);
   const charterProgress = getMechanicalCharterProgress(game);
   const canBuyRoboGoblins = canPurchaseMechanicalCharter(game);
   const revealedWarrenBuildings = charterProgress.eligible
@@ -865,6 +888,24 @@ function App() {
     : BUILDINGS.filter((_, index) => isWarrenBuildingRevealed(game, index)).length;
   const missingRoboCunning = Math.max(0, charterProgress.availableCunning.required - charterProgress.availableCunning.current);
   const roboStableRps = game.robo ? getRoboStableRps(game) : 0;
+
+  // Real-world comparisons for the two counts players actually watch: the live
+  // population under the pit counter, and the all-time total in the ledger.
+  const scaleCopy = SCALE_COPY[language];
+  const scaleReference = (id: keyof typeof scaleCopy.references) => scaleCopy.references[id];
+  const populationScale = getScaleComparison(game.goblins);
+  const broodScale = {
+    headline: populationScale.passed
+      ? formatScale(scaleCopy.outnumbers, { reference: scaleReference(populationScale.passed.id), multiple: fmtNumber(populationScale.multiple) })
+      : null,
+    remark: populationScale.passed ? scaleCopy.remarks[populationScale.passed.band] : null,
+    next: populationScale.next ? formatScale(scaleCopy.next, { reference: scaleReference(populationScale.next.id) }) : scaleCopy.beyond,
+  };
+  const lifetimeScale = getScaleComparison(game.lifetimeGoblins);
+  const lifetimeScaleLine = lifetimeScale.passed
+    ? formatScale(scaleCopy.allTime, { reference: scaleReference(lifetimeScale.passed.id), multiple: fmtNumber(lifetimeScale.multiple) })
+    : null;
+
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },
     { id: 'cps', label: t('header.perSecond'), value: fmtNumber(cps), icon: 'cps' },
@@ -878,6 +919,7 @@ function App() {
         <div><dt>{t('ledger.manual')}</dt><dd>{fmtNumber(game.statistics.manuallyBorn)}</dd></div><div><dt>{t('ledger.structures')}</dt><dd>{fmtInteger(totalBuildings)}</dd></div>
         <div><dt>{t('ledger.baseProduction')}</dt><dd>{fmtNumber(baseCps)}/s</dd></div><div><dt>{t('ledger.bestProduction')}</dt><dd>{fmtNumber(game.statistics.highestCps)}/s</dd></div>
       </dl>
+      {lifetimeScaleLine && <p className="panel-copy panel-copy--scale">{lifetimeScaleLine}</p>}
       {expeditionReservation > 0 && <p className="panel-copy">{EXPEDITION_COPY[language].reserve}: −{fmtNumber(cps * expeditionReservation / (1 - expeditionReservation))}/s ({expeditionHeldPercent})</p>}
       {activeBuffs.length > 0 && <div className="buff-list">{activeBuffs.map((buff) => <div className={`buff-pill${buff.id === 'moon_frenzy' ? ' buff-pill--sevenfold' : buff.id === 'eclipse' ? ' buff-pill--eclipse' : ''}`} key={buff.id}><Icon name="sparkles" size={14} /><span>{buff.id === 'moon_frenzy' ? t('buff.moonFrenzy') : buff.id === 'hatching_fever' ? t('buff.hatchingFever') : t('buff.eclipse')}</span><strong>×{fmtInteger(buff.multiplier)}</strong><small>{fmtDuration(buff.expiresAt - now)}</small></div>)}</div>}
     </SidePanel>
@@ -890,7 +932,7 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} goblinArtSrc={goblinCosmeticArt(game.prestige.cosmetics.equipped)} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} expeditionGiver={
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} goblinArtSrc={goblinCosmeticArt(game.prestige.cosmetics.equipped)} scale={broodScale} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} expeditionGiver={
     <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
   } contractGiver={
     <button className={`contract-giver${readyContracts > 0 ? ' contract-giver--ready' : ''}`} type="button" onClick={() => setModal('contracts')} aria-label={t('contract.openAria')}>
@@ -921,7 +963,7 @@ function App() {
       id: building.id,
       name: localizedName(language, 'building', building.id, building.name),
       owned: game.buildings[building.id],
-      artSrc: buildingArtPath(building.id),
+      artSrc: buildingArtAsset(building.id),
     }))} />
     {settings.effects && <FloatingNumbers items={floating} />}
   </SpawnPit>;
@@ -963,8 +1005,8 @@ function App() {
       }} mastery={locked ? undefined : {
         tierId: masteryLevel?.id ?? 'unranked',
         levelLabel: t(masteryTranslationKey),
-        multiplierLabel: `×${formatNumber(masteryMultiplier, 2, getLanguageMeta(language).locale)}`,
-        networkLabel: `+${formatNumber(masteryNetworkContribution * 100, 2, getLanguageMeta(language).locale)}%`,
+        multiplierLabel: `×${fmtNumber(masteryMultiplier)}`,
+        networkLabel: `+${fmtNumber(masteryNetworkContribution * 100)}%`,
         progressLabel: nextMasteryLevel ? `${fmtInteger(owned)} / ${fmtInteger(nextMasteryLevel.threshold)}` : `${fmtInteger(owned)} / ${fmtInteger(masteryFloor)}`,
         nextLevelLabel: nextMasteryTranslationKey ? t(nextMasteryTranslationKey) : undefined,
         labels: {
@@ -972,7 +1014,7 @@ function App() {
           network: t('shop.mastery.network'),
           maxed: t('shop.mastery.maxed'),
         },
-      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtPath(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} />;
+      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtAsset(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} />;
     })}
   </ShopPanel>;
 
@@ -1091,7 +1133,7 @@ function App() {
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },
       { id: 'reducedMotion', label: t('settings.reducedMotion'), description: t('settings.reducedMotionDescription'), checked: settings.reducedMotion },
-    ]} onToggle={(id, checked) => setSettings((current) => ({ ...current, [id]: checked }))} onExportSave={exportSave} onImportSave={importSave} onHardReset={hardReset} onClose={() => setModal(null)} saveStatus={saveStatus || t('settings.autosaveReady')} versionLabel="v1.2.0" />
+    ]} onToggle={(id, checked) => setSettings((current) => ({ ...current, [id]: checked }))} onExportSave={exportSave} onImportSave={importSave} onHardReset={hardReset} onClose={() => setModal(null)} saveStatus={saveStatus || t('settings.autosaveReady')} versionLabel={`v${APP_VERSION}`} />
     {resetEffect === 'prestige-vacuum' && <div ref={resetOverlayRef} className="prestige-vacuum-fx" role="status" aria-label={t('prestige.confirmAccept')} tabIndex={-1} onKeyDown={(event) => { event.preventDefault(); event.stopPropagation(); }}><span className="prestige-vacuum-fx__ring prestige-vacuum-fx__ring--outer" aria-hidden="true" /><span className="prestige-vacuum-fx__ring prestige-vacuum-fx__ring--inner" aria-hidden="true" /><span className="prestige-vacuum-fx__core" aria-hidden="true"><Icon name="crown" size={30} /></span></div>}
     <ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
   </>;
@@ -1162,13 +1204,11 @@ function App() {
     </div>
     {saveOwnership.role === 'secondary' && <aside className="save-ownership-notice" role="status" aria-live="polite">
       <div>
-        <strong>This save is active in another tab.</strong>
-        <span>{saveOwnership.canTakeOver
-          ? 'The other tab released or lost its lease. Reload the latest save to continue here.'
-          : 'This tab is read-only so two copies cannot generate or overwrite the same progress.'}</span>
+        <strong>{t('save.otherTabTitle')}</strong>
+        <span>{t(saveOwnership.canTakeOver ? 'save.otherTabTakeOver' : 'save.otherTabReadOnly')}</span>
       </div>
       <button type="button" onClick={takeOverSave} disabled={!saveOwnership.canTakeOver}>
-        {saveOwnership.canTakeOver ? 'Take over save' : 'Other tab is active'}
+        {t(saveOwnership.canTakeOver ? 'save.takeOver' : 'save.otherTabActive')}
       </button>
     </aside>}
   </I18nProvider>;

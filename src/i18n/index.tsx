@@ -286,6 +286,8 @@ const EN = {
   'settings.musicVolume': 'Background music',
   'settings.musicVolumeDescription': 'Adjust the soundtrack volume. Setting this to 0 mutes the music.',
   'settings.muted': 'Muted',
+  'settings.uiScale': 'UI scale',
+  'settings.uiScaleDescription': 'Adjust text and control size. Increase it for large or high-resolution displays.',
   'settings.sound': 'Warren sounds',
   'settings.soundDescription': 'Procedural click, purchase, achievement, and event sounds.',
   'settings.effects': 'Spawn effects',
@@ -327,6 +329,7 @@ export type TranslationKey = keyof typeof EN;
 type TemplateValues = Record<string, string | number>;
 
 const ES: Partial<Record<TranslationKey, string>> = {
+  'settings.uiScale': 'Escala de la interfaz', 'settings.uiScaleDescription': 'Ajusta el tamaño del texto y los controles. Auméntala en pantallas grandes o de alta resolución.',
   'app.title': 'Brood & Burrow — Incremental de goblins', 'brand.subtitle': 'Dirección de Reproducción Goblin',
   'aria.resources': 'Recursos de la prole', 'aria.menus': 'Menús del juego', 'aria.achievements': 'Logros', 'aria.prestige': 'Prestigio', 'aria.cosmetics': 'Tienda de cosméticos', 'aria.settings': 'Ajustes', 'music.mute': 'Silenciar música', 'music.unmute': 'Activar música', 'music.skip': 'Saltar canción', 'music.nowPlaying': 'Sonando ahora…', 'aria.goblinOperations': 'Operaciones goblin', 'aria.broodPit': 'Foso de cría', 'aria.denShop': 'Tienda de la madriguera', 'aria.notifications': 'Notificaciones', 'aria.close': 'Cerrar {title}', 'aria.dismiss': 'Descartar {title}',
   'header.goblins': 'Goblins', 'header.perSecond': 'Por segundo', 'header.ancestral': 'Ancestral', 'header.ancestralTitle': 'Astucia Ancestral permanente',
@@ -348,6 +351,7 @@ const ES: Partial<Record<TranslationKey, string>> = {
 };
 
 const ZH: Partial<Record<TranslationKey, string>> = {
+  'settings.uiScale': '界面缩放', 'settings.uiScaleDescription': '调整文字和控件大小。在大屏幕或高分辨率显示器上可调高。',
   'app.title': 'Brood & Burrow — 哥布林增量游戏', 'brand.subtitle': '哥布林繁衍管理局',
   'aria.resources': '族群资源', 'aria.menus': '游戏菜单', 'aria.achievements': '成就', 'aria.prestige': '转生', 'aria.settings': '设置', 'aria.goblinOperations': '哥布林运营', 'aria.broodPit': '繁育坑', 'aria.denShop': '巢穴商店', 'aria.notifications': '通知', 'aria.close': '关闭{title}', 'aria.dismiss': '忽略{title}',
   'header.goblins': '哥布林', 'header.perSecond': '每秒', 'header.ancestral': '祖传', 'header.ancestralTitle': '永久祖传狡黠',
@@ -367,6 +371,7 @@ const ZH: Partial<Record<TranslationKey, string>> = {
 };
 
 const FR: Partial<Record<TranslationKey, string>> = {
+  'settings.uiScale': 'Échelle de l’interface', 'settings.uiScaleDescription': 'Ajustez la taille du texte et des commandes. Augmentez-la sur les écrans grands ou haute résolution.',
   'app.title': 'Brood & Burrow — Jeu incrémental gobelin', 'brand.subtitle': 'Direction de la Reproduction Gobeline',
   'aria.resources': 'Ressources de la couvée', 'aria.menus': 'Menus du jeu', 'aria.achievements': 'Succès', 'aria.prestige': 'Prestige', 'aria.settings': 'Paramètres', 'aria.goblinOperations': 'Opérations gobelines', 'aria.broodPit': 'Fosse à couvée', 'aria.denShop': 'Boutique du terrier', 'aria.notifications': 'Notifications', 'aria.close': 'Fermer {title}', 'aria.dismiss': 'Masquer {title}',
   'header.goblins': 'Gobelins', 'header.perSecond': 'Par seconde', 'header.ancestral': 'Ancestral', 'header.ancestralTitle': 'Ruse Ancestrale permanente',
@@ -386,6 +391,7 @@ const FR: Partial<Record<TranslationKey, string>> = {
 };
 
 const DE: Partial<Record<TranslationKey, string>> = {
+  'settings.uiScale': 'UI-Skalierung', 'settings.uiScaleDescription': 'Passt die Größe von Text und Bedienelementen an. Auf großen oder hochauflösenden Bildschirmen erhöhen.',
   'app.title': 'Brood & Burrow — Goblin-Inkrementalspiel', 'brand.subtitle': 'Direktion für Goblin-Vermehrung',
   'aria.resources': 'Brutressourcen', 'aria.menus': 'Spielmenüs', 'aria.achievements': 'Erfolge', 'aria.prestige': 'Prestige', 'aria.settings': 'Einstellungen', 'aria.goblinOperations': 'Goblin-Betrieb', 'aria.broodPit': 'Brutgrube', 'aria.denShop': 'Bau-Laden', 'aria.notifications': 'Benachrichtigungen', 'aria.close': '{title} schließen', 'aria.dismiss': '{title} ausblenden',
   'header.goblins': 'Goblins', 'header.perSecond': 'Pro Sekunde', 'header.ancestral': 'Ahnenkraft', 'header.ancestralTitle': 'Permanente Ahnenlist',
@@ -405,6 +411,7 @@ const DE: Partial<Record<TranslationKey, string>> = {
 };
 
 const AR: Partial<Record<TranslationKey, string>> = {
+  'settings.uiScale': 'مقياس الواجهة', 'settings.uiScaleDescription': 'اضبط حجم النص وعناصر التحكم. زِده على الشاشات الكبيرة أو عالية الدقة.',
   'app.title': 'Brood & Burrow — لعبة غوبلن تراكمية', 'brand.subtitle': 'مديرية تكاثر الغوبلن',
   'aria.resources': 'موارد السرب', 'aria.menus': 'قوائم اللعبة', 'aria.achievements': 'الإنجازات', 'aria.prestige': 'الهيبة', 'aria.settings': 'الإعدادات', 'aria.goblinOperations': 'عمليات الغوبلن', 'aria.broodPit': 'حفرة السرب', 'aria.denShop': 'متجر الوكر', 'aria.notifications': 'الإشعارات', 'aria.close': 'إغلاق {title}', 'aria.dismiss': 'إخفاء {title}',
   'header.goblins': 'غوبلن', 'header.perSecond': 'في الثانية', 'header.ancestral': 'سَلَفي', 'header.ancestralTitle': 'دهاء الأجداد الدائم',
@@ -424,6 +431,7 @@ const AR: Partial<Record<TranslationKey, string>> = {
 };
 
 const TR: Partial<Record<TranslationKey, string>> = {
+  'settings.uiScale': 'Arayüz ölçeği', 'settings.uiScaleDescription': 'Metin ve denetim boyutunu ayarla. Büyük veya yüksek çözünürlüklü ekranlarda artır.',
   'app.title': 'Brood & Burrow — Goblin Artımlı Oyun', 'brand.subtitle': 'Goblin Üreme Müdürlüğü',
   'aria.resources': 'Kuluçka kaynakları', 'aria.menus': 'Oyun menüleri', 'aria.achievements': 'Başarımlar', 'aria.prestige': 'Prestij', 'aria.settings': 'Ayarlar', 'aria.goblinOperations': 'Goblin operasyonları', 'aria.broodPit': 'Kuluçka çukuru', 'aria.denShop': 'İn dükkânı', 'aria.notifications': 'Bildirimler', 'aria.close': '{title} penceresini kapat', 'aria.dismiss': '{title} bildirimini kapat',
   'header.goblins': 'Goblinler', 'header.perSecond': 'Saniyede', 'header.ancestral': 'Atasal', 'header.ancestralTitle': 'Kalıcı Atasal Kurnazlık',

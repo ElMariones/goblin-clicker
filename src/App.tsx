@@ -81,7 +81,7 @@ type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contra
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = SaveLoadWarning;
-interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; language: LanguageCode; activeWorld: WorldId }
+interface UiSettings { sound: boolean; effects: boolean; reducedMotion: boolean; musicVolume: number; musicMuted: boolean; uiScale: number; language: LanguageCode; activeWorld: WorldId }
 type ResetEffect = 'prestige-vacuum' | null;
 
 const PERK_ICONS: Record<PermanentUpgradeId, IconName> = {
@@ -105,17 +105,19 @@ function loadSettings(): UiSettings {
     const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') as Record<string, unknown>;
     const source = { ...legacy, ...parsed };
     const musicVolume = typeof source.musicVolume === 'number' ? Math.max(0, Math.min(1, source.musicVolume)) : 0.32;
+    const uiScale = typeof source.uiScale === 'number' && Number.isFinite(source.uiScale) ? Math.max(0.75, Math.min(2, source.uiScale)) : 1;
     return {
       sound: typeof source.sound === 'boolean' ? source.sound : true,
       effects: typeof source.effects === 'boolean' ? source.effects : true,
       reducedMotion: typeof source.reducedMotion === 'boolean' ? source.reducedMotion : (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false),
       musicVolume,
       musicMuted: typeof source.musicMuted === 'boolean' ? source.musicMuted : musicVolume === 0,
+      uiScale,
       language: isLanguageCode(source.language) ? source.language : fallbackLanguage,
       activeWorld: source.activeWorld === 'robogoblins' ? 'robogoblins' : 'warren',
     };
   } catch {
-    return { sound: true, effects: true, reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, musicVolume: 0.32, musicMuted: false, language: fallbackLanguage, activeWorld: 'warren' };
+    return { sound: true, effects: true, reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, musicVolume: 0.32, musicMuted: false, uiScale: 1, language: fallbackLanguage, activeWorld: 'warren' };
   }
 }
 
@@ -395,6 +397,10 @@ function App() {
   const changeMusicVolume = useCallback((volume: number) => {
     const next = Math.max(0, Math.min(1, Number.isFinite(volume) ? volume : 0));
     setSettings((current) => ({ ...current, musicVolume: next, musicMuted: next === 0 }));
+  }, []);
+  const changeUiScale = useCallback((scale: number) => {
+    const next = Math.max(0.75, Math.min(2, Number.isFinite(scale) ? scale : 1));
+    setSettings((current) => ({ ...current, uiScale: next }));
   }, []);
 
   const now = game.lastUpdateAt;
@@ -1081,7 +1087,7 @@ function App() {
       onOpenCosmetics={() => setModal('cosmetics')}
       onClose={() => setModal(null)}
     />
-    <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} musicVolume={settings.musicVolume} musicMuted={musicMuted} onMusicVolumeChange={changeMusicVolume} toggles={[
+    <SettingsModal open={modal === 'settings'} language={language} onLanguageChange={(next) => setSettings((current) => ({ ...current, language: next }))} musicVolume={settings.musicVolume} musicMuted={musicMuted} onMusicVolumeChange={changeMusicVolume} uiScale={settings.uiScale} onUiScaleChange={changeUiScale} toggles={[
       { id: 'sound', label: t('settings.sound'), description: t('settings.soundDescription'), checked: settings.sound },
       { id: 'effects', label: t('settings.effects'), description: t('settings.effectsDescription'), checked: settings.effects },
       { id: 'reducedMotion', label: t('settings.reducedMotion'), description: t('settings.reducedMotionDescription'), checked: settings.reducedMotion },
@@ -1123,6 +1129,7 @@ function App() {
   return <I18nProvider language={language}>
     <div
       className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}
+      style={{ zoom: settings.uiScale }}
       inert={saveOwnership.role === 'secondary' ? true : undefined}
     >
       {activeWorld === 'robogoblins' && roboWorld ? roboWorld : <GameShell

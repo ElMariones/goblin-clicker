@@ -4,7 +4,8 @@ import type { BuffInstance, GameState, MooncapFamily, MooncapReward } from './ty
 
 export const MOONCAP_MIN_DELAY_MS = 120_000;
 export const MOONCAP_MAX_DELAY_MS = 300_000;
-export const MOONCAP_DURATION_MS = 13_000;
+export const MOONCAP_BLINK_DURATION_MS = 10_000;
+export const MOONCAP_DURATION_MS = 23_000;
 export const MAX_LUNAR_CHARGE = 6;
 
 export type MoonDialAction =

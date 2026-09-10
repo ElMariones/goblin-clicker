@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { claimMooncap, equipCosmetic, hatchGoblin, performPrestigeReset, purchaseBuilding, purchaseCosmetic, spendLunarCharge, tickGame } from './engine';
+import { MOONCAP_BLINK_DURATION_MS, MOONCAP_DURATION_MS } from './events';
 import { applyOfflineProgress, calculateOfflineProgress } from './offline';
 import { createInitialGameState } from './state';
 
@@ -175,6 +176,17 @@ describe('game simulation', () => {
     const rewardB = claimMooncap(bSpawned, spawnAt + 1);
     expect(rewardA.reward).toEqual(rewardB.reward);
     expect(rewardA.state.mooncap.nextSpawnAt).toBe(rewardB.state.mooncap.nextSpawnAt);
+  });
+
+  it('keeps a Mooncap active through its blinking warning window before it disappears', () => {
+    const state = createInitialGameState(1_000, 12345);
+    const spawnAt = state.mooncap.nextSpawnAt;
+    const spawned = tickGame(state, spawnAt);
+
+    expect(spawned.mooncap.expiresAt).toBe(spawnAt + MOONCAP_DURATION_MS);
+    expect(MOONCAP_DURATION_MS - MOONCAP_BLINK_DURATION_MS).toBe(13_000);
+    expect(tickGame(spawned, spawnAt + MOONCAP_DURATION_MS - 1).mooncap.active).toBe(true);
+    expect(tickGame(spawned, spawnAt + MOONCAP_DURATION_MS).mooncap.active).toBe(false);
   });
 
   it('extends Mooncap clutch rewards and buff durations with Moonlit Blood', () => {

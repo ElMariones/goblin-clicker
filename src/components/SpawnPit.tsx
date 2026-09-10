@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { gameArt, mooncapArt } from '../utils/assets';
 import { useI18n } from '../i18n';
 import { Icon } from './Icon';
@@ -8,6 +8,7 @@ export interface BonusEventView {
   label: string;
   detail?: string;
   tone?: 'clutch' | 'frenzy' | 'blood' | 'oracle';
+  fading?: boolean;
   onClaim: () => void;
 }
 
@@ -46,8 +47,12 @@ export interface SpawnPitProps {
   }>;
 }
 
+const OMEN_DEPARTURE_MS = 850;
+
 export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, worldSwitch, goblinArtSrc = gameArt.goblinSpawn, scale = null, children, labels }: SpawnPitProps) {
   const { t } = useI18n();
+  const [departingEvent, setDepartingEvent] = useState<BonusEventView | null>(null);
+  const previousBonusEvent = useRef<BonusEventView | null>(null);
   const copy = {
     kicker: labels?.kicker ?? t('spawn.kicker'),
     population: labels?.population ?? t('spawn.population'),
@@ -56,6 +61,19 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
     each: labels?.each ?? t('spawn.each'),
     aria: labels?.aria ?? t('spawn.aria', { power: clickPowerLabel }),
   };
+
+  useEffect(() => {
+    const previous = previousBonusEvent.current;
+    previousBonusEvent.current = bonusEvent ?? null;
+    if (!previous || bonusEvent) return;
+
+    setDepartingEvent(previous);
+    const timer = window.setTimeout(() => setDepartingEvent(null), OMEN_DEPARTURE_MS);
+    return () => window.clearTimeout(timer);
+  }, [bonusEvent]);
+
+  const visibleBonusEvent = bonusEvent ?? departingEvent;
+  const departing = !bonusEvent && departingEvent !== null;
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
       <div className="spawn-pit__heading">
@@ -93,17 +111,19 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
       {expeditionGiver}
       {contractGiver}
 
-      {bonusEvent && (
+      {visibleBonusEvent && (
         <button
-          className={`omen-event${bonusEvent.tone ? ` omen-event--${bonusEvent.tone}` : ''}`}
+          className={`omen-event${visibleBonusEvent.tone ? ` omen-event--${visibleBonusEvent.tone}` : ''}${visibleBonusEvent.fading && !departing ? ' omen-event--fading' : ''}${departing ? ' omen-event--departing' : ''}`}
           type="button"
-          onClick={bonusEvent.onClaim}
-          aria-label={t('spawn.claim', { name: bonusEvent.label })}
-          title={bonusEvent.detail ? `${bonusEvent.label} — ${bonusEvent.detail}` : bonusEvent.label}
+          onClick={departing ? undefined : visibleBonusEvent.onClaim}
+          disabled={departing}
+          tabIndex={departing ? -1 : undefined}
+          aria-label={t('spawn.claim', { name: visibleBonusEvent.label })}
+          title={visibleBonusEvent.detail ? `${visibleBonusEvent.label} — ${visibleBonusEvent.detail}` : visibleBonusEvent.label}
         >
           <span className="omen-event__aura" aria-hidden="true" />
-          {bonusEvent.tone
-            ? <img src={mooncapArt[bonusEvent.tone]} alt="" draggable={false} />
+          {visibleBonusEvent.tone
+            ? <img src={mooncapArt[visibleBonusEvent.tone]} alt="" draggable={false} />
             : <span className="omen-event__fallback" aria-hidden="true"><Icon name="sparkles" /></span>}
           <span className="omen-event__spark omen-event__spark--one" aria-hidden="true" />
           <span className="omen-event__spark omen-event__spark--two" aria-hidden="true" />

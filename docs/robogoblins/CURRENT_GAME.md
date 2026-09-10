@@ -69,7 +69,7 @@ Migration clears current wallet (replaced by starting grants), owned expansions,
 
 ## Parallel activities
 
-- **Mooncaps:** random 120–300s base delay, a 13s claim window. Clutch gives currency; Frenzy gives ×7 passive for 77s; Blood gives ×25 clicks for 13s; Oracle empowers the next contract. Overlapping Frenzy and Blood can trigger Eclipse. Lunar charge caps at six and buys timing/bias/extension actions.
+- **Mooncaps:** random 120–300s base delay, a 23s claim window with the final 10s blinking as a warning. Clutch gives currency; Frenzy gives ×7 passive for 77s; Blood gives ×25 clicks for 13s; Oracle empowers the next contract. Overlapping Frenzy and Blood can trigger Eclipse. Lunar charge caps at six and buys timing/bias/extension actions.
 - **Contracts:** three simultaneous horizons with baseline reward durations of 10/60/240 seconds of production and minimum payouts. Objectives include manual production, ownership, Mooncaps, run production and mastery. Oracle boosts are capped.
 - **Expeditions:** one mission at a time, three destinations, crews and durations. They reserve some organic passive output and return a scaled haul. Returned missions restore production before collection and keep their reward indefinitely. Keepsakes persist.
 - **Collection:** 26 achievements and ten cosmetics bought with Cunning. These are not currencies or extra production engines.

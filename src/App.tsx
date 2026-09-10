@@ -33,7 +33,7 @@ import {
   type ToastView,
 } from './components';
 import {
-  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, COSMETICS, COSMETIC_BY_ID, MAX_LUNAR_CHARGE, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchaseMechanicalCharter, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
+  ACHIEVEMENTS, BUILDINGS, BUILDING_BY_ID, CONTRACT_KINDS, COSMETICS, COSMETIC_BY_ID, MAX_LUNAR_CHARGE, MOONCAP_BLINK_DURATION_MS, PERMANENT_UPGRADES, UPGRADES, applyOfflineProgress, canPurchaseMechanicalCharter, canPurchasePermanentUpgrade, canPurchaseUpgrade, claimContract, claimMooncap,
   createInitialGameState, exportGameSave, getBaseCps, getBuildingBulkCost, getBuildingCps, getBuildingUnitCps, getClickPower, getCps,
   getContractProgress, getContractRewardAmount, getExpansionMasteryLevel, getExpansionMasteryProductionMultiplier, getMaxAffordableBuildingCount, getNextExpansionMasteryLevel, getReachedExpansionMasteryLevels,
   getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, isWarrenBuildingRevealed, performPrestigeReset,
@@ -944,7 +944,7 @@ function App() {
     </SidePanel>
   </div>;
 
-  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} goblinArtSrc={goblinCosmeticArt(game.prestige.cosmetics.equipped)} scale={broodScale} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, onClaim: clickMooncap } : null} expeditionGiver={
+  const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} goblinArtSrc={goblinCosmeticArt(game.prestige.cosmetics.equipped)} scale={broodScale} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, fading: game.mooncap.expiresAt !== null && game.mooncap.expiresAt - now <= MOONCAP_BLINK_DURATION_MS, onClaim: clickMooncap } : null} expeditionGiver={
     <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
   } contractGiver={
     <button className={`contract-giver${readyContracts > 0 ? ' contract-giver--ready' : ''}`} type="button" onClick={() => setModal('contracts')} aria-label={t('contract.openAria')}>

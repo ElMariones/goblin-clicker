@@ -1,4 +1,4 @@
-import type { ScaleBand, ScaleReferenceId } from '../game/scale';
+import type { ScaleReferenceId } from '../game/scale';
 import type { LanguageCode } from './index';
 
 /**
@@ -9,17 +9,11 @@ import type { LanguageCode } from './index';
 const en = {
   heading: 'Brood scale',
   outnumbers: 'Outnumbers {reference} ×{multiple}',
+  outnumbersPlain: 'Outnumbers {reference}',
   next: 'Next: {reference}',
   allTime: 'All-time brood outnumbers {reference} ×{multiple}',
+  allTimePlain: 'All-time brood outnumbers {reference}',
   beyond: 'Nothing left in the universe to count it against.',
-  remarks: {
-    room: 'The Directorate requests a bigger room.',
-    warren: 'Every tunnel is standing room only.',
-    world: 'The warren no longer fits inside the warren.',
-    sky: 'Astronomers keep re-checking their instruments.',
-    void: 'Physics has politely asked you to stop.',
-    beyond: 'The census clerk resigned. So did the census.',
-  } satisfies Record<ScaleBand, string>,
   references: {
     bus: 'a busload of commuters',
     stadium: 'a sold-out stadium',
@@ -79,17 +73,11 @@ type Copy = typeof en;
 const es: Copy = {
   heading: 'Escala de la prole',
   outnumbers: 'Supera {reference} ×{multiple}',
+  outnumbersPlain: 'Supera {reference}',
   next: 'Siguiente: {reference}',
   allTime: 'La prole histórica supera {reference} ×{multiple}',
+  allTimePlain: 'La prole histórica supera {reference}',
   beyond: 'Ya no queda nada en el universo con lo que compararla.',
-  remarks: {
-    room: 'La Dirección solicita una sala más grande.',
-    warren: 'En todos los túneles solo se cabe de pie.',
-    world: 'La madriguera ya no cabe dentro de la madriguera.',
-    sky: 'Los astrónomos vuelven a revisar sus instrumentos.',
-    void: 'La física te ha pedido amablemente que pares.',
-    beyond: 'El censista dimitió. El censo también.',
-  },
   references: {
     bus: 'un autobús lleno de pasajeros',
     stadium: 'un estadio con todo vendido',
@@ -147,17 +135,11 @@ const es: Copy = {
 const fr: Copy = {
   heading: 'Échelle de la couvée',
   outnumbers: 'Dépasse {reference} ×{multiple}',
+  outnumbersPlain: 'Dépasse {reference}',
   next: 'Ensuite : {reference}',
   allTime: 'La couvée de tous les temps dépasse {reference} ×{multiple}',
+  allTimePlain: 'La couvée de tous les temps dépasse {reference}',
   beyond: 'Plus rien dans l’univers ne sert de comparaison.',
-  remarks: {
-    room: 'La Direction demande une salle plus grande.',
-    warren: 'Dans chaque tunnel, on ne tient plus que debout.',
-    world: 'Le terrier ne tient plus dans le terrier.',
-    sky: 'Les astronomes revérifient leurs instruments.',
-    void: 'La physique vous demande poliment d’arrêter.',
-    beyond: 'Le recenseur a démissionné. Le recensement aussi.',
-  },
   references: {
     bus: 'un bus bondé de passagers',
     stadium: 'un stade à guichets fermés',
@@ -215,17 +197,11 @@ const fr: Copy = {
 const de: Copy = {
   heading: 'Brutgröße',
   outnumbers: 'Übertrifft {reference} ×{multiple}',
+  outnumbersPlain: 'Übertrifft {reference}',
   next: 'Als Nächstes: {reference}',
   allTime: 'Die Gesamtbrut übertrifft {reference} ×{multiple}',
+  allTimePlain: 'Die Gesamtbrut übertrifft {reference}',
   beyond: 'Im Universum bleibt nichts mehr zum Vergleichen.',
-  remarks: {
-    room: 'Die Direktion bittet um einen größeren Raum.',
-    warren: 'In jedem Tunnel gibt es nur noch Stehplätze.',
-    world: 'Der Bau passt nicht mehr in den Bau.',
-    sky: 'Die Astronomen prüfen ihre Instrumente noch einmal.',
-    void: 'Die Physik bittet dich höflich, aufzuhören.',
-    beyond: 'Der Zähler ist zurückgetreten. Die Zählung auch.',
-  },
   references: {
     bus: 'einen vollen Linienbus',
     stadium: 'ein ausverkauftes Stadion',
@@ -283,17 +259,11 @@ const de: Copy = {
 const zh: Copy = {
   heading: '族群规模',
   outnumbers: '超过{reference}的 ×{multiple} 倍',
+  outnumbersPlain: '超过{reference}',
   next: '下一个目标：{reference}',
   allTime: '历史总族群超过{reference}的 ×{multiple} 倍',
+  allTimePlain: '历史总族群超过{reference}',
   beyond: '宇宙中已没有可以用来比较的东西了。',
-  remarks: {
-    room: '管理局要求换一间更大的屋子。',
-    warren: '每条隧道都只剩下站的位置了。',
-    world: '巢穴已经装不下巢穴自己了。',
-    sky: '天文学家又去重新校验仪器了。',
-    void: '物理学礼貌地请你停下。',
-    beyond: '统计员辞职了。统计也是。',
-  },
   references: {
     bus: '一辆挤满乘客的公交车',
     stadium: '一座满座的体育场',
@@ -351,17 +321,11 @@ const zh: Copy = {
 const ar: Copy = {
   heading: 'مقياس الحضنة',
   outnumbers: 'تفوق {reference} بـ ×{multiple}',
+  outnumbersPlain: 'تفوق {reference}',
   next: 'التالي: {reference}',
   allTime: 'الحضنة الكلية تفوق {reference} بـ ×{multiple}',
+  allTimePlain: 'الحضنة الكلية تفوق {reference}',
   beyond: 'لم يبقَ في الكون ما يمكن مقارنتها به.',
-  remarks: {
-    room: 'تطلب المديرية قاعة أكبر.',
-    warren: 'لم يبقَ في أي نفق سوى مواضع الوقوف.',
-    world: 'لم يعد الوكر يتسع للوكر نفسه.',
-    sky: 'يعيد الفلكيون فحص أجهزتهم مرة أخرى.',
-    void: 'طلبت منك الفيزياء بأدب أن تتوقف.',
-    beyond: 'استقال موظف الإحصاء. واستقال الإحصاء معه.',
-  },
   references: {
     bus: 'حافلة مكتظة بالركاب',
     stadium: 'ملعباً كامل العدد',
@@ -419,17 +383,11 @@ const ar: Copy = {
 const tr: Copy = {
   heading: 'Yavru ölçeği',
   outnumbers: '{reference} sayısını ×{multiple} aşıyor',
+  outnumbersPlain: '{reference} sayısını aşıyor',
   next: 'Sıradaki: {reference}',
   allTime: 'Tüm zamanların yavrusu {reference} sayısını ×{multiple} aşıyor',
+  allTimePlain: 'Tüm zamanların yavrusu {reference} sayısını aşıyor',
   beyond: 'Evrende kıyaslanacak bir şey kalmadı.',
-  remarks: {
-    room: 'Müdürlük daha büyük bir oda talep ediyor.',
-    warren: 'Her tünelde yalnızca ayakta yer kaldı.',
-    world: 'Yuva artık yuvanın içine sığmıyor.',
-    sky: 'Gökbilimciler aletlerini yeniden kontrol ediyor.',
-    void: 'Fizik kibarca durmanı rica etti.',
-    beyond: 'Sayım memuru istifa etti. Sayım da öyle.',
-  },
   references: {
     bus: 'tıklım tıklım bir otobüs dolusu yolcuyu',
     stadium: 'biletleri tükenmiş bir stadyumu',

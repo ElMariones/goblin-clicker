@@ -161,7 +161,7 @@
   mask-image: radial-gradient(ellipse, black, transparent 78%);
 }
 .spawn-pit__heading { position: relative; z-index: 2; margin-bottom: 12px; text-align: center; }
-.spawn-pit__heading strong { display: block; color: var(--ink-soft); font-family: var(--font-display); font-size: 16px; font-weight: 650; text-wrap: balance; }
+.spawn-pit__heading strong { color: var(--ink-soft); font-family: var(--font-display); font-size: 16px; font-weight: 650; }
 .spawn-pit__counter { position: relative; z-index: 2; display: flex; align-items: center; flex-direction: column; }
 .spawn-pit__counter-label { color: var(--ink-muted); font-family: var(--font-pixel); font-size: 12px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
 .spawn-pit__counter-value {
@@ -176,20 +176,18 @@
 }
 .spawn-pit__rate { margin-top: 5px; color: var(--moss-bright); font-family: var(--font-pixel); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 750; }
 
-/* Brood scale: the heading states how the population compares to the world. */
-.spawn-pit__remark {
-  display: block;
-  max-width: min(96%, 400px);
-  margin: 4px auto 0;
-  color: var(--ember);
-  font-family: var(--font-ui);
-  font-size: 11.5px;
-  font-style: italic;
+/* Brood scale: a quiet gloss on the count directly above it. */
+.spawn-pit__scale {
+  max-width: min(96%, 380px);
+  margin-top: 5px;
+  color: var(--ink-muted);
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  font-weight: 650;
   line-height: 1.35;
-  opacity: .85;
+  text-align: center;
   text-wrap: balance;
 }
-.spawn-pit--sevenfold .spawn-pit__remark { color: #8cecff; }
 .spawn-pit__arena {
   position: relative;
   display: grid;
@@ -970,7 +968,7 @@
   .spawn-pit__heading { max-width: min(92vw, 360px); }
   .spawn-pit__kicker { font-size: 9px; line-height: 1.35; white-space: normal; }
   .spawn-pit__counter-value { font-size: clamp(40px, 13vw, 58px); }
-  .spawn-pit__remark { font-size: 10.5px; }
+  .spawn-pit__scale { font-size: 10px; }
   .spawn-pit__arena { width: min(380px, 90vw); }
   .omen-event { top: 18%; right: 8px; }
   .contract-giver { position: relative; inset: auto; width: min(100%, 360px); margin-top: 9px; }

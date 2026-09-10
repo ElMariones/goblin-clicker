@@ -8,12 +8,11 @@ The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/
 
 ### Added
 
-- **Brood scale**: the spawn-chamber heading and the Warren Ledger now describe the brood against a 50-rung ladder of real-world quantities — a busload of commuters, every car on Earth, every human alive, every chicken alive, the seconds since the Big Bang, the grains of salt in the oceans, the atoms in the Moon, the photons in the observable universe, and on to the Planck volumes in it. Each rung also carries a goblin-voice remark drawn from one of six escalating bands, and the next rung to overtake is on the heading's tooltip. Localized in all seven interface languages and meaningful all the way to the `1e300` resource ceiling.
+- **Brood scale**: a small line under the goblin population, and one in the Warren Ledger for the all-time total, comparing the brood to a 50-rung ladder of real-world quantities — a busload of commuters, every car on Earth, every human alive, every chicken alive, the seconds since the Big Bang, the grains of salt in the oceans, the atoms in the Moon, the photons in the observable universe, and on to the Planck volumes in it. The multiplier is snapped to a 1-2-5 ladder so it reads ×2, ×5, ×10 instead of creeping through ×1.81, ×1.82; below ×2 it is dropped entirely. The next rung to overtake is on the line's tooltip. Localized in all seven interface languages and meaningful all the way to the `1e300` resource ceiling.
 - RoboGoblins, the multi-tab save-ownership lease, the adjustable UI scale and the release-check commands are now documented in the README.
 
 ### Changed
 
-- The spawn chamber's mood line ("An old instinct guides the new brood.") is replaced by the brood-scale comparison, which says something concrete about the number underneath it.
 - Number, percentage, duration and date formatters are cached per locale instead of being constructed on every call. A mid-game warren formats roughly 3,500 values per second, which cost about 70 ms of main thread per second and now costs about 3 ms.
 - Research, achievement, prestige, cosmetics and contract view models are only built while their panel is open, instead of on every frame of the 10 Hz simulation loop.
 - The surface expedition planner no longer derives its whole layout while the map is closed.

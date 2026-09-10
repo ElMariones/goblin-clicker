@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SCALE_BANDS, SCALE_REFERENCES, getScaleComparison } from './scale';
+import { SCALE_REFERENCES, getScaleComparison, getSteppedMultiple } from './scale';
 import { SCALE_COPY } from '../i18n/scale';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 
@@ -15,6 +15,13 @@ describe('brood scale references', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it('offers a multiplier-free phrasing in every supported language', () => {
+    for (const language of SUPPORTED_LANGUAGES) {
+      expect(SCALE_COPY[language].outnumbersPlain, language).toBeTruthy();
+      expect(SCALE_COPY[language].allTimePlain, language).toBeTruthy();
+    }
+  });
+
   it('names every reference in every supported language', () => {
     for (const language of SUPPORTED_LANGUAGES) {
       const copy = SCALE_COPY[language];
@@ -23,26 +30,6 @@ describe('brood scale references', () => {
         expect(copy.references[id], `${language}/${id}`).toBeTruthy();
       }
     }
-  });
-
-  it('writes a remark for every band in every supported language', () => {
-    for (const language of SUPPORTED_LANGUAGES) {
-      for (const band of SCALE_BANDS) {
-        expect(SCALE_COPY[language].remarks[band], `${language}/${band}`).toBeTruthy();
-      }
-    }
-  });
-
-  it('never moves a band backwards along the ladder', () => {
-    let highest = 0;
-    for (const reference of SCALE_REFERENCES) {
-      const index = SCALE_BANDS.indexOf(reference.band);
-      expect(index, reference.id).toBeGreaterThanOrEqual(highest);
-      highest = index;
-    }
-    // Every band is actually reachable.
-    const used = new Set(SCALE_REFERENCES.map(({ band }) => band));
-    for (const band of SCALE_BANDS) expect(used.has(band), band).toBe(true);
   });
 
   it('spaces rungs so the line neither flickers nor stalls', () => {
@@ -101,5 +88,50 @@ describe('getScaleComparison', () => {
       expect(comparison.next).toBe(SCALE_REFERENCES[0]);
     }
     expect(getScaleComparison(Number.POSITIVE_INFINITY).passed).toBeNull();
+  });
+});
+
+describe('getSteppedMultiple', () => {
+  it('snaps down to the 1-2-5 ladder', () => {
+    expect(getSteppedMultiple(1.81)).toBe(1);
+    expect(getSteppedMultiple(1.99)).toBe(1);
+    expect(getSteppedMultiple(2)).toBe(2);
+    expect(getSteppedMultiple(4.9)).toBe(2);
+    expect(getSteppedMultiple(5)).toBe(5);
+    expect(getSteppedMultiple(9.9)).toBe(5);
+    expect(getSteppedMultiple(10)).toBe(10);
+    expect(getSteppedMultiple(34)).toBe(20);
+    expect(getSteppedMultiple(99)).toBe(50);
+    expect(getSteppedMultiple(100)).toBe(100);
+    expect(getSteppedMultiple(340)).toBe(200);
+  });
+
+  it('never reports more than the brood actually has', () => {
+    for (let exponent = 0; exponent < 60; exponent += 1) {
+      for (const leading of [1, 1.3, 1.999, 2, 3.7, 4.999, 5, 7.2, 9.999]) {
+        const multiple = leading * 10 ** exponent;
+        const stepped = getSteppedMultiple(multiple);
+        expect(stepped, String(multiple)).toBeLessThanOrEqual(multiple * (1 + 1e-9));
+        expect(stepped, String(multiple)).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+
+  it('holds steady across a whole step before changing', () => {
+    // Everything from 2x up to just under 5x reads the same, which is the point.
+    const seen = new Set([2, 2.4, 3, 4.2, 4.99].map(getSteppedMultiple));
+    expect(seen).toEqual(new Set([2]));
+  });
+
+  it('handles degenerate inputs', () => {
+    for (const value of [0, 1, -3, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(getSteppedMultiple(value), String(value)).toBe(1);
+    }
+  });
+
+  it('is exposed on every comparison', () => {
+    expect(getScaleComparison(2.6e10 * 3.4).steppedMultiple).toBe(2);
+    expect(getScaleComparison(60 * 12).steppedMultiple).toBe(10);
+    expect(getScaleComparison(0).steppedMultiple).toBe(1);
   });
 });

@@ -63,7 +63,7 @@ RoboGoblins is discovered permanently once all twelve Warren expansions have bee
 | **Mooncaps & Moon Dial** | Four event families — Clutchcap, Frenzycap, Bloodcap, and Oraclecap — with distinct rewards/buffs, lunar charge, charge spending, and animated event presentation. |
 | **Surface expeditions** | Send a reserved slice of production to one of 3 destinations with 3 crew specialties and 3 duration bands. Expeditions continue through offline progress, can be recalled, and can recover persistent keepsakes. |
 | **Goblin cosmetics** | 10 permanent wardrobe unlocks purchased with Ancestral Cunning and carried through Great Migration, with the selected look reflected on the central spawn goblin. |
-| **Brood scale** | A 50-rung ladder of real-world quantities — a busload of commuters, every chicken alive on Earth, the seconds since the Big Bang, the grains of salt in the oceans, the photons in the observable universe, the Planck volumes in it — that turns the population counter into something a player can picture, all the way to `1e300`, with a goblin-voice remark for each of six escalating bands. |
+| **Brood scale** | A 50-rung ladder of real-world quantities — a busload of commuters, every chicken alive on Earth, the seconds since the Big Bang, the grains of salt in the oceans, the photons in the observable universe, the Planck volumes in it — that turns the population counter into something a player can picture, all the way to `1e300`. The multiplier snaps to a 1-2-5 ladder so it steps ×2, ×5, ×10 rather than drifting digit by digit. |
 | **Achievements** | 26 progression deeds covering brood size, clicks, expansion ownership, CPS, Mooncaps, migrations, and broad warren development. |
 
 ### RoboGoblins

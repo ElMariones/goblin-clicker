@@ -893,18 +893,24 @@ function App() {
   // population under the pit counter, and the all-time total in the ledger.
   const scaleCopy = SCALE_COPY[language];
   const scaleReference = (id: keyof typeof scaleCopy.references) => scaleCopy.references[id];
+  /**
+   * The multiplier is snapped to the 1-2-5 ladder so it reads x2, x5, x10 rather
+   * than creeping through 1.81, 1.82. A stepped multiple of 1 means the brood has
+   * only just passed the reference, so the multiplier is dropped entirely.
+   */
+  const scaleLine = (comparison: ReturnType<typeof getScaleComparison>, withMultiple: string, plain: string) => {
+    if (!comparison.passed) return null;
+    const reference = scaleReference(comparison.passed.id);
+    return comparison.steppedMultiple > 1
+      ? formatScale(withMultiple, { reference, multiple: fmtNumber(comparison.steppedMultiple) })
+      : formatScale(plain, { reference });
+  };
   const populationScale = getScaleComparison(game.goblins);
   const broodScale = {
-    headline: populationScale.passed
-      ? formatScale(scaleCopy.outnumbers, { reference: scaleReference(populationScale.passed.id), multiple: fmtNumber(populationScale.multiple) })
-      : null,
-    remark: populationScale.passed ? scaleCopy.remarks[populationScale.passed.band] : null,
+    headline: scaleLine(populationScale, scaleCopy.outnumbers, scaleCopy.outnumbersPlain),
     next: populationScale.next ? formatScale(scaleCopy.next, { reference: scaleReference(populationScale.next.id) }) : scaleCopy.beyond,
   };
-  const lifetimeScale = getScaleComparison(game.lifetimeGoblins);
-  const lifetimeScaleLine = lifetimeScale.passed
-    ? formatScale(scaleCopy.allTime, { reference: scaleReference(lifetimeScale.passed.id), multiple: fmtNumber(lifetimeScale.multiple) })
-    : null;
+  const lifetimeScaleLine = scaleLine(getScaleComparison(game.lifetimeGoblins), scaleCopy.allTime, scaleCopy.allTimePlain);
 
   const header = <ResourceHeader stats={[
     { id: 'population', label: t('header.goblins'), value: fmtNumber(game.goblins), icon: 'brood', accent: true },

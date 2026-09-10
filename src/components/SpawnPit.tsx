@@ -15,8 +15,6 @@ export interface BonusEventView {
 export interface BroodScaleView {
   /** How many times over the brood beats its largest matched reference. */
   headline: string | null;
-  /** Goblin-voice remark for the band the brood has reached. */
-  remark: string | null;
   /** The reference still to overtake, or the end-of-ladder message. */
   next: string;
 }
@@ -60,15 +58,15 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
   };
   return (
     <div className={`spawn-pit spawn-pit--${activityLevel}${bonusEvent ? ' spawn-pit--omen-active' : ''}${className ? ` ${className}` : ''}`} data-activity={activityLevel}>
-      <div className="spawn-pit__heading" title={scale?.next}>
+      <div className="spawn-pit__heading">
         <span className="spawn-pit__kicker">{copy.kicker}</span>
-        <strong>{scale?.headline ?? statusLabel ?? t('status.start')}</strong>
-        {scale?.remark && <em className="spawn-pit__remark">{scale.remark}</em>}
+        <strong>{statusLabel ?? t('status.start')}</strong>
       </div>
 
       <div className="spawn-pit__counter">
         <span className="spawn-pit__counter-label">{copy.population}</span>
         <span className="spawn-pit__counter-value">{totalLabel}</span>
+        {scale?.headline && <span className="spawn-pit__scale" title={scale.next}>{scale.headline}</span>}
         <span className="spawn-pit__rate">+{perSecondLabel} {copy.perSecond}</span>
       </div>
 

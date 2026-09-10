@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../i18n';
 import { Icon } from './Icon';
@@ -46,9 +46,14 @@ export interface ShopCardProps {
   productionDetails?: ShopCardProductionDetails;
   mastery?: ShopCardMasteryDetails;
   productionHold?: { label: string; detail?: string };
+  secondaryAction?: { label: string; title?: string; disabled?: boolean; onActivate: () => void };
+  detailsNote?: string;
+  detailsClassName?: string;
+  productionProgress?: ReactNode;
+  focusableDetails?: boolean;
 }
 
-export function ShopCard({ id, name, description, ownedLabel, priceLabel, productionLabel, canAfford, onBuy, onSell, locked = false, badge, artSrc, buyAmountLabel, productionDetails, mastery, productionHold }: ShopCardProps) {
+export function ShopCard({ id, name, description, ownedLabel, priceLabel, productionLabel, canAfford, onBuy, onSell, locked = false, badge, artSrc, buyAmountLabel, productionDetails, mastery, productionHold, secondaryAction, detailsNote, detailsClassName = '', productionProgress, focusableDetails = false }: ShopCardProps) {
   const { t } = useI18n();
   const cardRef = useRef<HTMLElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
@@ -68,13 +73,15 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
     const gap = 12;
     const availableLeft = Math.max(0, cardRect.left - gap - 8);
     const preferredWidth = Math.max(240, Math.min(340, cardRect.width * .88));
-    const width = Math.max(160, Math.min(preferredWidth, availableLeft, window.innerWidth - 16));
+    const width = focusableDetails && availableLeft < 240
+      ? Math.min(340, window.innerWidth - 16)
+      : Math.max(160, Math.min(preferredWidth, availableLeft, window.innerWidth - 16));
     const tooltipHeight = detailsRef.current?.offsetHeight ?? 0;
     const left = Math.max(8, cardRect.left - width - gap);
     const centeredTop = cardRect.top + (cardRect.height - tooltipHeight) / 2;
     const top = Math.max(8, Math.min(centeredTop, window.innerHeight - tooltipHeight - 8));
     setDetailsPosition((current) => current && current.top === top && current.left === left && current.width === width ? current : { top, left, width });
-  }, [hasHoverDetails]);
+  }, [hasHoverDetails, focusableDetails]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -109,7 +116,7 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
   const detailsPopover = detailsPosition && typeof document !== 'undefined' ? createPortal(
     <div
       ref={detailsRef}
-      className="shop-card__details shop-card__details--portal"
+      className={`shop-card__details shop-card__details--portal ${detailsClassName}`.trim()}
       id={detailId}
       role="tooltip"
       style={{ top: detailsPosition.top, left: detailsPosition.left, width: detailsPosition.width }}
@@ -130,6 +137,7 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
         </dl>
       )}
       {productionHold && <div className="shop-card__details-expedition"><Icon name="hourglass" size={11} /><span><strong>{productionHold.label}</strong>{productionHold.detail && <small>{productionHold.detail}</small>}</span></div>}
+      {detailsNote && <p className="shop-card__details-note">{detailsNote}</p>}
       {masteryDetails && (
         <div className="shop-card__details-mastery">
           <div className="shop-card__details-mastery-line">
@@ -150,8 +158,12 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
       ref={cardRef}
       className={`shop-card${locked ? ' shop-card--locked' : ''}${canAfford ? ' shop-card--affordable' : ''}${hasHoverDetails ? ' shop-card--has-details' : ''}${productionHold ? ' shop-card--expedition-held' : ''}`}
       onPointerEnter={showDetails}
+      onPointerDown={(event) => { if (focusableDetails && event.pointerType === 'touch') showDetails(); }}
       onPointerLeave={hidePointerDetails}
       onFocusCapture={showDetails}
+      tabIndex={focusableDetails && hasHoverDetails ? 0 : undefined}
+      aria-describedby={focusableDetails && detailsPosition ? detailId : undefined}
+      onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setDetailsPosition(null); } }}
       onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDetailsPosition(null); }}
     >
       <div className="shop-card__art" aria-hidden="true">{artSrc ? <img src={artSrc} alt="" /> : <Icon name={locked ? 'lock' : 'brood'} size={28} />}</div>
@@ -159,6 +171,7 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
         <div className="shop-card__topline"><h3>{name}</h3><span className={`shop-card__owned${masteryTierClass}`} aria-label={t('shop.owned', { count: ownedLabel })}>{ownedLabel}</span></div>
         <p>{description}</p>
         <div className="shop-card__meta"><span><Icon name="cps" size={14} /> {productionLabel}/s</span>{badge && <span className="shop-card__badge">{badge}</span>}</div>
+        {productionProgress}
         {productionHold && <div className="shop-card__expedition-hold" title={productionHold.detail} aria-label={`${productionHold.label}${productionHold.detail ? `. ${productionHold.detail}` : ''}`}><Icon name="hourglass" size={12} /><strong>{productionHold.label}</strong></div>}
       </div>
       <div className="shop-card__actions">
@@ -166,6 +179,7 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
           <span>{buyLabel}</span><strong><Icon name="coin" size={14} /> {priceLabel}</strong>
         </button>
         {onSell && !locked && <button type="button" className="shop-card__sell" onClick={(event) => { onSell(id); if (event.detail > 0) event.currentTarget.blur(); }} aria-describedby={hasHoverDetails ? detailId : undefined} aria-label={t('shop.sellAria', { name })}>{t('shop.sell')}</button>}
+        {secondaryAction && !locked && <button type="button" className="shop-card__sell" title={secondaryAction.title} disabled={secondaryAction.disabled} aria-describedby={hasHoverDetails ? detailId : undefined} onClick={(event) => { secondaryAction.onActivate(); if (event.detail > 0) event.currentTarget.blur(); }}>{secondaryAction.label}</button>}
       </div>
       {detailsPopover}
     </article>

@@ -19,6 +19,10 @@ export interface RoboAssemblyLineView {
   artSrc?: string;
   ownedLabel: string;
   averageRateLabel: string;
+  perRobotLabel?: string;
+  shareLabel?: string;
+  cycleLabel?: string;
+  lifetimeLabel?: string;
   batchProgress: number;
   nextBatchLabel: string;
   pendingLabel: string;
@@ -95,6 +99,7 @@ export interface RoboKernelPerkView {
   name: string;
   description: string;
   effectLabel: string;
+  nextEffectLabel?: string;
   rank: number;
   maxRank: number;
   costLabel: string;

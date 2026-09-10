@@ -26,9 +26,10 @@ export interface ResourceHeaderProps {
   onSkipMusic?: () => void;
   brandLogoSrc?: string;
   brandLogoAlt?: string;
+  prestigeLabel?: string;
 }
 
-export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onOpenPrestige, onOpenCosmetics, onOpenSettings, musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic, brandLogoSrc = gameArt.brandLogo, brandLogoAlt = '' }: ResourceHeaderProps) {
+export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onOpenPrestige, onOpenCosmetics, onOpenSettings, musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic, brandLogoSrc = gameArt.brandLogo, brandLogoAlt = '', prestigeLabel }: ResourceHeaderProps) {
   const { t } = useI18n();
   return (
     <div className="resource-header">
@@ -51,7 +52,7 @@ export function ResourceHeader({ title, subtitle, stats, onOpenAchievements, onO
 
       <nav className="resource-header__actions" aria-label={t('aria.menus')}>
         {onOpenAchievements && <button className="icon-button" type="button" onClick={onOpenAchievements} aria-label={t('aria.achievements')} title={t('aria.achievements')}><Icon name="trophy" /></button>}
-        {onOpenPrestige && <button className="icon-button icon-button--prestige" type="button" onClick={onOpenPrestige} aria-label={t('aria.prestige')} title={t('aria.prestige')}><Icon name="crown" /></button>}
+        {onOpenPrestige && <button className="icon-button icon-button--prestige" type="button" onClick={onOpenPrestige} aria-label={prestigeLabel ?? t('aria.prestige')} title={prestigeLabel ?? t('aria.prestige')}><Icon name="crown" /></button>}
         {onOpenCosmetics && <button className="icon-button icon-button--cosmetics" type="button" onClick={onOpenCosmetics} aria-label={t('aria.cosmetics')} title={t('aria.cosmetics')}><Icon name="shop" /></button>}
         {musicTitle && musicArtist && <span key={musicTitle} className="resource-header__now-playing" aria-live="polite"><small>{t('music.nowPlaying')}</small><strong>{musicArtist} — {musicTitle}</strong></span>}
         {onToggleMusic && <button className={`icon-button icon-button--music${musicMuted ? ' is-muted' : ''}`} type="button" onClick={onToggleMusic} aria-label={musicMuted ? t('music.unmute') : t('music.mute')} title={musicMuted ? t('music.unmute') : t('music.mute')} aria-pressed={musicMuted}><Icon name={musicMuted ? 'mute' : 'sound'} /></button>}

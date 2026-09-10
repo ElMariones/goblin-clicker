@@ -37,6 +37,8 @@ import {
 import { robogoblinAppearanceArt, robogoblinLineArt } from '../../utils/robogoblinAssets';
 import { useI18n, type LanguageCode } from '../../i18n';
 import { formatRobo, getRoboCopy } from '../../i18n/robogoblins';
+import { ROBO_GUIDE } from '../../i18n/roboGuide';
+import { Modal } from '../Modal';
 import { CRTWarp } from '../CRTWarp';
 import { FloatingNumbers, type FloatingNumberView } from '../FloatingNumbers';
 import { GameShell } from '../GameShell';
@@ -91,7 +93,7 @@ interface RoboGameWorldProps {
   warrenRate: number;
 }
 
-type RoboModal = 'blueprints' | 'kernel' | 'collection' | null;
+type RoboModal = 'blueprints' | 'firmware' | 'circuits' | 'kernel' | 'collection' | null;
 
 const KERNEL_EFFECT_COPY: Record<LanguageCode, Record<KernelPerkId, (rank: number) => string>> = {
   en: {
@@ -166,6 +168,7 @@ export function RoboGameWorld({
 }: RoboGameWorldProps) {
   const { language, t } = useI18n();
   const copy = getRoboCopy(language);
+  const guide = ROBO_GUIDE[language];
   const [modal, setModal] = useState<RoboModal>(null);
   // This screen is mounted only after the one-time Mechanical Charter creates robo state.
   const robo = game.robo!;
@@ -198,6 +201,10 @@ export function RoboGameWorld({
       artSrc: revealed ? robogoblinLineArt[definition.id] : undefined,
       ownedLabel: formatInteger(line.owned),
       averageRateLabel: formatNumber(getRoboLineRate(game, definition.id)),
+      perRobotLabel: line.owned > 0 ? formatNumber(getRoboLineRate(game, definition.id) / line.owned) : "—",
+      shareLabel: `${formatNumber(stableRps > 0 ? getRoboLineRate(game, definition.id) / stableRps * 100 : 0, 1)}%`,
+      cycleLabel: formatDuration(cycle * 1000),
+      lifetimeLabel: formatNumber(robo.statistics.lifetimeProducedByLine[definition.id]),
       batchProgress: hasBatch ? Math.max(0, Math.min(1, line.phaseSeconds / cycle)) : 0,
       nextBatchLabel: hasBatch ? formatRobo(copy.nextBatchIn, { duration: formatDuration(Math.max(0, cycle - line.phaseSeconds) * 1_000) }) : copy.assignToStart,
       pendingLabel: formatRobo(copy.assembled, { amount: formatNumber(line.pendingRG) }),
@@ -214,7 +221,7 @@ export function RoboGameWorld({
       nextMilestoneCostLabel: next && Number.isFinite(nextCost) ? formatNumber(nextCost) : undefined,
       canBuyNextMilestone: Boolean(next && revealed && Number.isFinite(nextCost) && robo.readyRG >= nextCost),
     };
-  }), [buyAmount, copy, formatDuration, formatInteger, formatNumber, game, robo]);
+  }), [buyAmount, copy, formatDuration, formatInteger, formatNumber, game, robo, stableRps]);
 
   const circuitSummaries = getRoboCircuitSummary(game);
   const circuitFactor = getRoboCircuitMultiplier(robo);
@@ -320,6 +327,7 @@ export function RoboGameWorld({
       name: perkCopy?.name ?? perk.name,
       description: perkCopy?.description ?? perk.name,
       effectLabel: KERNEL_EFFECT_COPY[language][perk.id](rank),
+      nextEffectLabel: rank < perk.maxRank ? KERNEL_EFFECT_COPY[language][perk.id](rank + 1) : undefined,
       rank,
       maxRank: perk.maxRank,
       costLabel: Number.isFinite(cost) ? formatInteger(cost) : '—',
@@ -392,15 +400,17 @@ export function RoboGameWorld({
       onOpenAchievements={() => setModal('collection')}
       onOpenAppearances={() => setModal('collection')}
     />
-    <RoboCircuitsPanel
-      circuits={circuits}
-      onBuyBottleneck={(circuitId) => {
-        const bottleneck = circuitSummaries.find((item) => item.id === circuitId)?.bottleneck;
-        if (bottleneck && bottleneck.needed > 0) onBuyLine(bottleneck.lineId, bottleneck.needed);
-      }}
-      onOpenBlueprints={() => setModal('blueprints')}
-      onOpenKernel={() => setModal('kernel')}
-    />
+    <section className="robo-controls" aria-label={guide.controls}>
+      <h2>{guide.controls}</h2>
+      {([
+        ['blueprints', 'hammer', guide.blueprints, guide.blueprintHint, blueprints.filter((item) => item.canAfford).length],
+        ['circuits', 'sparkles', copy.circuits, guide.circuitHint, `×${formatNumber(circuitFactor, 2)}`],
+        ['firmware', 'settings', copy.firmware, guide.firmwareHint, `${Number(Boolean(robo.firmware.control)) + Number(Boolean(robo.firmware.cadence))}/2`],
+        ['kernel', 'memory', guide.kernel, guide.kernelHint, `${formatInteger(robo.kernel.cores)} ${copy.cores}`],
+      ] as const).map(([id, icon, title, hint, badge]) => <button key={id} type="button" className={`robo-control robo-control--${id}`} onClick={() => setModal(id)}>
+        <span className="robo-control__icon"><Icon name={icon} size={23} /></span><span><strong>{title}</strong><small>{hint}</small></span><b>{badge}</b>
+      </button>)}
+    </section>
   </div>;
 
   const center = <RoboAssemblyStage
@@ -433,8 +443,20 @@ export function RoboGameWorld({
   const currentMultiplier = 1 + robo.kernel.totalCoresEarned * 0.1;
   const nextMultiplier = 1 + (robo.kernel.totalCoresEarned + recompileGain) * 0.1;
   const roboOverlay = <>
+    <Modal open={modal === 'circuits'} title={copy.circuits} subtitle={guide.circuitHint} icon={<Icon name="sparkles" />} onClose={() => setModal(null)} size="lg" className="robo-modal">
+      <p className="robo-explainer">{guide.circuitHelp}</p>
+      <div className="robo-circuit-bonus"><span>{guide.sharedBonus}</span><strong>×{formatNumber(circuitFactor, 2)}</strong></div>
+      <RoboCircuitsPanel
+        circuits={circuits}
+        onBuyBottleneck={(circuitId) => {
+          const bottleneck = circuitSummaries.find((item) => item.id === circuitId)?.bottleneck;
+          if (bottleneck && bottleneck.needed > 0) onBuyLine(bottleneck.lineId, bottleneck.needed);
+        }}
+      />
+    </Modal>
     <RoboBlueprintFirmwareModal
-      open={modal === 'blueprints'}
+      open={modal === 'blueprints' || modal === 'firmware'}
+      mode={modal === 'firmware' ? 'firmware' : 'blueprints'}
       readyLabel={formatNumber(robo.readyRG)}
       blueprints={blueprints}
       firmwareGroups={firmwareGroups}
@@ -470,6 +492,9 @@ export function RoboGameWorld({
     ariaLabels={{ left: copy.ariaFactoryControls, center: copy.ariaAssemblyCradle, right: copy.ariaAssemblyLines }}
     header={<ResourceHeader
       title={copy.world}
+      brandLogoSrc={`${import.meta.env.BASE_URL}assets/robogoblins-logo.svg`}
+      brandLogoAlt={copy.world}
+      prestigeLabel={guide.kernel}
       subtitle={copy.foundrySubtitle}
       stats={[
         { id: 'ready-rg', label: copy.readyRG, value: formatNumber(robo.readyRG), icon: 'brood', accent: true },

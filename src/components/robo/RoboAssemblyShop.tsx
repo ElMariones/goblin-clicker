@@ -1,4 +1,5 @@
-import { Icon } from '../Icon';
+import { ShopCard } from '../ShopCard';
+import { ROBO_GUIDE } from '../../i18n/roboGuide';
 import { useI18n } from '../../i18n';
 import { getRoboCopy } from '../../i18n/robogoblins';
 import type { RoboAssemblyLineView, RoboBuyAmount } from './types';
@@ -20,6 +21,7 @@ function clampPercent(value: number) { return Math.max(0, Math.min(100, (Number.
 export function RoboAssemblyShop({ lines, buyAmount, onBuyAmountChange, onBuy, onBuyNextMilestone, title, footer }: RoboAssemblyShopProps) {
   const { language } = useI18n();
   const copy = getRoboCopy(language);
+  const guide = ROBO_GUIDE[language];
   return (
     <section className="robo-shop" aria-labelledby="robo-shop-heading" data-testid="robo-assembly-shop">
       <header className="robo-shop__header">
@@ -32,31 +34,33 @@ export function RoboAssemblyShop({ lines, buyAmount, onBuyAmountChange, onBuy, o
         {lines.map((line) => {
           const progress = clampPercent(line.batchProgress);
           return (
-            <article key={line.id} className={`robo-line-card robo-line-card--${line.circuit}${line.locked ? ' is-locked' : ''}${line.canAfford ? ' is-affordable' : ''}`} data-testid={`robo-line-${line.id}`}>
-              <div className="robo-line-card__art" aria-hidden="true">
-                {line.artSrc ? <img src={line.artSrc} alt="" draggable={false} /> : <Icon name="lock" size={24} />}
-                <span className="robo-line-card__socket" />
-              </div>
-              <div className="robo-line-card__body">
-                <div className="robo-line-card__topline"><h3>{line.name}</h3><strong className="robo-line-card__owned">{line.ownedLabel}</strong></div>
-                <p>{line.locked ? line.lockLabel ?? copy.locked : line.description}</p>
-                {!line.locked && <>
-                  <div className="robo-line-card__telemetry"><span><Icon name="cps" size={12} /> {line.averageRateLabel}/s</span>{line.masteryLabel && <span className="robo-line-card__mastery">{line.masteryLabel}{line.masteryFactorLabel ? ` · ${line.masteryFactorLabel}` : ''}</span>}</div>
-                  <div className="robo-batch" aria-label={`${line.nextBatchLabel}. ${line.pendingLabel}`}>
-                    <div className="robo-batch__labels"><span>{line.nextBatchLabel}</span><small>{line.pendingLabel}</small></div>
-                    <div className="robo-batch__track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div>
-                  </div>
-                </>}
-              </div>
-              <div className="robo-line-card__actions">
-                <button type="button" className="robo-line-card__buy" onClick={() => onBuy(line.id)} disabled={Boolean(line.locked) || !line.canAfford}>
-                  <span>{line.buyQuantityLabel}</span><strong>{line.priceLabel} RG</strong>
-                </button>
-                {line.nextMilestoneLabel && !line.locked && <button type="button" className="robo-line-card__milestone" onClick={() => onBuyNextMilestone(line.id)} disabled={!line.canBuyNextMilestone}>
-                  <span>{copy.nextMilestone}</span><strong>{line.nextMilestoneLabel}</strong>{line.nextMilestoneCostLabel && <small>{line.nextMilestoneCostLabel} RG</small>}
-                </button>}
-              </div>
-            </article>
+            <ShopCard
+              key={line.id} id={`robo-${line.id}`} name={line.name}
+              description={line.locked ? line.lockLabel ?? copy.locked : line.description}
+              ownedLabel={line.ownedLabel} priceLabel={`${line.priceLabel} RG`}
+              productionLabel={line.averageRateLabel} canAfford={line.canAfford} locked={line.locked}
+              artSrc={line.artSrc} buyAmountLabel={line.buyQuantityLabel}
+              onBuy={() => onBuy(line.id)} focusableDetails detailsClassName="shop-card__details--robo"
+              productionDetails={{
+                perUnit: line.perRobotLabel ?? '—', ownedTotal: `${line.averageRateLabel}/s`,
+                shareOfTotal: line.shareLabel ?? '—', lifetimeProduced: `${line.lifetimeLabel ?? '0'} RG`,
+                labels: { heading: guide.details, perUnit: guide.perRobot, ownedTotal: copy.averageShort, shareOfTotal: guide.share, lifetimeProduced: guide.lifetime },
+              }}
+              mastery={{
+                tierId: line.masteryFactorLabel === '×1' ? 'unranked' : 'established',
+                levelLabel: line.masteryLabel ?? copy.unbolted, multiplierLabel: line.masteryFactorLabel ?? '×1',
+                progressLabel: line.ownedLabel, nextLevelLabel: line.nextMilestoneCostLabel ? line.nextMilestoneLabel : undefined,
+                networkLabel: copy.circuitNames[line.circuit], labels: { network: copy.circuits, maxed: copy.masteryComplete },
+              }}
+              detailsNote={`${guide.cycle}: ${line.cycleLabel}. ${line.nextBatchLabel}. ${line.pendingLabel}. ${guide.batchHelp}`}
+              productionProgress={!line.locked && <div className="robo-batch__track" role="progressbar" aria-label={`${line.name}: ${line.nextBatchLabel}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div>}
+              secondaryAction={line.nextMilestoneCostLabel && !line.locked ? {
+                label: copy.nextMilestone,
+                title: `${line.nextMilestoneLabel} · ${line.nextMilestoneCostLabel} RG`,
+                disabled: !line.canBuyNextMilestone,
+                onActivate: () => onBuyNextMilestone(line.id),
+              } : undefined}
+            />
           );
         })}
       </div>

@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode, type CSSProperties } from 'react';
+import { ROBO_GUIDE } from '../../i18n/roboGuide';
 import { Icon } from '../Icon';
 import { useI18n } from '../../i18n';
 import { formatRobo, getRoboCopy } from '../../i18n/robogoblins';
@@ -32,6 +33,9 @@ export function RoboAssemblyStage({
 }: RoboAssemblyStageProps) {
   const { language } = useI18n();
   const copy = getRoboCopy(language);
+  const guide = ROBO_GUIDE[language];
+  const [pulse, setPulse] = useState(0);
+  const assemble = () => { setPulse((value) => value + 1); onAssemble(); };
   const safeMaxCharge = Math.max(1, maxCharge);
   const safeCharge = Math.max(0, Math.min(safeMaxCharge, charge));
   const chargePercent = clamp01(safeCharge / safeMaxCharge) * 100;
@@ -53,17 +57,21 @@ export function RoboAssemblyStage({
         <span className="robo-cradle__gantry robo-cradle__gantry--right" aria-hidden="true" />
         <span className="robo-cradle__wire robo-cradle__wire--one" aria-hidden="true" />
         <span className="robo-cradle__wire robo-cradle__wire--two" aria-hidden="true" />
-        <button className="robo-cradle__button" type="button" onClick={onAssemble} data-testid="robo-assemble">
+        <button className="robo-cradle__button" type="button" onClick={assemble} aria-label={formatRobo(copy.assembleAria, { amount: clickPowerLabel })} data-testid="robo-assemble">
           <span className="robo-cradle__jig" aria-hidden="true" />
           <span className="robo-cradle__heart" aria-hidden="true" />
           <img src={robotImageSrc} alt="" draggable={false} />
           <span className="robo-cradle__cta">{copy.assemble} <strong>+{clickPowerLabel}</strong></span>
         </button>
+        {pulse > 0 && <span key={pulse} className="robo-assembly-burst" aria-hidden="true" onAnimationEnd={(event) => { if (event.target === event.currentTarget) setPulse(0); }}>
+          {Array.from({ length: 8 }, (_, index) => <i key={index} style={{ '--spark-angle': `${index * 45}deg` } as CSSProperties} />)}
+        </span>}
+        <span className="robo-cradle__steam" aria-hidden="true"><i /><i /><i /></span>
         <span className="robo-cradle__appearance" aria-hidden="true">{robotAppearanceName}</span>
         {effectsLayer}
       </div>
 
-      <div className="robo-charge-panel">
+      <div className="robo-charge-panel" title={guide.chargeHelp}>
         <div className="robo-charge-panel__meter">
           <div className="robo-charge-panel__labels"><span>{copy.charge}</span><strong>{Math.floor(safeCharge)}/{safeMaxCharge}</strong></div>
           <div className="robo-progress" role="progressbar" aria-label={copy.charge} aria-valuemin={0} aria-valuemax={safeMaxCharge} aria-valuenow={safeCharge}>
@@ -75,6 +83,7 @@ export function RoboAssemblyStage({
           <span><strong>{copy.overclock}</strong><small>{overclockStatusLabel || copy.overclockDetail}</small></span>
         </button>
       </div>
+      <p className="robo-stage-help">{guide.batchHelp}</p>
       <div className="robo-click-readout"><Icon name="click" size={16} /><span>{copy.eachPress}</span><strong>+{clickPowerLabel} RG</strong></div>
       {worldSwitch}
     </section>

@@ -1,3 +1,4 @@
+import { ROBO_GUIDE } from '../../i18n/roboGuide';
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../Modal';
 import { Icon } from '../Icon';
@@ -22,13 +23,14 @@ export interface RoboKernelModalProps {
 export function RoboKernelModal({ open, coresLabel, totalEarnedLabel, claimableCoresLabel, canRecompile, nextCoreLabel, preview, perks, onBuyPerk, onRecompile, onClose }: RoboKernelModalProps) {
   const { language } = useI18n();
   const copy = getRoboCopy(language);
+  const guide = ROBO_GUIDE[language];
   const [confirming, setConfirming] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (confirming) cancelRef.current?.focus(); }, [confirming]);
   const close = () => { setConfirming(false); onClose(); };
   const confirm = () => { onRecompile(); setConfirming(false); };
   return (
-    <Modal open={open} title={copy.kernel} subtitle={`${coresLabel} ${copy.kernelCores} · ${totalEarnedLabel} ${copy.earned}`} icon={<Icon name="memory" />} onClose={close} size="lg" className={`robo-modal robo-kernel-modal${confirming ? ' is-confirming' : ''}`}>
+    <Modal open={open} title={guide.kernel} subtitle={`${coresLabel} ${copy.kernelCores} · ${totalEarnedLabel} ${copy.earned}`} icon={<Icon name="memory" />} onClose={close} size="lg" className={`robo-modal robo-kernel-modal${confirming ? ' is-confirming' : ''}`}>
       {confirming ? <div className="robo-recompile-confirm" data-testid="robo-recompile-confirm" onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setConfirming(false); } }}>
         <span className="robo-recompile-confirm__disc" aria-hidden="true"><Icon name="memory" size={34} /></span>
         <span className="robo-recompile-confirm__eyebrow">{copy.memoryTransfer}</span>
@@ -38,6 +40,8 @@ export function RoboKernelModal({ open, coresLabel, totalEarnedLabel, claimableC
         <div className="robo-recompile-confirm__scope"><div><strong>{copy.resets}</strong>{preview.resetItems.map((item) => <span key={item}>{item}</span>)}</div><div><strong>{copy.preserves}</strong>{preview.preservedItems.map((item) => <span key={item}>{item}</span>)}</div></div>
         <div className="robo-recompile-confirm__actions"><button ref={cancelRef} type="button" onClick={() => setConfirming(false)}>{copy.cancel}</button><button type="button" className="is-confirm" onClick={confirm}>{copy.confirm} · +{preview.gainLabel}</button></div>
       </div> : <>
+        <p className="robo-explainer">{guide.kernelHelp}</p>
+        <p className="robo-explainer robo-explainer--warning">{copy.recompileWarning}</p>
         <section className="robo-kernel-hero">
           <div><span>{copy.currentKernel}</span><strong>{coresLabel}</strong><small>{copy.kernelCores}</small></div><i aria-hidden="true" />
           <div><span>{copy.recompileGain}</span><strong>+{claimableCoresLabel}</strong><small>{preview.currentMultiplierLabel} → {preview.nextMultiplierLabel}</small></div>
@@ -47,9 +51,9 @@ export function RoboKernelModal({ open, coresLabel, totalEarnedLabel, claimableC
           const maxed = perk.rank >= perk.maxRank;
           return <article key={perk.id} className={`robo-kernel-perk${perk.affordable ? ' is-affordable' : ''}${maxed ? ' is-maxed' : ''}`}>
             <div className="robo-kernel-perk__header"><span aria-hidden="true">{perk.icon ?? <Icon name="memory" size={19} />}</span><div><small>{formatRobo(copy.rank, { rank: perk.rank, max: perk.maxRank })}</small><h3>{perk.name}</h3></div></div>
-            <p>{perk.description}</p><strong>{perk.effectLabel}</strong>
+            <p>{perk.description}</p><small>{guide.currentEffect}</small><strong>{perk.effectLabel}</strong>{perk.nextEffectLabel && <div className="robo-perk-preview"><small>{guide.nextEffect}</small><strong>{perk.nextEffectLabel}</strong></div>}
             <div className="robo-kernel-perk__pips" aria-label={formatRobo(copy.rankAria, { rank: perk.rank, max: perk.maxRank })}>{Array.from({ length: perk.maxRank }, (_, index) => <i key={index} className={index < perk.rank ? 'is-filled' : ''} />)}</div>
-            <button type="button" onClick={() => onBuyPerk(perk.id)} disabled={maxed || !perk.affordable}>{maxed ? copy.maxed : `${perk.costLabel} ${copy.cores}`}</button>
+            <button type="button" onClick={() => onBuyPerk(perk.id)} disabled={maxed || !perk.affordable}>{maxed ? copy.maxed : `${copy.choose} · ${perk.costLabel} ${copy.cores}`}</button>
           </article>;
         })}</div>
       </>}

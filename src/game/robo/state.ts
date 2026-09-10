@@ -21,7 +21,7 @@ export function getRawKernelPerkRank(robo: RoboState, id: KernelPerkId): number 
 }
 
 export function createInitialRoboState(permanent?: Pick<RoboState, 'kernel' | 'statistics' | 'achievements' | 'appearance'>): RoboState {
-  const kernel = permanent?.kernel ?? { cores: 0, totalCoresEarned: 0, recompiles: 0, perks: {} };
+  const kernel = permanent?.kernel ?? { cores: 0, totalCoresEarned: 0, recompiles: 0, perks: {}, ownedAppearances: {} };
   const bootRank = Math.max(0, Math.floor(kernel.perks.boot_cache ?? 0));
   const warmRank = Math.max(0, Math.floor(kernel.perks.warm_start ?? 0));
   return {
@@ -37,6 +37,7 @@ export function createInitialRoboState(permanent?: Pick<RoboState, 'kernel' | 's
       totalCoresEarned: Math.max(0, Math.floor(kernel.totalCoresEarned)),
       recompiles: Math.max(0, Math.floor(kernel.recompiles)),
       perks: { ...kernel.perks },
+      ownedAppearances: { ...kernel.ownedAppearances },
     },
     statistics: permanent?.statistics
       ? {
@@ -51,7 +52,7 @@ export function createInitialRoboState(permanent?: Pick<RoboState, 'kernel' | 's
         overclocksActivated: 0,
       },
     achievements: { ...(permanent?.achievements ?? {}) },
-    appearance: permanent?.appearance ?? 'goblin_cap',
+    appearance: permanent?.appearance ?? 'goblin',
   };
 }
 

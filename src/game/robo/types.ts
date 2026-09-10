@@ -52,7 +52,7 @@ export type RoboAchievementId =
   | 'rg_paradox'
   | 'rg_kernel_complete';
 
-export type RoboAppearanceId = 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
+export type RoboAppearanceId = 'goblin' | 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
 
 export interface RoboLineDefinition {
   id: RoboLineId;
@@ -128,6 +128,7 @@ export interface RoboState {
     totalCoresEarned: number;
     recompiles: number;
     perks: Partial<Record<KernelPerkId, number>>;
+    ownedAppearances: Partial<Record<RoboAppearanceId, true>>;
   };
   statistics: RoboStatistics;
   achievements: Partial<Record<RoboAchievementId, number>>;

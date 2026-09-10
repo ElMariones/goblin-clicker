@@ -120,9 +120,11 @@ export interface RoboAppearanceView {
   name: string;
   description: string;
   imageSrc: string;
-  unlocked: boolean;
+  priceLabel?: string;
+  owned: boolean;
   equipped: boolean;
-  unlockLabel?: string;
+  affordable: boolean;
+  isDefault?: boolean;
 }
 
 export interface RoboAchievementView {

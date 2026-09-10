@@ -36,7 +36,7 @@ describe('RoboGoblins localization', () => {
       }
       expect(Object.keys(copy.globalBlueprints)).toHaveLength(6);
       expect(Object.keys(copy.firmwareOptions)).toHaveLength(4);
-      expect(Object.keys(copy.appearancesCopy)).toHaveLength(5);
+      expect(Object.keys(copy.appearancesCopy)).toHaveLength(6);
     }
   });
 

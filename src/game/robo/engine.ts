@@ -4,6 +4,7 @@ import type { GameState } from '../types';
 import { awardRoboAchievements, isRoboAppearanceUnlocked } from './achievements';
 import {
   KERNEL_PERK_BY_ID,
+  ROBO_APPEARANCE_BY_ID,
   ROBO_CHARGE_CAP,
   ROBO_FIRMWARE,
   ROBO_GLOBAL_BLUEPRINTS,
@@ -259,7 +260,7 @@ export function equipRoboAppearance(
   appearance: RoboAppearanceId,
   now = state.lastUpdateAt,
 ): RoboGameActionResult {
-  if (appearance !== 'goblin_cap' && appearance !== 'goblin_dark' && appearance !== 'goblin_glass' && appearance !== 'goblin_gold' && appearance !== 'goblin_suit') {
+  if (!ROBO_APPEARANCE_BY_ID[appearance]) {
     return failure(state, 'invalidInput');
   }
   const ticked = tickGame(state, now);
@@ -271,5 +272,31 @@ export function equipRoboAppearance(
     state: { ...ticked, robo: { ...awarded, appearance } },
     success: true,
     amount: 0,
+  };
+}
+
+export function purchaseRoboAppearance(
+  state: GameState,
+  appearance: RoboAppearanceId,
+  now = state.lastUpdateAt,
+): RoboGameActionResult {
+  const definition = ROBO_APPEARANCE_BY_ID[appearance];
+  if (!definition || appearance === 'goblin') return failure(state, 'invalidInput');
+  const ticked = tickGame(state, now);
+  const robo = requireRobo(ticked);
+  if (!robo) return failure(ticked, 'locked');
+  if (robo.kernel.ownedAppearances[appearance]) return failure(ticked, 'alreadyOwned');
+  if (robo.kernel.cores < definition.cost) return failure(ticked, 'insufficientFunds');
+  return {
+    state: withRobo(ticked, {
+      ...robo,
+      kernel: {
+        ...robo.kernel,
+        cores: robo.kernel.cores - definition.cost,
+        ownedAppearances: { ...robo.kernel.ownedAppearances, [appearance]: true },
+      },
+    }, now),
+    success: true,
+    amount: definition.cost,
   };
 }

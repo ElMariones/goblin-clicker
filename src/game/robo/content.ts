@@ -9,6 +9,7 @@ import type {
   RoboLineDefinition,
   RoboLineId,
   RoboLocalBlueprintDefinition,
+  RoboAppearanceId,
 } from './types';
 
 export const ROBO_STARTING_STOCK = 20;
@@ -35,6 +36,17 @@ export const ROBO_LINES = [
 ] as const satisfies readonly RoboLineDefinition[];
 
 export const ROBO_LINE_BY_ID = Object.fromEntries(ROBO_LINES.map((line) => [line.id, line])) as Record<RoboLineId, RoboLineDefinition>;
+
+export const ROBO_APPEARANCES = [
+  { id: 'goblin' as RoboAppearanceId, cost: 0 },
+  { id: 'goblin_cap' as RoboAppearanceId, cost: 1 },
+  { id: 'goblin_dark' as RoboAppearanceId, cost: 2 },
+  { id: 'goblin_glass' as RoboAppearanceId, cost: 3 },
+  { id: 'goblin_gold' as RoboAppearanceId, cost: 5 },
+  { id: 'goblin_suit' as RoboAppearanceId, cost: 6 },
+] as const satisfies readonly { id: RoboAppearanceId; cost: number }[];
+
+export const ROBO_APPEARANCE_BY_ID = Object.fromEntries(ROBO_APPEARANCES.map((appearance) => [appearance.id, appearance])) as Record<RoboAppearanceId, (typeof ROBO_APPEARANCES)[number]>;
 
 export const ROBO_MASTERY_LEVELS = [
   { threshold: 10, multiplier: 2, name: 'Bolted' },

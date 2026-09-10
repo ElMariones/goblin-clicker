@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import {
   KERNEL_PERKS,
   ROBO_ACHIEVEMENTS,
+  ROBO_APPEARANCES,
   ROBO_CHARGE_CAP,
   ROBO_CIRCUITS,
   ROBO_FIRMWARE,
@@ -75,6 +76,7 @@ interface RoboGameWorldProps {
   onBuyKernelPerk: (id: KernelPerkId) => void;
   onRecompile: () => void;
   onEquipAppearance: (id: RoboAppearanceId) => void;
+  onPurchaseAppearance: (id: RoboAppearanceId) => void;
   onSwitchToWarren: () => void;
   onOpenSettings: () => void;
   musicMuted: boolean;
@@ -162,7 +164,7 @@ function currentMastery(owned: number) {
 
 export function RoboGameWorld({
   game, buyAmount, onBuyAmountChange, onAssemble, onBuyLine, onBuyBlueprint, onChooseFirmware,
-  onOverclock, onBuyKernelPerk, onRecompile, onEquipAppearance, onSwitchToWarren, onOpenSettings,
+  onOverclock, onBuyKernelPerk, onRecompile, onEquipAppearance, onPurchaseAppearance, onSwitchToWarren, onOpenSettings,
   musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic, effects, reducedMotion, floating = [], overlay,
   formatNumber, formatInteger, formatDuration, formatDate, warrenRate,
 }: RoboGameWorldProps) {
@@ -336,15 +338,17 @@ export function RoboGameWorld({
     };
   }), [copy, formatInteger, game, language, robo.kernel.cores]);
 
-  const appearances = useMemo<RoboAppearanceView[]>(() => (['goblin_cap', 'goblin_dark', 'goblin_glass', 'goblin_gold', 'goblin_suit'] as const satisfies readonly RoboAppearanceId[]).map((id) => ({
-    id,
-    name: copy.appearancesCopy[id]?.name ?? id,
-    description: copy.appearancesCopy[id]?.description ?? id,
-    imageSrc: robogoblinAppearanceArt[id],
-    unlocked: isRoboAppearanceUnlocked(robo, id),
-    equipped: robo.appearance === id,
-    unlockLabel: copy.appearancesCopy[id]?.unlock,
-  })), [copy, robo]);
+  const appearances = useMemo<RoboAppearanceView[]>(() => ROBO_APPEARANCES.map((definition) => ({
+    id: definition.id,
+    name: copy.appearancesCopy[definition.id]?.name ?? definition.id,
+    description: copy.appearancesCopy[definition.id]?.description ?? definition.id,
+    imageSrc: robogoblinAppearanceArt[definition.id],
+    priceLabel: definition.cost > 0 ? formatInteger(definition.cost) : undefined,
+    owned: isRoboAppearanceUnlocked(robo, definition.id),
+    equipped: robo.appearance === definition.id,
+    affordable: definition.cost === 0 || robo.kernel.cores >= definition.cost,
+    isDefault: definition.id === 'goblin',
+  })), [copy, formatInteger, robo]);
 
   const achievements = useMemo<RoboAchievementView[]>(() => ROBO_ACHIEVEMENTS.map((achievement) => {
     const unlockedAt = robo.achievements[achievement.id];
@@ -483,7 +487,7 @@ export function RoboGameWorld({
       onRecompile={() => { onRecompile(); setModal(null); }}
       onClose={() => setModal(null)}
     />
-    <RoboCollectionModal open={modal === 'collection'} appearances={appearances} achievements={achievements} onEquipAppearance={(id) => onEquipAppearance(id as RoboAppearanceId)} onClose={() => setModal(null)} />
+    <RoboCollectionModal open={modal === 'collection'} coresLabel={formatInteger(robo.kernel.cores)} appearances={appearances} achievements={achievements} onPurchaseAppearance={(id) => onPurchaseAppearance(id as RoboAppearanceId)} onEquipAppearance={(id) => onEquipAppearance(id as RoboAppearanceId)} onClose={() => setModal(null)} />
     {overlay}
   </>;
 

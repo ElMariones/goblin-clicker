@@ -10,6 +10,7 @@ import thunderheadCoil from '../images/robogoblins/runtime/thunderhead_coil.webp
 import tinCradle from '../images/robogoblins/runtime/tin_cradle.webp';
 import walkingFoundry from '../images/robogoblins/runtime/walking_foundry.webp';
 import windupWorkbench from '../images/robogoblins/runtime/windup_workbench.webp';
+import goblin from '../images/robogoblins/goblin.png';
 import goblinCap from '../images/robogoblins/goblin_cap.png';
 import goblinDark from '../images/robogoblins/goblin_dark.png';
 import goblinGlass from '../images/robogoblins/goblin_glass.png';
@@ -30,7 +31,7 @@ export type RoboLineAssetId =
   | 'clockwyrm_assembly'
   | 'paradox_nest';
 
-export type RoboAppearanceAssetId = 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
+export type RoboAppearanceAssetId = 'goblin' | 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
 
 export const robogoblinLineArt: Readonly<Record<RoboLineAssetId, string>> = {
   tin_cradle: tinCradle,
@@ -48,6 +49,7 @@ export const robogoblinLineArt: Readonly<Record<RoboLineAssetId, string>> = {
 };
 
 export const robogoblinAppearanceArt: Readonly<Record<RoboAppearanceAssetId, string>> = {
+  goblin,
   goblin_cap: goblinCap,
   goblin_dark: goblinDark,
   goblin_glass: goblinGlass,

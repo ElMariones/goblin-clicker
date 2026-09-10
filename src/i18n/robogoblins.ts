@@ -53,6 +53,9 @@ export interface RoboCopy {
   maxed: string;
   equip: string;
   equipped: string;
+  appearanceBuy: string;
+  appearanceOwned: string;
+  appearanceDefault: string;
   factoryLedger: string;
   nextObjective: string;
   warrenStillProducing: string;
@@ -135,7 +138,7 @@ const EN: RoboCopy = {
   achievements: 'Mechanical achievements', appearances: 'Robot appearances', available: 'Available', all: 'All', global: 'Global', local: 'Local',
   firmware: 'Firmware', locked: 'Locked', purchased: 'Installed', choose: 'Install', kernelCores: 'Kernel Cores', cores: 'cores',
   recompile: 'Recompile', recompileWarning: 'Your robot stock, lines, blueprints and firmware reset. Your Kernel, discoveries and organic Warren stay.',
-  cancel: 'Cancel', confirm: 'Confirm Recompile', maxed: 'Max rank', equip: 'Equip', equipped: 'Equipped', factoryLedger: 'Factory ledger',
+  cancel: 'Cancel', confirm: 'Confirm Recompile', maxed: 'Max rank', equip: 'Equip', equipped: 'Equipped', appearanceBuy: 'Buy', appearanceOwned: 'Owned', appearanceDefault: 'Default', factoryLedger: 'Factory ledger',
   nextObjective: 'Next objective', warrenStillProducing: 'Your Warren is still producing {rate}.', foundryCollection: 'Foundry collection',
   achievementCount: '{done}/{total} achievements', blueprintFilters: 'Blueprint filters', currentKernel: 'Current Kernel', recompileGain: 'Recompile gain',
   memoryTransfer: 'Memory transfer', recompileQuestion: 'Recompile this foundry?', resets: 'Resets', preserves: 'Preserves', rank: 'Rank {rank} / {max}',
@@ -187,6 +190,7 @@ const EN: RoboCopy = {
     quick: { name: 'Quick-release Latches', description: 'Release smaller intervals without changing average production.' }, heavy: { name: 'Heavy Batch Protocol', description: 'Wait longer for a stronger stable production line.' },
   },
   appearancesCopy: {
+    goblin: { name: 'RoboGoblin', description: 'The standard RoboGoblin chassis, ready for the assembly cradle.' },
     goblin_cap: { name: 'Blue-Cap Rascal', description: 'A bright cap, brass grin and enough spring-loaded mischief for the assembly cradle.' },
     goblin_dark: { name: 'Darksteel Menace', description: 'Spiked dark plating and a red reactor glow for a RoboGoblin that means business.', unlock: 'Reach 10 owned on any assembly line.' },
     goblin_glass: { name: 'Prismatic Glass', description: 'Transparent plating reveals the gears, circuits and questionable decisions underneath.', unlock: 'Close the first Steam circuit tier.' },

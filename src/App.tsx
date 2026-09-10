@@ -52,6 +52,7 @@ import {
   purchaseKernelPerk,
   purchaseMechanicalCharter,
   purchaseRoboBlueprint,
+  purchaseRoboAppearance,
   purchaseRoboFirmware,
   purchaseRoboLine,
   type CadenceFirmware,
@@ -559,6 +560,11 @@ function App() {
     const result = equipRoboAppearance(gameRef.current, id, Date.now());
     commitGame(result.state);
     if (result.success) playSound('buy', settings.sound);
+  };
+  const buyRobotAppearance = (id: RoboAppearanceId) => {
+    const result = purchaseRoboAppearance(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('upgrade', settings.sound);
   };
 
   const prestige = () => {
@@ -1155,7 +1161,8 @@ function App() {
     onOverclock={overclockRobo}
     onBuyKernelPerk={buyRoboKernelPerk}
     onRecompile={recompileRobo}
-    onEquipAppearance={equipRobotAppearance}
+      onEquipAppearance={equipRobotAppearance}
+      onPurchaseAppearance={buyRobotAppearance}
     onSwitchToWarren={() => switchWorld('warren')}
     onOpenSettings={() => setModal('settings')}
     musicMuted={musicMuted}

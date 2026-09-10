@@ -2,6 +2,7 @@ import { clampResource } from '../state';
 import { awardRoboAchievements, isRoboAppearanceUnlocked } from './achievements';
 import {
   KERNEL_PERKS,
+  ROBO_APPEARANCES,
   ROBO_ACHIEVEMENTS,
   ROBO_CHARGE_CAP,
   ROBO_GLOBAL_BLUEPRINTS,
@@ -47,6 +48,10 @@ function totalPerkSpend(perks: Partial<Record<KernelPerkId, number>>): number {
   return KERNEL_PERKS.reduce((sum, perk) => sum + rankSpend(perk.id, perks[perk.id] ?? 0), 0);
 }
 
+function totalAppearanceSpend(ownedAppearances: Partial<Record<RoboAppearanceId, true>>): number {
+  return ROBO_APPEARANCES.reduce((sum, appearance) => sum + (ownedAppearances[appearance.id] ? appearance.cost : 0), 0);
+}
+
 export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: number, warnings: string[]): RoboState {
   const base = createInitialRoboState();
   const rawKernel = isRecord(raw.kernel) ? raw.kernel : {};
@@ -68,7 +73,13 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
     }
   }
   const minimumSpent = totalPerkSpend(perks);
-  const cores = Math.min(integer(rawKernel.cores), Math.max(0, totalCoresEarned - minimumSpent));
+  const rawOwnedAppearances = isRecord(rawKernel.ownedAppearances) ? rawKernel.ownedAppearances : {};
+  const ownedAppearances: Partial<Record<RoboAppearanceId, true>> = {};
+  for (const appearance of ROBO_APPEARANCES) {
+    if (appearance.id !== 'goblin' && rawOwnedAppearances[appearance.id] === true) ownedAppearances[appearance.id] = true;
+  }
+  const appearanceSpend = totalAppearanceSpend(ownedAppearances);
+  const cores = Math.min(integer(rawKernel.cores), Math.max(0, totalCoresEarned - minimumSpent - appearanceSpend));
 
   const rawFirmware = isRecord(raw.firmware) ? raw.firmware : {};
   const control: ControlFirmware | null = rawFirmware.control === 'clock' || rawFirmware.control === 'spark'
@@ -130,6 +141,7 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
       totalCoresEarned,
       recompiles: integer(rawKernel.recompiles),
       perks,
+      ownedAppearances,
     },
     statistics: {
       manualActions: integer(rawStats.manualActions),
@@ -139,7 +151,7 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
       overclocksActivated: integer(rawStats.overclocksActivated),
     },
     achievements,
-    appearance: 'goblin_cap',
+    appearance: 'goblin',
   };
   state = awardRoboAchievements(state, lastUpdateAt);
   const appearance = raw.appearance as RoboAppearanceId;

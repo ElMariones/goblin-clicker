@@ -9,11 +9,12 @@ import {
   getMechanicalCharterProgress,
   purchaseMechanicalCharter,
 } from '../worlds';
-import { ROBO_ACHIEVEMENTS, ROBO_GLOBAL_BLUEPRINTS, ROBO_LINES, ROBO_LOCAL_BLUEPRINTS } from './content';
+import { ROBO_ACHIEVEMENTS, ROBO_APPEARANCES, ROBO_GLOBAL_BLUEPRINTS, ROBO_LINES, ROBO_LOCAL_BLUEPRINTS } from './content';
 import {
   activateRoboOverclock,
   assembleRoboGoblin,
   performRoboRecompile,
+  purchaseRoboAppearance,
   purchaseKernelPerk,
   purchaseRoboBlueprint,
   purchaseRoboFirmware,
@@ -47,11 +48,29 @@ describe('RoboGoblins content and entitlement', () => {
     expect(ROBO_LINES).toHaveLength(12);
     expect(ROBO_LOCAL_BLUEPRINTS).toHaveLength(36);
     expect(ROBO_GLOBAL_BLUEPRINTS).toHaveLength(6);
+    expect(ROBO_APPEARANCES).toHaveLength(6);
     expect(ROBO_ACHIEVEMENTS).toHaveLength(12);
     for (let index = 1; index < ROBO_LINES.length; index += 1) {
       expect(ROBO_LINES[index].baseCost).toBeGreaterThan(ROBO_LINES[index - 1].baseCost);
       expect(ROBO_LINES[index].baseRps).toBeGreaterThan(ROBO_LINES[index - 1].baseRps);
     }
+  });
+
+  it('keeps the default RoboGoblin free and stores purchased appearances permanently', () => {
+    const state = unlockedState();
+    expect(state.robo!.appearance).toBe('goblin');
+    expect(state.robo!.kernel.ownedAppearances).toEqual({});
+
+    state.robo!.kernel.totalCoresEarned = 2;
+    state.robo!.kernel.cores = 2;
+    const bought = purchaseRoboAppearance(state, 'goblin_cap', 1_000);
+    expect(bought.success).toBe(true);
+    expect(bought.state.robo!.kernel.cores).toBe(1);
+    expect(bought.state.robo!.kernel.ownedAppearances.goblin_cap).toBe(true);
+
+    const loaded = deserializeGame(serializeGame(bought.state), 1_000).state;
+    expect(loaded.robo!.kernel.ownedAppearances.goblin_cap).toBe(true);
+    expect(loaded.robo!.kernel.cores).toBe(1);
   });
 
   it('requires permanent Warren reveal eligibility plus 100 available Cunning', () => {
@@ -471,6 +490,7 @@ describe('RoboGoblins offline and save behavior', () => {
         totalCoresEarned: 10,
         recompiles: 1,
         perks: { boot_cache: 1, warm_start: 1 },
+        ownedAppearances: {},
       },
     };
     const recovered = deserializeGame(JSON.stringify(parsed), 1_000).state;

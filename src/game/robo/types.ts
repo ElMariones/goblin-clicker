@@ -52,7 +52,7 @@ export type RoboAchievementId =
   | 'rg_paradox'
   | 'rg_kernel_complete';
 
-export type RoboAppearanceId = 'tin_rascal' | 'boiler_baron' | 'clockwork_ancestor';
+export type RoboAppearanceId = 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
 
 export interface RoboLineDefinition {
   id: RoboLineId;

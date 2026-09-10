@@ -139,11 +139,11 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
       overclocksActivated: integer(rawStats.overclocksActivated),
     },
     achievements,
-    appearance: 'tin_rascal',
+    appearance: 'goblin_cap',
   };
   state = awardRoboAchievements(state, lastUpdateAt);
   const appearance = raw.appearance as RoboAppearanceId;
-  if ((appearance === 'tin_rascal' || appearance === 'boiler_baron' || appearance === 'clockwork_ancestor')
+  if ((appearance === 'goblin_cap' || appearance === 'goblin_dark' || appearance === 'goblin_glass' || appearance === 'goblin_gold' || appearance === 'goblin_suit')
     && isRoboAppearanceUnlocked(state, appearance)) {
     state.appearance = appearance;
   }

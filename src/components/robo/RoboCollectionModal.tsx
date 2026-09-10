@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Modal } from '../Modal';
 import { Icon } from '../Icon';
 import { useI18n } from '../../i18n';
@@ -16,11 +17,22 @@ export function RoboCollectionModal({ open, appearances, achievements, onEquipAp
   const { language } = useI18n();
   const copy = getRoboCopy(language);
   const unlockedAchievements = achievements.filter((achievement) => achievement.unlocked).length;
+  const equipped = appearances.find((appearance) => appearance.equipped) ?? appearances[0];
   return (
-    <Modal open={open} title={copy.foundryCollection} subtitle={formatRobo(copy.achievementCount, { done: unlockedAchievements, total: achievements.length })} icon={<Icon name="trophy" />} onClose={onClose} size="lg" className="robo-modal robo-collection-modal">
-      <section className="robo-appearances" aria-labelledby="robo-appearances-heading"><header><span>{copy.world}</span><h3 id="robo-appearances-heading">{copy.appearances}</h3></header><div>{appearances.map((appearance) => <article key={appearance.id} className={`${appearance.equipped ? 'is-equipped' : ''}${!appearance.unlocked ? ' is-locked' : ''}`}>
-        <div className="robo-appearance__art"><img src={appearance.imageSrc} alt="" draggable={false} /><span aria-hidden="true" /></div><h4>{appearance.name}</h4><p>{appearance.description}</p>{!appearance.unlocked && appearance.unlockLabel && <small>{appearance.unlockLabel}</small>}<button type="button" onClick={() => onEquipAppearance(appearance.id)} disabled={!appearance.unlocked || appearance.equipped}>{appearance.equipped ? copy.equipped : appearance.unlocked ? copy.equip : copy.locked}</button>
-      </article>)}</div></section>
+    <Modal open={open} title={copy.foundryCollection} subtitle={formatRobo(copy.achievementCount, { done: unlockedAchievements, total: achievements.length })} icon={<Icon name="trophy" />} onClose={onClose} size="lg" className="robo-modal robo-collection-modal cosmetics-modal">
+      <section className="cosmetics-hero robo-cosmetics-hero">
+        <div className="cosmetics-hero__preview" aria-hidden="true">{equipped && <img key={equipped.id} src={equipped.imageSrc} alt="" draggable={false} />}</div>
+        <div className="cosmetics-hero__copy"><span>{copy.world}</span><strong>{equipped?.name ?? copy.appearances}</strong><small>{equipped?.description ?? copy.appearances}</small></div>
+      </section>
+      <div className="modal-section-heading cosmetics-heading"><div><span>{copy.world}</span><h3 id="robo-appearances-heading">{copy.appearances}</h3></div><small>{formatRobo(copy.achievementCount, { done: appearances.filter((appearance) => appearance.unlocked).length, total: appearances.length })}</small></div>
+      <section className="robo-appearances" aria-labelledby="robo-appearances-heading"><div className="cosmetics-grid robo-cosmetics-grid">{appearances.map((appearance, index) => {
+        const state = appearance.equipped ? 'equipped' : appearance.unlocked ? 'affordable' : 'locked';
+        return <article key={appearance.id} className={`cosmetic-card cosmetic-card--${state}`} style={{ '--cosmetic-delay': `${Math.min(index, 10) * 24}ms` } as CSSProperties}>
+          <div className="cosmetic-card__art"><span className="cosmetic-card__scan" aria-hidden="true" /><img src={appearance.imageSrc} alt="" draggable={false} />{appearance.equipped && <span className="cosmetic-card__equipped-badge"><Icon name="sparkles" size={12} /> {copy.equipped}</span>}</div>
+          <div className="cosmetic-card__body"><div className="cosmetic-card__title-row"><h4>{appearance.name}</h4>{appearance.equipped && <span className="cosmetic-card__tag">{copy.equipped}</span>}</div><p>{appearance.description}</p>{!appearance.unlocked && appearance.unlockLabel && <small className="robo-cosmetic-lock">{appearance.unlockLabel}</small>}</div>
+          <button className={`cosmetic-card__action${appearance.equipped ? ' is-equipped' : ''}`} type="button" onClick={() => onEquipAppearance(appearance.id)} disabled={!appearance.unlocked || appearance.equipped}>{appearance.equipped ? copy.equipped : appearance.unlocked ? copy.equip : copy.locked}</button>
+        </article>;
+      })}</div></section>
       <section className="robo-achievements" aria-labelledby="robo-achievements-heading"><header><span>{copy.foundry}</span><h3 id="robo-achievements-heading">{copy.achievements}</h3></header><div>{achievements.map((achievement) => <article key={achievement.id} className={achievement.unlocked ? 'is-unlocked' : ''}><span aria-hidden="true"><Icon name={achievement.unlocked ? 'trophy' : 'lock'} size={18} /></span><div><h4>{achievement.name}</h4><p>{achievement.description}</p>{achievement.unlockedAtLabel && <small>{achievement.unlockedAtLabel}</small>}</div></article>)}</div></section>
     </Modal>
   );

@@ -259,7 +259,7 @@ export function equipRoboAppearance(
   appearance: RoboAppearanceId,
   now = state.lastUpdateAt,
 ): RoboGameActionResult {
-  if (appearance !== 'tin_rascal' && appearance !== 'boiler_baron' && appearance !== 'clockwork_ancestor') {
+  if (appearance !== 'goblin_cap' && appearance !== 'goblin_dark' && appearance !== 'goblin_glass' && appearance !== 'goblin_gold' && appearance !== 'goblin_suit') {
     return failure(state, 'invalidInput');
   }
   const ticked = tickGame(state, now);

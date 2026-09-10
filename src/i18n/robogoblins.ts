@@ -187,9 +187,11 @@ const EN: RoboCopy = {
     quick: { name: 'Quick-release Latches', description: 'Release smaller intervals without changing average production.' }, heavy: { name: 'Heavy Batch Protocol', description: 'Wait longer for a stronger stable production line.' },
   },
   appearancesCopy: {
-    tin_rascal: { name: 'Tin Rascal', description: 'Soup-can chest, fork fingers and a grin cut into sheet metal.' },
-    boiler_baron: { name: 'Boiler Baron', description: 'Pressure-gauge monocle, stovepipe crown and a warm boiler heart.', unlock: 'Close the first Steam circuit tier.' },
-    clockwork_ancestor: { name: 'Clockwork Ancestor', description: 'Brass memory discs, gear halo and a patched lilac circuit robe.', unlock: 'Own a Paradox Nest.' },
+    goblin_cap: { name: 'Blue-Cap Rascal', description: 'A bright cap, brass grin and enough spring-loaded mischief for the assembly cradle.' },
+    goblin_dark: { name: 'Darksteel Menace', description: 'Spiked dark plating and a red reactor glow for a RoboGoblin that means business.', unlock: 'Reach 10 owned on any assembly line.' },
+    goblin_glass: { name: 'Prismatic Glass', description: 'Transparent plating reveals the gears, circuits and questionable decisions underneath.', unlock: 'Close the first Steam circuit tier.' },
+    goblin_gold: { name: 'Gilded Goblin', description: 'Polished gold plating for a RoboGoblin that has turned loose screws into a fortune.', unlock: 'Deliver one million lifetime RoboGoblins.' },
+    goblin_suit: { name: 'Foundry Executive', description: 'A sharp suit, dark lenses and the unmistakable confidence of upper management.', unlock: 'Own a Paradox Nest.' },
   },
   achievementsCopy: {
     rg_first_spark: { name: 'It Has Opinions', description: 'Manually assemble a RoboGoblin.' }, rg_unattended: { name: "Somebody Else's Problem", description: 'Own one Tin Cradle.' },
@@ -322,7 +324,10 @@ const COPY: Record<LanguageCode, RoboCopy> = { en: EN, es: ES, zh: ZH, fr: FR, d
 export const ROBO_COPY = EN;
 
 export function getRoboCopy(language: LanguageCode): RoboCopy {
-  return COPY[language] ?? EN;
+  const copy = COPY[language] ?? EN;
+  if (copy === EN) return copy;
+  const appearancesCopy = Object.fromEntries(Object.keys(EN.appearancesCopy).map((id) => [id, copy.appearancesCopy[id] ?? EN.appearancesCopy[id]]));
+  return { ...copy, appearancesCopy };
 }
 
 export function formatRobo(template: string, values: Record<string, string | number>): string {

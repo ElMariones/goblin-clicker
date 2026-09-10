@@ -1,9 +1,6 @@
-import boilerBaron from '../images/robogoblins/runtime/boiler_baron.webp';
 import boilerBrood from '../images/robogoblins/runtime/boiler_brood.webp';
-import clockworkAncestor from '../images/robogoblins/runtime/clockwork_ancestor.webp';
 import clockwyrmAssembly from '../images/robogoblins/runtime/clockwyrm_assembly.webp';
 import cutleryPress from '../images/robogoblins/runtime/cutlery_press.webp';
-import tinRascal from '../images/robogoblins/runtime/tin_rascal.webp';
 import magnetNursery from '../images/robogoblins/runtime/magnet_nursery.webp';
 import moonwireLoom from '../images/robogoblins/runtime/moonwire_loom.webp';
 import paradoxNest from '../images/robogoblins/runtime/paradox_nest.webp';
@@ -13,6 +10,11 @@ import thunderheadCoil from '../images/robogoblins/runtime/thunderhead_coil.webp
 import tinCradle from '../images/robogoblins/runtime/tin_cradle.webp';
 import walkingFoundry from '../images/robogoblins/runtime/walking_foundry.webp';
 import windupWorkbench from '../images/robogoblins/runtime/windup_workbench.webp';
+import goblinCap from '../images/robogoblins/goblin_cap.png';
+import goblinDark from '../images/robogoblins/goblin_dark.png';
+import goblinGlass from '../images/robogoblins/goblin_glass.png';
+import goblinGold from '../images/robogoblins/goblin_gold.png';
+import goblinSuit from '../images/robogoblins/goblin_suit.png';
 
 export type RoboLineAssetId =
   | 'tin_cradle'
@@ -28,7 +30,7 @@ export type RoboLineAssetId =
   | 'clockwyrm_assembly'
   | 'paradox_nest';
 
-export type RoboAppearanceAssetId = 'tin_rascal' | 'boiler_baron' | 'clockwork_ancestor';
+export type RoboAppearanceAssetId = 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
 
 export const robogoblinLineArt: Readonly<Record<RoboLineAssetId, string>> = {
   tin_cradle: tinCradle,
@@ -46,8 +48,10 @@ export const robogoblinLineArt: Readonly<Record<RoboLineAssetId, string>> = {
 };
 
 export const robogoblinAppearanceArt: Readonly<Record<RoboAppearanceAssetId, string>> = {
-  tin_rascal: tinRascal,
-  boiler_baron: boilerBaron,
-  clockwork_ancestor: clockworkAncestor,
+  goblin_cap: goblinCap,
+  goblin_dark: goblinDark,
+  goblin_glass: goblinGlass,
+  goblin_gold: goblinGold,
+  goblin_suit: goblinSuit,
 };
 

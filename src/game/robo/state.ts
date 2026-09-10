@@ -51,7 +51,7 @@ export function createInitialRoboState(permanent?: Pick<RoboState, 'kernel' | 's
         overclocksActivated: 0,
       },
     achievements: { ...(permanent?.achievements ?? {}) },
-    appearance: permanent?.appearance ?? 'tin_rascal',
+    appearance: permanent?.appearance ?? 'goblin_cap',
   };
 }
 

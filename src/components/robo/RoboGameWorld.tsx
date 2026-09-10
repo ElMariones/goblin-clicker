@@ -336,7 +336,7 @@ export function RoboGameWorld({
     };
   }), [copy, formatInteger, game, language, robo.kernel.cores]);
 
-  const appearances = useMemo<RoboAppearanceView[]>(() => (['tin_rascal', 'boiler_baron', 'clockwork_ancestor'] as const satisfies readonly RoboAppearanceId[]).map((id) => ({
+  const appearances = useMemo<RoboAppearanceView[]>(() => (['goblin_cap', 'goblin_dark', 'goblin_glass', 'goblin_gold', 'goblin_suit'] as const satisfies readonly RoboAppearanceId[]).map((id) => ({
     id,
     name: copy.appearancesCopy[id]?.name ?? id,
     description: copy.appearancesCopy[id]?.description ?? id,

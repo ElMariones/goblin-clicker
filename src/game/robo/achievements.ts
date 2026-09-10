@@ -33,7 +33,9 @@ export function awardRoboAchievements(robo: RoboState, now: number): RoboState {
 }
 
 export function isRoboAppearanceUnlocked(robo: RoboState, appearance: RoboAppearanceId): boolean {
-  if (appearance === 'tin_rascal') return true;
-  if (appearance === 'boiler_baron') return robo.achievements.rg_steam_circuit !== undefined;
+  if (appearance === 'goblin_cap') return true;
+  if (appearance === 'goblin_dark') return robo.achievements.rg_bolted !== undefined;
+  if (appearance === 'goblin_glass') return robo.achievements.rg_steam_circuit !== undefined;
+  if (appearance === 'goblin_gold') return robo.achievements.rg_first_million !== undefined;
   return robo.achievements.rg_paradox !== undefined;
 }

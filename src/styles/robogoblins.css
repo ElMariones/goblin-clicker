@@ -346,6 +346,14 @@
 .robo-appearances article > button { min-height: 36px; margin: auto 9px 9px; border: 1px solid rgba(233,174,117,.2); border-radius: 3px; color: #deb389; background: rgba(126,76,43,.07); font-family: var(--font-pixel); font-size: 11px; font-weight: 800; }
 .robo-appearances article > button:disabled { opacity: .52; }
 .robo-appearances article.is-equipped > button:disabled { opacity: .8; color: #edc294; }
+.robo-collection-modal .robo-cosmetics-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-top: 0; }
+.robo-collection-modal .robo-cosmetics-grid .cosmetic-card { min-height: 338px; border-color: rgba(196,174,133,.15); border-radius: 5px; background: linear-gradient(155deg, rgba(255,255,255,.018), rgba(0,0,0,.07)); }
+.robo-collection-modal .robo-cosmetics-grid .cosmetic-card--equipped { border-color: rgba(179,224,103,.38); background: linear-gradient(155deg, rgba(97,139,48,.09), rgba(23,34,16,.04)); }
+.robo-collection-modal .robo-cosmetics-grid .cosmetic-card__body { min-height: 104px; padding: 11px 12px 8px; }
+.robo-collection-modal .robo-cosmetics-grid .cosmetic-card__title-row h4 { margin: 0; font-size: 14px; }
+.robo-collection-modal .robo-cosmetics-grid .cosmetic-card__body p { margin: 6px 0 0; font-size: 9.5px; line-height: 1.42; }
+.robo-collection-modal .robo-cosmetics-grid .cosmetic-card__action { min-height: 37px; margin: auto 10px 10px; font-size: 9px; }
+.robo-cosmetic-lock { display: block; margin-top: 5px; color: #b59a7a; font-size: 9px; line-height: 1.35; }
 .robo-achievements > div { display: grid; margin-top: 9px; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
 .robo-achievements article { display: grid; min-width: 0; min-height: 78px; padding: 8px; grid-template-columns: 34px minmax(0,1fr); gap: 8px; border: 1px solid rgba(167,183,196,.1); opacity: .58; background: rgba(255,255,255,.008); }
 .robo-achievements article.is-unlocked { border-color: rgba(233,174,117,.18); opacity: 1; background: linear-gradient(110deg, rgba(125,76,43,.06), transparent 75%); }
@@ -417,6 +425,14 @@
   .robo-recompile-confirm__scope, .robo-recompile-confirm__actions { grid-template-columns: 1fr; }
   .robo-appearances article { min-height: 288px; }
   .robo-ledger dl { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 840px) {
+  .robo-collection-modal .robo-cosmetics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 520px) {
+  .robo-collection-modal .robo-cosmetics-grid { grid-template-columns: 1fr; }
 }
 
 /* The world switch remains physically right in RTL; text and affordability traces follow direction. */

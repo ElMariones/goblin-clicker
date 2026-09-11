@@ -3,6 +3,7 @@ import { awardRoboAchievements, isRoboAppearanceUnlocked } from './achievements'
 import {
   KERNEL_PERKS,
   ROBO_APPEARANCES,
+  ROBO_BLUEPRINT_TIERS,
   ROBO_ACHIEVEMENTS,
   ROBO_CHARGE_CAP,
   ROBO_GLOBAL_BLUEPRINTS,
@@ -11,6 +12,7 @@ import {
   ROBO_MAX_CORES,
   ROBO_MAX_OWNED,
 } from './content';
+import { sanitizeRoboProjects, getRoboProjectCoreSpend } from './projects';
 import { createInitialRoboState } from './state';
 import type {
   CadenceFirmware,
@@ -79,7 +81,8 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
     if (appearance.id !== 'goblin' && rawOwnedAppearances[appearance.id] === true) ownedAppearances[appearance.id] = true;
   }
   const appearanceSpend = totalAppearanceSpend(ownedAppearances);
-  const cores = Math.min(integer(rawKernel.cores), Math.max(0, totalCoresEarned - minimumSpent - appearanceSpend));
+  const projects = sanitizeRoboProjects(rawKernel.projects, Math.max(0, totalCoresEarned - minimumSpent - appearanceSpend));
+  const cores = Math.min(integer(rawKernel.cores), Math.max(0, totalCoresEarned - minimumSpent - appearanceSpend - getRoboProjectCoreSpend(projects)));
 
   const rawFirmware = isRecord(raw.firmware) ? raw.firmware : {};
   const control: ControlFirmware | null = rawFirmware.control === 'clock' || rawFirmware.control === 'spark'
@@ -94,7 +97,7 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
     const rawLine = rawLines[definition.id];
     const item: Record<string, unknown> = isRecord(rawLine) ? rawLine : {};
     const owned = Math.min(ROBO_MAX_OWNED, integer(item.owned));
-    const blueprintRank = Math.min(3, integer(item.blueprintRank));
+    const blueprintRank = Math.min(ROBO_BLUEPRINT_TIERS.length, integer(item.blueprintRank));
     const cycle = definition.batchSeconds * (cadence === 'quick' ? 0.5 : cadence === 'heavy' ? 2 : 1);
     const phaseRaw = nonNegative(item.phaseSeconds);
     const phaseSeconds = owned > 0 && cycle > 0 ? phaseRaw % cycle : 0;
@@ -142,6 +145,7 @@ export function sanitizeRoboState(raw: Record<string, unknown>, lastUpdateAt: nu
       recompiles: integer(rawKernel.recompiles),
       perks,
       ownedAppearances,
+      projects,
     },
     statistics: {
       manualActions: integer(rawStats.manualActions),

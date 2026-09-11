@@ -1,4 +1,5 @@
 import type { LanguageCode } from './index';
+import { ROBO_ENDGAME } from './roboEndgame';
 
 const en = {
   controls: 'Foundry controls', blueprints: 'Blueprints', kernel: 'Kernel',
@@ -30,3 +31,8 @@ export const ROBO_GUIDE: Record<LanguageCode, Guide> = {
     Object.fromEntries(keys.map((key, index) => [key, values[index]])),
   ])) as Record<Exclude<LanguageCode, 'en'>, Guide>,
 };
+
+for (const language of Object.keys(ROBO_GUIDE) as LanguageCode[]) {
+  ROBO_GUIDE[language].kernelHelp = ROBO_ENDGAME[language].coreHelp;
+  ROBO_GUIDE[language].circuitHelp = ROBO_ENDGAME[language].circuitHelp;
+}

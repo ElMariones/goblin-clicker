@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { LanguageCode } from '../../i18n';
 import { formatRobo, getRoboCopy } from '../../i18n/robogoblins';
+import { ROBO_ENDGAME } from '../../i18n/roboEndgame';
+import { ROBO_ACHIEVEMENTS, ROBO_BLUEPRINT_TIERS, ROBO_GLOBAL_BLUEPRINTS } from '../../game/robo/content';
 
 const LANGUAGES = ['en', 'es', 'zh', 'fr', 'de', 'ar', 'tr'] as const satisfies readonly LanguageCode[];
 const LINE_IDS = [
@@ -34,7 +36,7 @@ describe('RoboGoblins localization', () => {
         expect(copy.kernelPerks[id]?.name, `${language}:${id}:name`).toBeTruthy();
         expect(copy.kernelPerks[id]?.description, `${language}:${id}:description`).toBeTruthy();
       }
-      expect(Object.keys(copy.globalBlueprints)).toHaveLength(6);
+      expect(Object.keys(copy.globalBlueprints)).toHaveLength(10);
       expect(Object.keys(copy.firmwareOptions)).toHaveLength(4);
       expect(Object.keys(copy.appearancesCopy)).toHaveLength(6);
     }
@@ -55,5 +57,22 @@ describe('RoboGoblins localization', () => {
     expect(formatRobo(getRoboCopy('es').objectiveRecompile, { amount: 8 })).toContain('+8');
     expect(formatRobo(getRoboCopy('ar').circuitNeeded, { name: 'X', amount: 25 })).toContain('25');
     expect(formatRobo(getRoboCopy('zh').assembleAria, { amount: '1.5' })).toContain('1.5');
+  });
+
+  it('localizes every added blueprint, achievement and project without missing labels', () => {
+    for (const language of LANGUAGES) {
+      const copy = getRoboCopy(language);
+      for (const blueprint of ROBO_GLOBAL_BLUEPRINTS) expect(copy.globalBlueprints[blueprint.id]).toBeTruthy();
+      for (const tier of ROBO_BLUEPRINT_TIERS) expect(copy.blueprintTiers[tier.tierId]).toBeTruthy();
+      for (const achievement of ROBO_ACHIEVEMENTS) expect(copy.achievementsCopy[achievement.id]?.description).toBeTruthy();
+      expect(ROBO_ENDGAME[language].projects).toHaveLength(4);
+      expect(ROBO_ENDGAME[language].descriptions).toHaveLength(4);
+      expect(copy.preservedItems).toContain(ROBO_ENDGAME[language].title);
+      expect(formatRobo(copy.circuitTier, { tier: 5 })).not.toContain('/ 4');
+      if (language !== 'en') {
+        expect(ROBO_ENDGAME[language].help).not.toBe(ROBO_ENDGAME.en.help);
+        expect(ROBO_ENDGAME[language].fabrication).not.toBe(ROBO_ENDGAME.en.fabrication);
+      }
+    }
   });
 });

@@ -1,7 +1,8 @@
 import type { GameState } from '../types';
 import { ROBO_LINES } from './content';
 import { getRawKernelPerkRank } from './state';
-import { advanceRoboOfflineSeconds } from './production';
+import { advanceRoboOfflineSeconds, integrateRoboLine } from './production';
+import { getRoboLineCycleFromState, getRoboLineStableRateFromState } from './math';
 import type { RoboOfflineProgress, RoboState } from './types';
 
 export const ROBO_BASE_OFFLINE_CAP_MS = 8 * 60 * 60 * 1_000;
@@ -23,11 +24,20 @@ export function calculateRoboOfflineProgress(state: GameState, now: number): Rob
   const capMs = getRoboOfflineCapMs(state.robo);
   const creditedMs = Math.min(elapsedMs, capMs);
   const efficiency = getRoboOfflineEfficiency(state.robo);
-  const beforePending = ROBO_LINES.reduce((sum, line) => sum + state.robo!.lines[line.id].pendingRG, 0);
-  const advanced = advanceRoboOfflineSeconds(state.robo, creditedMs / 1_000, efficiency, state.prestige.totalShardsEarned);
-  const deliveredRG = Math.max(0, advanced.lifetimeProducedRG - state.robo.lifetimeProducedRG);
-  const afterPending = ROBO_LINES.reduce((sum, line) => sum + advanced.lines[line.id].pendingRG, 0);
-  const producedRG = Math.max(0, deliveredRG + afterPending - beforePending);
+  // Do not subtract lifetime totals: late-game totals can swallow an early
+  // post-Recompile batch through floating-point cancellation.
+  let producedRG = 0;
+  let deliveredRG = 0;
+  let afterPending = 0;
+  for (const definition of ROBO_LINES) {
+    const line = state.robo.lines[definition.id];
+    if (line.owned <= 0) continue;
+    const rate = getRoboLineStableRateFromState(state.robo, definition.id, state.prestige.totalShardsEarned) * efficiency;
+    const integrated = integrateRoboLine(line.phaseSeconds, line.pendingRG, getRoboLineCycleFromState(state.robo, definition.id), rate, creditedMs / 1_000);
+    producedRG = Math.min(1e300, producedRG + rate * creditedMs / 1_000);
+    deliveredRG = Math.min(1e300, deliveredRG + integrated.paidRG);
+    afterPending = Math.min(1e300, afterPending + integrated.pendingRG);
+  }
   return { elapsedMs, creditedMs, efficiency, producedRG, deliveredRG, pendingRG: afterPending, capMs };
 }
 

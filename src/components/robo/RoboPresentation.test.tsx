@@ -6,6 +6,9 @@ import { getRoboCopy } from '../../i18n/robogoblins';
 import { RoboAssemblyShop } from './RoboAssemblyShop';
 import { RoboBlueprintFirmwareModal } from './RoboBlueprintFirmwareModal';
 import { RoboKernelModal } from './RoboKernelModal';
+import { RoboProjectsModal } from './RoboProjectsModal';
+import { createInitialRoboState } from '../../game/robo/state';
+import { ROBO_ENDGAME } from '../../i18n/roboEndgame';
 import type { RoboAssemblyLineView } from './types';
 
 const noop = () => undefined;
@@ -18,6 +21,16 @@ const line: RoboAssemblyLineView = {
 };
 
 describe('Robogoblin presentation', () => {
+  it('shows project costs, persistence and unmet requirements before allowing a purchase', () => {
+    const html = renderToStaticMarkup(<I18nProvider language="en"><RoboProjectsModal open robo={createInitialRoboState()} formatNumber={String} onBuild={noop} onClose={noop} /></I18nProvider>);
+    expect(html).toContain(ROBO_ENDGAME.en.help);
+    expect(html).toContain(ROBO_ENDGAME.en.fabrication);
+    expect(html).toContain('0/20');
+    expect(html).toContain('Global blueprints: 0 / 6');
+    expect(html).toContain('256 cores');
+    expect(html.match(/disabled=""/g)).toHaveLength(4);
+    expect(html.match(/<progress /g)).toHaveLength(4);
+  });
   it.each(SUPPORTED_LANGUAGES)('provides complete system guidance in %s', (language) => {
     for (const key of Object.keys(ROBO_GUIDE.en) as (keyof typeof ROBO_GUIDE.en)[]) {
       expect(ROBO_GUIDE[language][key], `${language}:${key}`).toBeTruthy();

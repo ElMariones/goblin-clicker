@@ -1,5 +1,7 @@
 # RoboGoblins — implementation handoff
 
+**September 2026 rebalance:** [Current engine balance and endgame](ENGINE_BALANCE.md) supersedes the launch progression numbers below. Run `npm run balance:robo` for the shipped-engine simulation. Numerical tuning lives in `src/game/robo/content.ts`; the original `balance-model.mjs` is retained as historical design support.
+
 **Status: implemented in the browser game with save schema 6, dual-world production, RoboGoblins progression, presentation assets, and production tests.**
 
 Prepared against repository commit `61d091d`, save schema 5, on 2026-09-08. Source code takes precedence for descriptions of the existing game. The specifications below define the implemented expansion and remain the design contract for balance and behavior. The reference model is design support; production logic lives under `src/game/robo/`.

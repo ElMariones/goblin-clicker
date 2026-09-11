@@ -28,6 +28,7 @@ import {
   isRoboLineRevealed,
 } from './math';
 import { drainRoboPending } from './production';
+import { getRoboProjectProgress } from './projects';
 import { createRecompiledRoboState } from './state';
 import type {
   CadenceFirmware,
@@ -39,6 +40,7 @@ import type {
   RoboBlueprintId,
   RoboFirmwareGroup,
   RoboLineId,
+  RoboProjectId,
   RoboState,
 } from './types';
 
@@ -273,6 +275,27 @@ export function equipRoboAppearance(
     success: true,
     amount: 0,
   };
+}
+
+export function buildRoboProject(state: GameState, id: RoboProjectId, now = state.lastUpdateAt): RoboGameActionResult {
+  const ticked = tickGame(state, now);
+  const robo = requireRobo(ticked);
+  if (!robo) return failure(ticked, 'locked');
+  const progress = getRoboProjectProgress(robo, id);
+  if (!progress) return failure(ticked, 'invalidInput');
+  if (progress.complete) return failure(ticked, 'maxRank');
+  if (!progress.requirementsMet) return failure(ticked, 'requirementNotMet');
+  if (!progress.canBuild) return failure(ticked, 'insufficientFunds', progress.cost);
+  const next: RoboState = {
+    ...robo,
+    readyRG: clampResource(robo.readyRG - progress.cost),
+    kernel: {
+      ...robo.kernel,
+      cores: robo.kernel.cores - progress.coreCost,
+      projects: { ...robo.kernel.projects, [id]: progress.rank + 1 },
+    },
+  };
+  return { state: withRobo(ticked, next, now), success: true, amount: progress.cost };
 }
 
 export function purchaseRoboAppearance(

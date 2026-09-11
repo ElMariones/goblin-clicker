@@ -4,6 +4,11 @@ import {
   ROBO_ACHIEVEMENTS,
   ROBO_APPEARANCES,
   ROBO_CHARGE_CAP,
+  ROBO_CIRCUIT_THRESHOLDS,
+  ROBO_CORE_SCALE,
+  ROBO_PROJECTS,
+  getRoboCoreMultiplier,
+  type RoboProjectId,
   ROBO_CIRCUITS,
   ROBO_FIRMWARE,
   ROBO_GLOBAL_BLUEPRINTS,
@@ -51,6 +56,8 @@ import { RoboBlueprintFirmwareModal } from './RoboBlueprintFirmwareModal';
 import { RoboCircuitsPanel } from './RoboCircuitsPanel';
 import { RoboCollectionModal } from './RoboCollectionModal';
 import { RoboFactoryLedger } from './RoboFactoryLedger';
+import { ROBO_ENDGAME } from '../../i18n/roboEndgame';
+import { RoboProjectsModal } from './RoboProjectsModal';
 import { RoboKernelModal } from './RoboKernelModal';
 import { RoboWorldSwitch } from './RoboWorldSwitch';
 import type {
@@ -74,6 +81,7 @@ interface RoboGameWorldProps {
   onChooseFirmware: (group: RoboFirmwareGroup, choice: ControlFirmware | CadenceFirmware) => void;
   onOverclock: () => void;
   onBuyKernelPerk: (id: KernelPerkId) => void;
+  onBuildProject: (id: RoboProjectId) => void;
   onRecompile: () => void;
   onEquipAppearance: (id: RoboAppearanceId) => void;
   onPurchaseAppearance: (id: RoboAppearanceId) => void;
@@ -95,7 +103,7 @@ interface RoboGameWorldProps {
   warrenRate: number;
 }
 
-type RoboModal = 'blueprints' | 'firmware' | 'circuits' | 'kernel' | 'collection' | null;
+type RoboModal = 'blueprints' | 'firmware' | 'circuits' | 'kernel' | 'collection' | 'projects' | null;
 
 const KERNEL_EFFECT_COPY: Record<LanguageCode, Record<KernelPerkId, (rank: number) => string>> = {
   en: {
@@ -164,13 +172,14 @@ function currentMastery(owned: number) {
 
 export function RoboGameWorld({
   game, buyAmount, onBuyAmountChange, onAssemble, onBuyLine, onBuyBlueprint, onChooseFirmware,
-  onOverclock, onBuyKernelPerk, onRecompile, onEquipAppearance, onPurchaseAppearance, onSwitchToWarren, onOpenSettings,
+  onOverclock, onBuyKernelPerk, onBuildProject, onRecompile, onEquipAppearance, onPurchaseAppearance, onSwitchToWarren, onOpenSettings,
   musicMuted, musicTitle, musicArtist, onToggleMusic, onSkipMusic, effects, reducedMotion, floating = [], overlay,
   formatNumber, formatInteger, formatDuration, formatDate, warrenRate,
 }: RoboGameWorldProps) {
   const { language, t } = useI18n();
   const copy = getRoboCopy(language);
   const guide = ROBO_GUIDE[language];
+  const endgame = ROBO_ENDGAME[language];
   const [modal, setModal] = useState<RoboModal>(null);
   // This screen is mounted only after the one-time Mechanical Charter creates robo state.
   const robo = game.robo!;
@@ -236,7 +245,7 @@ export function RoboGameWorld({
     return {
       id: summary.id,
       name: copy.circuitNames[summary.id],
-      tierLabel: summary.tiers >= 4 ? copy.circuitAllClosed : formatRobo(copy.circuitTier, { tier: summary.tiers }),
+      tierLabel: summary.tiers >= ROBO_CIRCUIT_THRESHOLDS.length ? copy.circuitAllClosed : formatRobo(copy.circuitTier, { tier: summary.tiers }),
       tierProgressLabel: threshold ? formatRobo(copy.circuitBringAll, { amount: formatInteger(threshold) }) : copy.circuitFullySynchronized,
       bonusLabel: formatRobo(copy.circuitShared, { factor: formatNumber(circuitFactor, 2) }),
       members: ROBO_CIRCUITS[summary.id].map((id) => ({
@@ -363,7 +372,7 @@ export function RoboGameWorld({
 
   const eligibleLifetime = robo.lifetimeProducedRG + totalPending;
   const nextCoreIndex = Math.min(1_000_000_000, robo.kernel.totalCoresEarned + 1);
-  const nextCoreThreshold = 10_000_000 * nextCoreIndex ** 3;
+  const nextCoreThreshold = ROBO_CORE_SCALE * nextCoreIndex ** 3;
   const overclockStatus = overclockActive && robo.capacitor.overclockEndsAt
     ? formatRobo(copy.overclockRemaining, { duration: formatDuration(Math.max(0, robo.capacitor.overclockEndsAt - now)) })
     : robo.capacitor.charge >= ROBO_CHARGE_CAP
@@ -372,7 +381,10 @@ export function RoboGameWorld({
   const anyLineOwned = ROBO_LINES.some((line) => robo.lines[line.id].owned > 0);
   const unlockedAchievements = Object.keys(robo.achievements).length;
   const appearanceName = copy.appearancesCopy[robo.appearance]?.name ?? robo.appearance;
-  const objective = !anyLineOwned
+  const nextProjectIndex = ROBO_PROJECTS.findIndex((project) => (robo.kernel.projects[project.id] ?? 0) < project.maxRank);
+  const objective = robo.lines.paradox_nest.owned > 0 && nextProjectIndex >= 0
+    ? formatRobo(endgame.objective, { name: endgame.projects[nextProjectIndex], rank: (robo.kernel.projects[ROBO_PROJECTS[nextProjectIndex].id] ?? 0) + 1 })
+    : !anyLineOwned
     ? copy.objectiveStarter
     : recompileGain > 0
       ? formatRobo(copy.objectiveRecompile, { amount: formatInteger(recompileGain) })
@@ -411,6 +423,7 @@ export function RoboGameWorld({
         ['circuits', 'sparkles', copy.circuits, guide.circuitHint, `×${formatNumber(circuitFactor, 2)}`],
         ['firmware', 'settings', copy.firmware, guide.firmwareHint, `${Number(Boolean(robo.firmware.control)) + Number(Boolean(robo.firmware.cadence))}/2`],
         ['kernel', 'memory', guide.kernel, guide.kernelHint, `${formatInteger(robo.kernel.cores)} ${copy.cores}`],
+        ['projects', 'sparkles', endgame.title, endgame.hint, `${ROBO_PROJECTS.reduce((sum, project) => sum + (robo.kernel.projects[project.id] ?? 0), 0)}/20`],
       ] as const).map(([id, icon, title, hint, badge]) => <button key={id} type="button" className={`robo-control robo-control--${id}`} onClick={() => setModal(id)}>
         <span className="robo-control__icon"><Icon name={icon} size={23} /></span><span><strong>{title}</strong><small>{hint}</small></span><b>{badge}</b>
       </button>)}
@@ -444,9 +457,10 @@ export function RoboGameWorld({
     onBuyNextMilestone={(rawId) => onBuyLine(rawId as RoboLineId, 'nextMilestone')}
   />;
 
-  const currentMultiplier = 1 + robo.kernel.totalCoresEarned * 0.1;
-  const nextMultiplier = 1 + (robo.kernel.totalCoresEarned + recompileGain) * 0.1;
+  const currentMultiplier = getRoboCoreMultiplier(robo.kernel.totalCoresEarned);
+  const nextMultiplier = getRoboCoreMultiplier(robo.kernel.totalCoresEarned + recompileGain);
   const roboOverlay = <>
+    <RoboProjectsModal open={modal === 'projects'} robo={robo} formatNumber={formatNumber} onBuild={onBuildProject} onClose={() => setModal(null)} />
     <Modal open={modal === 'circuits'} title={copy.circuits} subtitle={guide.circuitHint} icon={<Icon name="sparkles" />} onClose={() => setModal(null)} size="lg" className="robo-modal">
       <p className="robo-explainer">{guide.circuitHelp}</p>
       <div className="robo-circuit-bonus"><span>{guide.sharedBonus}</span><strong>×{formatNumber(circuitFactor, 2)}</strong></div>

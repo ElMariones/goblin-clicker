@@ -50,6 +50,8 @@ import {
   getRoboStableRps,
   performRoboRecompile,
   purchaseKernelPerk,
+  buildRoboProject,
+  type RoboProjectId,
   purchaseMechanicalCharter,
   purchaseRoboBlueprint,
   purchaseRoboAppearance,
@@ -546,6 +548,11 @@ function App() {
   };
   const buyRoboKernelPerk = (id: KernelPerkId) => {
     const result = purchaseKernelPerk(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('upgrade', settings.sound);
+  };
+  const buildRoboMegaproject = (id: RoboProjectId) => {
+    const result = buildRoboProject(gameRef.current, id, Date.now());
     commitGame(result.state);
     if (result.success) playSound('upgrade', settings.sound);
   };
@@ -1160,6 +1167,7 @@ function App() {
     onChooseFirmware={chooseRoboFirmware}
     onOverclock={overclockRobo}
     onBuyKernelPerk={buyRoboKernelPerk}
+    onBuildProject={buildRoboMegaproject}
     onRecompile={recompileRobo}
       onEquipAppearance={equipRobotAppearance}
       onPurchaseAppearance={buyRobotAppearance}

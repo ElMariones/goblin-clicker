@@ -1,5 +1,7 @@
 # RoboGoblins balance report
 
+> Historical launch model. For the current shipped progression and megaprojects, see [Engine balance](ENGINE_BALANCE.md).
+
 Generated from the design-only reference model. Re-run <code>node docs/robogoblins/run-balance.mjs</code>. Assertions: <code>node --test docs/robogoblins/balance.test.mjs</code>. These files do not modify or exercise the shipped game engine.
 
 ## Method and limits

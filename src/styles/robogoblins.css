@@ -641,3 +641,19 @@
 @media (min-width: 941px) and (max-height: 960px) {
   .robo-cradle { width: min(455px, max(240px, calc(100dvh - 495px))); }
 }
+/* Permanent factory projects have room for costs and the full build requirements. */
+.robo-project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.robo-project { display: flex; flex-direction: column; gap: 16px; padding: 22px; border: 1px solid #354a60; border-radius: 12px; background: #101b28; min-width: 0; }
+.robo-project header { display: flex; align-items: center; gap: 12px; color: #b7c9e9; }
+.robo-project h3 { margin: 4px 0 0; font-size: 1.1rem; }
+.robo-project p { margin: 0; color: #b4c1d0; line-height: 1.6; }
+.robo-project > strong { color: #aebdf6; font-size: .85rem; line-height: 1.5; }
+.robo-project progress { width: 100%; height: 8px; accent-color: #aebdf6; }
+.robo-project__requirements { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; color: #b7c1cf; font-size: .8rem; line-height: 1.5; }
+.robo-project__requirements .is-met { color: #96d6af; }
+.robo-project button { margin-top: auto; padding: 12px; min-height: 44px; border: 1px solid #6677a1; border-radius: 8px; background: #27384f; color: #eef2fc; font: inherit; font-size: .82rem; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }
+.robo-project button:disabled { opacity: .55; cursor: default; }
+.robo-project button:focus-visible { outline: 2px solid #d4d9ff; outline-offset: 3px; }
+.robo-project.is-affordable { border-color: #b0baff; }
+.robo-project.is-complete { border-color: #71b08a; }
+@media (max-width: 600px) { .robo-project-grid { grid-template-columns: minmax(0, 1fr); } .robo-project { padding: 16px; } }

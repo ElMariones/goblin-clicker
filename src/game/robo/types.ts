@@ -13,7 +13,7 @@ export type RoboLineId =
   | 'paradox_nest';
 
 export type RoboCircuitId = 'scrap' | 'steam' | 'impossible';
-export type RoboBlueprintTierId = 'stolen_plans' | 'self_inspection' | 'recursive_tooling';
+export type RoboBlueprintTierId = 'stolen_plans' | 'self_inspection' | 'recursive_tooling' | 'quantum_tools' | 'ancestral_forge';
 export type RoboLocalBlueprintId = `${RoboLineId}_${RoboBlueprintTierId}`;
 export type RoboGlobalBlueprintId =
   | 'common_thread'
@@ -21,7 +21,11 @@ export type RoboGlobalBlueprintId =
   | 'distributed_mischief'
   | 'factory_remembers'
   | 'illegal_recursion'
-  | 'birth_without_permission';
+  | 'birth_without_permission'
+  | 'stellar_protocol'
+  | 'causal_network'
+  | 'eternal_factory'
+  | 'beyond_the_clock';
 export type RoboBlueprintId = RoboLocalBlueprintId | RoboGlobalBlueprintId;
 
 export type ControlFirmware = 'clock' | 'spark';
@@ -50,7 +54,23 @@ export type RoboAchievementId =
   | 'rg_steam_circuit'
   | 'rg_three_circuits'
   | 'rg_paradox'
-  | 'rg_kernel_complete';
+  | 'rg_kernel_complete'
+  | 'rg_megaproject'
+  | 'rg_four_wonders'
+  | 'rg_deep_mastery'
+  | 'rg_eternal_foundry';
+
+export type RoboProjectId = 'scrap_archive' | 'stellar_engine' | 'causality_anchor' | 'eternity_foundry';
+
+export interface RoboProjectDefinition {
+  id: RoboProjectId;
+  circuit: RoboCircuitId | 'all';
+  baseCost: number;
+  baseCoreCost: number;
+  baseOwned: number;
+  requiredBlueprintRank: number;
+  maxRank: number;
+}
 
 export type RoboAppearanceId = 'goblin' | 'goblin_cap' | 'goblin_dark' | 'goblin_glass' | 'goblin_gold' | 'goblin_suit';
 
@@ -129,6 +149,7 @@ export interface RoboState {
     recompiles: number;
     perks: Partial<Record<KernelPerkId, number>>;
     ownedAppearances: Partial<Record<RoboAppearanceId, true>>;
+    projects: Partial<Record<RoboProjectId, number>>;
   };
   statistics: RoboStatistics;
   achievements: Partial<Record<RoboAchievementId, number>>;

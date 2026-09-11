@@ -1,4 +1,5 @@
 import type { LanguageCode } from './index';
+import { ROBO_ENDGAME } from './roboEndgame';
 
 type NamedDescription = { name: string; description: string };
 type AppearanceCopy = NamedDescription & { unlock?: string };
@@ -329,9 +330,19 @@ export const ROBO_COPY = EN;
 
 export function getRoboCopy(language: LanguageCode): RoboCopy {
   const copy = COPY[language] ?? EN;
-  if (copy === EN) return copy;
+
   const appearancesCopy = Object.fromEntries(Object.keys(EN.appearancesCopy).map((id) => [id, copy.appearancesCopy[id] ?? EN.appearancesCopy[id]]));
-  return { ...copy, appearancesCopy };
+  const extra = ROBO_ENDGAME[language];
+  return {
+    ...copy, appearancesCopy,
+    circuitAllClosed: extra.complete,
+    circuitTier: copy.circuitTier.replace('/ 4', '/ 8'),
+    preservedItems: [...copy.preservedItems, extra.title],
+    masteryNames: { ...copy.masteryNames, Timeless: extra.mastery[0], Infinite: extra.mastery[1] },
+    blueprintTiers: { ...copy.blueprintTiers, quantum_tools: extra.tiers[0], ancestral_forge: extra.tiers[1] },
+    globalBlueprints: { ...copy.globalBlueprints, ...Object.fromEntries(['stellar_protocol', 'causal_network', 'eternal_factory', 'beyond_the_clock'].map((id, i) => [id, extra.blueprints[i]])) },
+    achievementsCopy: { ...copy.achievementsCopy, ...Object.fromEntries(['rg_megaproject', 'rg_four_wonders', 'rg_deep_mastery', 'rg_eternal_foundry'].map((id, i) => [id, { name: extra.achievements[i], description: extra.achievementDescriptions[i] }])) },
+  };
 }
 
 export function formatRobo(template: string, values: Record<string, string | number>): string {

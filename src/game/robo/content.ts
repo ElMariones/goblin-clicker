@@ -10,6 +10,7 @@ import type {
   RoboLineId,
   RoboLocalBlueprintDefinition,
   RoboAppearanceId,
+  RoboProjectDefinition,
 } from './types';
 
 export const ROBO_STARTING_STOCK = 20;
@@ -22,17 +23,17 @@ export const ROBO_OVERCLOCK_DURATION_MS = 30_000;
 
 export const ROBO_LINES = [
   { id: 'tin_cradle', name: 'Tin Cradle', circuit: 'scrap', baseCost: 20, baseRps: 0.5, batchSeconds: 2, description: 'A soup tin with rocking feet and one proud parent.' },
-  { id: 'windup_workbench', name: 'Wind-up Workbench', circuit: 'scrap', baseCost: 160, baseRps: 4, batchSeconds: 4, description: 'Tiny robots winding each other with stolen keys.' },
-  { id: 'cutlery_press', name: 'Cutlery Press', circuit: 'scrap', baseCost: 2_000, baseRps: 32, batchSeconds: 8, description: 'Household silverware stamped into sharp little bodies.' },
-  { id: 'magnet_nursery', name: 'Magnet Nursery', circuit: 'scrap', baseCost: 26_000, baseRps: 240, batchSeconds: 16, description: 'Magnets fishing newborns out of a scrap pond.' },
-  { id: 'boiler_brood', name: 'Boiler Brood', circuit: 'steam', baseCost: 350_000, baseRps: 1_800, batchSeconds: 8, description: 'A furnace mother with a clutch of pressure vessels.' },
-  { id: 'punchcard_den', name: 'Punchcard Den', circuit: 'steam', baseCost: 5_000_000, baseRps: 13_000, batchSeconds: 16, description: 'Machines taught mischief by chewed punchcards.' },
-  { id: 'servo_scriptorium', name: 'Servo Scriptorium', circuit: 'steam', baseCost: 80_000_000, baseRps: 95_000, batchSeconds: 32, description: 'Robot scribes copying plans faster than they can read.' },
-  { id: 'walking_foundry', name: 'Walking Foundry', circuit: 'steam', baseCost: 1_400_000_000, baseRps: 700_000, batchSeconds: 64, description: 'An entire factory on bent chicken legs.' },
-  { id: 'thunderhead_coil', name: 'Thunderhead Coil', circuit: 'impossible', baseCost: 28_000_000_000, baseRps: 5_200_000, batchSeconds: 16, description: 'A bottled storm issuing birth certificates.' },
-  { id: 'moonwire_loom', name: 'Moonwire Loom', circuit: 'impossible', baseCost: 600_000_000_000, baseRps: 40_000_000, batchSeconds: 32, description: 'Moonlight woven into metal skeletons.' },
-  { id: 'clockwyrm_assembly', name: 'Clockwyrm Assembly', circuit: 'impossible', baseCost: 14_000_000_000_000, baseRps: 320_000_000, batchSeconds: 64, description: 'A dragon made of gears, coughing up assembly lines.' },
-  { id: 'paradox_nest', name: 'Paradox Nest', circuit: 'impossible', baseCost: 350_000_000_000_000, baseRps: 2_600_000_000, batchSeconds: 64, description: 'Future robots assembling their own ancestors.' },
+  { id: 'windup_workbench', name: 'Wind-up Workbench', circuit: 'scrap', baseCost: 240, baseRps: 4, batchSeconds: 4, description: 'Tiny robots winding each other with stolen keys.' },
+  { id: 'cutlery_press', name: 'Cutlery Press', circuit: 'scrap', baseCost: 4_000, baseRps: 32, batchSeconds: 8, description: 'Household silverware stamped into sharp little bodies.' },
+  { id: 'magnet_nursery', name: 'Magnet Nursery', circuit: 'scrap', baseCost: 78_000, baseRps: 240, batchSeconds: 16, description: 'Magnets fishing newborns out of a scrap pond.' },
+  { id: 'boiler_brood', name: 'Boiler Brood', circuit: 'steam', baseCost: 1_750_000, baseRps: 1_800, batchSeconds: 8, description: 'A furnace mother with a clutch of pressure vessels.' },
+  { id: 'punchcard_den', name: 'Punchcard Den', circuit: 'steam', baseCost: 50_000_000, baseRps: 13_000, batchSeconds: 16, description: 'Machines taught mischief by chewed punchcards.' },
+  { id: 'servo_scriptorium', name: 'Servo Scriptorium', circuit: 'steam', baseCost: 1_600_000_000, baseRps: 95_000, batchSeconds: 32, description: 'Robot scribes copying plans faster than they can read.' },
+  { id: 'walking_foundry', name: 'Walking Foundry', circuit: 'steam', baseCost: 56_000_000_000, baseRps: 700_000, batchSeconds: 64, description: 'An entire factory on bent chicken legs.' },
+  { id: 'thunderhead_coil', name: 'Thunderhead Coil', circuit: 'impossible', baseCost: 2_240_000_000_000, baseRps: 5_200_000, batchSeconds: 16, description: 'A bottled storm issuing birth certificates.' },
+  { id: 'moonwire_loom', name: 'Moonwire Loom', circuit: 'impossible', baseCost: 96_000_000_000_000, baseRps: 40_000_000, batchSeconds: 32, description: 'Moonlight woven into metal skeletons.' },
+  { id: 'clockwyrm_assembly', name: 'Clockwyrm Assembly', circuit: 'impossible', baseCost: 4_480_000_000_000_000, baseRps: 320_000_000, batchSeconds: 64, description: 'A dragon made of gears, coughing up assembly lines.' },
+  { id: 'paradox_nest', name: 'Paradox Nest', circuit: 'impossible', baseCost: 224_000_000_000_000_000, baseRps: 2_600_000_000, batchSeconds: 64, description: 'Future robots assembling their own ancestors.' },
 ] as const satisfies readonly RoboLineDefinition[];
 
 export const ROBO_LINE_BY_ID = Object.fromEntries(ROBO_LINES.map((line) => [line.id, line])) as Record<RoboLineId, RoboLineDefinition>;
@@ -57,6 +58,8 @@ export const ROBO_MASTERY_LEVELS = [
   { threshold: 200, multiplier: 3, name: 'Distributed' },
   { threshold: 250, multiplier: 3, name: 'Recursive' },
   { threshold: 300, multiplier: 4, name: 'Unreasonably Alive' },
+  { threshold: 400, multiplier: 3, name: 'Timeless' },
+  { threshold: 500, multiplier: 4, name: 'Infinite' },
 ] as const;
 
 export const ROBO_CIRCUITS: Readonly<Record<RoboCircuitId, readonly RoboLineId[]>> = {
@@ -65,15 +68,17 @@ export const ROBO_CIRCUITS: Readonly<Record<RoboCircuitId, readonly RoboLineId[]
   impossible: ['thunderhead_coil', 'moonwire_loom', 'clockwyrm_assembly', 'paradox_nest'],
 };
 
-export const ROBO_CIRCUIT_THRESHOLDS = [10, 25, 50, 100] as const;
+export const ROBO_CIRCUIT_THRESHOLDS = [10, 25, 50, 100, 150, 200, 300, 500] as const;
 
-const BLUEPRINT_TIERS = [
+export const ROBO_BLUEPRINT_TIERS = [
   { tierId: 'stolen_plans', suffix: 'Stolen Plans', threshold: 10, costFactor: 25, multiplier: 2 },
   { tierId: 'self_inspection', suffix: 'Self-inspection', threshold: 50, costFactor: 500, multiplier: 2 },
   { tierId: 'recursive_tooling', suffix: 'Recursive Tooling', threshold: 100, costFactor: 20_000, multiplier: 2 },
+  { tierId: 'quantum_tools', suffix: 'Quantum Tools', threshold: 200, costFactor: 1e9, multiplier: 2 },
+  { tierId: 'ancestral_forge', suffix: 'Ancestral Forge', threshold: 300, costFactor: 1e11, multiplier: 2 },
 ] as const satisfies readonly { tierId: RoboBlueprintTierId; suffix: string; threshold: number; costFactor: number; multiplier: number }[];
 
-export const ROBO_LOCAL_BLUEPRINTS = ROBO_LINES.flatMap((line) => BLUEPRINT_TIERS.map((tier) => ({
+export const ROBO_LOCAL_BLUEPRINTS = ROBO_LINES.flatMap((line) => ROBO_BLUEPRINT_TIERS.map((tier) => ({
   id: `${line.id}_${tier.tierId}` as const,
   lineId: line.id,
   tierId: tier.tierId,
@@ -87,11 +92,15 @@ export const ROBO_LOCAL_BLUEPRINT_BY_ID = Object.fromEntries(ROBO_LOCAL_BLUEPRIN
 
 export const ROBO_GLOBAL_BLUEPRINTS = [
   { id: 'common_thread', name: 'Common Thread', cost: 2_000, multiplier: 1.25 },
-  { id: 'standard_sockets', name: 'Standard Sockets', cost: 200_000, multiplier: 1.25 },
-  { id: 'distributed_mischief', name: 'Distributed Mischief', cost: 20_000_000, multiplier: 1.5 },
-  { id: 'factory_remembers', name: 'The Factory Remembers', cost: 2_000_000_000, multiplier: 1.5 },
-  { id: 'illegal_recursion', name: 'Illegal Recursion', cost: 200_000_000_000, multiplier: 1.75 },
-  { id: 'birth_without_permission', name: 'Birth Without Permission', cost: 20_000_000_000_000, multiplier: 2 },
+  { id: 'standard_sockets', name: 'Standard Sockets', cost: 500_000, multiplier: 1.25 },
+  { id: 'distributed_mischief', name: 'Distributed Mischief', cost: 100_000_000, multiplier: 1.5 },
+  { id: 'factory_remembers', name: 'The Factory Remembers', cost: 20_000_000_000, multiplier: 1.5 },
+  { id: 'illegal_recursion', name: 'Illegal Recursion', cost: 4_000_000_000_000, multiplier: 1.75 },
+  { id: 'birth_without_permission', name: 'Birth Without Permission', cost: 800_000_000_000_000, multiplier: 2 },
+  { id: 'stellar_protocol', name: 'Stellar Protocol', cost: 1e20, multiplier: 1.5 },
+  { id: 'causal_network', name: 'Causal Network', cost: 1e22, multiplier: 1.5 },
+  { id: 'eternal_factory', name: 'Eternal Factory', cost: 1e24, multiplier: 1.5 },
+  { id: 'beyond_the_clock', name: 'Beyond the Clock', cost: 1e26, multiplier: 2 },
 ] as const satisfies readonly RoboGlobalBlueprintDefinition[];
 
 export const ROBO_GLOBAL_BLUEPRINT_BY_ID = Object.fromEntries(ROBO_GLOBAL_BLUEPRINTS.map((blueprint) => [blueprint.id, blueprint])) as Record<string, RoboGlobalBlueprintDefinition>;
@@ -140,8 +149,19 @@ export const ROBO_ACHIEVEMENTS = [
   { id: 'rg_steam_circuit', name: 'Union of Boilers', description: 'Close the first Steam circuit tier.' },
   { id: 'rg_three_circuits', name: 'Everything Is Connected', description: 'Close the first tier of all three circuits in one compile.' },
   { id: 'rg_paradox', name: 'Your Grandchild Built You', description: 'Own one Paradox Nest.' },
+  { id: 'rg_megaproject', name: 'Beyond the Nest', description: 'Build the first stage of a megaproject.' },
+  { id: 'rg_four_wonders', name: 'Four Impossible Wonders', description: 'Build at least one stage of all four megaprojects.' },
+  { id: 'rg_deep_mastery', name: 'No Small Parts', description: 'Own 500 robots on every assembly line in one compile.' },
+  { id: 'rg_eternal_foundry', name: 'The Clock Can Retire', description: 'Complete all 20 megaproject stages.' },
   { id: 'rg_kernel_complete', name: 'A Very Small God', description: 'Max all eight Kernel tracks.' },
 ] as const satisfies readonly RoboAchievementDefinition[];
+
+export const ROBO_PROJECTS = [
+  { id: 'scrap_archive', circuit: 'scrap', baseCost: 1e20, baseCoreCost: 256, baseOwned: 150, requiredBlueprintRank: 6, maxRank: 5 },
+  { id: 'stellar_engine', circuit: 'steam', baseCost: 1e22, baseCoreCost: 1_024, baseOwned: 100, requiredBlueprintRank: 7, maxRank: 5 },
+  { id: 'causality_anchor', circuit: 'impossible', baseCost: 1e24, baseCoreCost: 4_096, baseOwned: 50, requiredBlueprintRank: 8, maxRank: 5 },
+  { id: 'eternity_foundry', circuit: 'all', baseCost: 1e26, baseCoreCost: 16_384, baseOwned: 150, requiredBlueprintRank: 9, maxRank: 5 },
+] as const satisfies readonly RoboProjectDefinition[];
 
 export const INHERITED_BLUEPRINT_MILESTONES = [2_500, 10_000, 100_000, 1_000_000, 10_000_000] as const;
 export const FAMILY_ADAPTER_MILESTONES = [8, 32, 128, 512, 2_048] as const;

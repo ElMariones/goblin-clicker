@@ -1,4 +1,4 @@
-import { KERNEL_PERKS, ROBO_ACHIEVEMENTS, ROBO_LINES } from './content';
+import { KERNEL_PERKS, ROBO_ACHIEVEMENTS, ROBO_LINES, ROBO_PROJECTS } from './content';
 import { getRoboCircuitTierCount } from './math';
 import { getRawKernelPerkRank } from './state';
 import type { RoboAchievementId, RoboAppearanceId, RoboState } from './types';
@@ -18,6 +18,10 @@ function achievementMet(robo: RoboState, id: RoboAchievementId): boolean {
       && getRoboCircuitTierCount(robo, 'steam') >= 1
       && getRoboCircuitTierCount(robo, 'impossible') >= 1;
     case 'rg_paradox': return robo.lines.paradox_nest.owned >= 1;
+    case 'rg_megaproject': return ROBO_PROJECTS.some((project) => (robo.kernel.projects[project.id] ?? 0) >= 1);
+    case 'rg_four_wonders': return ROBO_PROJECTS.every((project) => (robo.kernel.projects[project.id] ?? 0) >= 1);
+    case 'rg_deep_mastery': return ROBO_LINES.every((line) => robo.lines[line.id].owned >= 500);
+    case 'rg_eternal_foundry': return ROBO_PROJECTS.every((project) => (robo.kernel.projects[project.id] ?? 0) >= project.maxRank);
     case 'rg_kernel_complete': return KERNEL_PERKS.every((perk) => getRawKernelPerkRank(robo, perk.id) >= perk.maxRank);
   }
 }
@@ -25,7 +29,7 @@ function achievementMet(robo: RoboState, id: RoboAchievementId): boolean {
 export function awardRoboAchievements(robo: RoboState, now: number): RoboState {
   const additions: Partial<Record<RoboAchievementId, number>> = {};
   for (const achievement of ROBO_ACHIEVEMENTS) {
-    if (!robo.achievements[achievement.id] && achievementMet(robo, achievement.id)) additions[achievement.id] = now;
+    if (robo.achievements[achievement.id] === undefined && achievementMet(robo, achievement.id)) additions[achievement.id] = now;
   }
   return Object.keys(additions).length > 0
     ? { ...robo, achievements: { ...robo.achievements, ...additions } }

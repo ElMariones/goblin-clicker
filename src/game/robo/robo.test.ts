@@ -46,10 +46,10 @@ function unlockedState(now = 1_000) {
 describe('RoboGoblins content and entitlement', () => {
   it('defines the complete launch content tables', () => {
     expect(ROBO_LINES).toHaveLength(12);
-    expect(ROBO_LOCAL_BLUEPRINTS).toHaveLength(36);
-    expect(ROBO_GLOBAL_BLUEPRINTS).toHaveLength(6);
+    expect(ROBO_LOCAL_BLUEPRINTS).toHaveLength(60);
+    expect(ROBO_GLOBAL_BLUEPRINTS).toHaveLength(10);
     expect(ROBO_APPEARANCES).toHaveLength(6);
-    expect(ROBO_ACHIEVEMENTS).toHaveLength(12);
+    expect(ROBO_ACHIEVEMENTS).toHaveLength(16);
     for (let index = 1; index < ROBO_LINES.length; index += 1) {
       expect(ROBO_LINES[index].baseCost).toBeGreaterThan(ROBO_LINES[index - 1].baseCost);
       expect(ROBO_LINES[index].baseRps).toBeGreaterThan(ROBO_LINES[index - 1].baseRps);
@@ -405,7 +405,7 @@ describe('RoboGoblins offline and save behavior', () => {
     expect(result.progress.creditedMs).toBe(8 * 60 * 60 * 1_000);
     expect(result.roboProgress?.creditedMs).toBe(24 * 60 * 60 * 1_000);
     expect(result.roboProgress?.efficiency).toBe(1);
-    expect(result.roboProgress?.producedRG).toBeCloseTo(0.5 * 24 * 60 * 60 * (1 + 0.1 * 1_000), 5);
+    expect(result.roboProgress?.producedRG).toBeCloseTo(0.5 * 24 * 60 * 60 * (7.4 + 0.8 * (Math.sqrt(1_000) - 8)), 5);
   });
 
   it('migrates v5 saves to a locked/null mechanical plane', () => {
@@ -511,7 +511,7 @@ describe('RoboGoblins offline and save behavior', () => {
     expect(loaded.robo!.firmware.control).toBeNull();
     expect(loaded.robo!.firmware.cadence).toBe('quick');
     expect(loaded.robo!.lines.tin_cradle.owned).toBe(10);
-    expect(loaded.robo!.lines.tin_cradle.blueprintRank).toBe(3);
+    expect(loaded.robo!.lines.tin_cradle.blueprintRank).toBe(5);
     expect(loaded.robo!.lines.tin_cradle.phaseSeconds).toBeLessThan(1);
     expect(loaded.robo!.kernel.cores).toBeLessThanOrEqual(loaded.robo!.kernel.totalCoresEarned);
   });

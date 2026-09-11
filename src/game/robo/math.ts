@@ -14,6 +14,7 @@ import {
   ROBO_MAX_OWNED,
   ROBO_CORE_SCALE,
 } from './content';
+import { getRoboProjectMultiplier, hasRoboBulkFabrication } from './projects';
 import { getRawKernelPerkRank } from './state';
 import type { KernelPerkId, RoboCircuitId, RoboCircuitSummary, RoboLineId, RoboState } from './types';
 
@@ -116,13 +117,14 @@ export function getRoboLineStableRateFromState(robo: RoboState, lineId: RoboLine
   const mastery = getRoboLineMasteryFromOwned(line.owned);
   const localBlueprint = 2 ** line.blueprintRank;
   const circuit = getRoboCircuitMultiplier(robo);
-  const core = 1 + 0.1 * robo.kernel.totalCoresEarned;
+  const core = getRoboCoreMultiplier(robo.kernel.totalCoresEarned);
+  const projects = getRoboProjectMultiplier(robo, definition.circuit);
   const bolts = 1 + 0.05 * getRawKernelPerkRank(robo, 'better_bolts');
   const global = getRoboGlobalBlueprintMultiplier(robo);
   const heritage = getInheritedBlueprintsFactor(totalShardsEarned);
   const cadence = robo.firmware.cadence === 'heavy' ? 1.15 : 1;
   const control = robo.firmware.control === 'clock' ? 1.2 : 1;
-  const rate = definition.baseRps * line.owned * mastery * localBlueprint * circuit * core * bolts * global * heritage * cadence * control;
+  const rate = definition.baseRps * line.owned * mastery * localBlueprint * circuit * core * bolts * global * heritage * cadence * control * projects;
   return Number.isFinite(rate) ? Math.min(1e300, Math.max(0, rate)) : 1e300;
 }
 
@@ -170,9 +172,18 @@ export function getRoboLineBulkCostFromState(robo: RoboState, lineId: RoboLineId
   if (quantity === 0) return 0;
   const owned = Math.max(0, Math.floor(robo.lines[lineId].owned));
   if (owned + quantity > ROBO_MAX_OWNED) return Number.POSITIVE_INFINITY;
-  const exponent = owned * Math.log(ROBO_COST_GROWTH);
-  const quantityExponent = quantity * Math.log(ROBO_COST_GROWTH);
-  const raw = definition.baseCost * Math.exp(exponent) * Math.expm1(quantityExponent) / (ROBO_COST_GROWTH - 1);
+  const geometric = (first: number, growth: number, units: number) => units === 0 ? 0
+    : first * Math.expm1(units * Math.log(growth)) / (growth - 1);
+  let raw: number;
+  if (hasRoboBulkFabrication(robo, definition.circuit)) {
+    const normalUnits = Math.min(quantity, Math.max(0, 100 - owned));
+    const bulkUnits = quantity - normalUnits;
+    const normal = geometric(definition.baseCost * ROBO_COST_GROWTH ** Math.min(owned, 100), ROBO_COST_GROWTH, normalUnits);
+    const bulkFirst = definition.baseCost * ROBO_COST_GROWTH ** 100 * 1.035 ** Math.max(0, owned - 100);
+    raw = normal + geometric(bulkFirst, 1.035, bulkUnits);
+  } else {
+    raw = geometric(definition.baseCost * Math.exp(owned * Math.log(ROBO_COST_GROWTH)), ROBO_COST_GROWTH, quantity);
+  }
   return Number.isFinite(raw) ? Math.max(1, Math.ceil(raw - EPSILON)) : Number.POSITIVE_INFINITY;
 }
 
@@ -188,13 +199,15 @@ export function getRoboMaxAffordableLineCount(state: GameState, lineId: RoboLine
   if (!(budget > 0) || !Number.isFinite(budget)) return 0;
   const remaining = ROBO_MAX_OWNED - robo.lines[lineId].owned;
   if (remaining <= 0 || getRoboLineBulkCostFromState(robo, lineId, 1) > budget + EPSILON) return 0;
-  const definition = ROBO_LINE_BY_ID[lineId];
-  const first = definition.baseCost * ROBO_COST_GROWTH ** robo.lines[lineId].owned;
-  const estimate = Math.floor(Math.log1p((budget * (ROBO_COST_GROWTH - 1)) / first) / Math.log(ROBO_COST_GROWTH));
-  let count = Math.max(0, Math.min(remaining, estimate));
-  while (count < remaining && getRoboLineBulkCostFromState(robo, lineId, count + 1) <= budget + EPSILON) count += 1;
-  while (count > 0 && getRoboLineBulkCostFromState(robo, lineId, count) > budget + EPSILON) count -= 1;
-  return count;
+  // Binary search also handles purchases crossing the fabrication threshold.
+  let low = 0;
+  let high = remaining;
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    if (getRoboLineBulkCostFromState(robo, lineId, middle) <= budget + EPSILON) low = middle;
+    else high = middle - 1;
+  }
+  return low;
 }
 
 export function getRoboCorePotential(eligibleLifetimeRG: number): number {
@@ -222,4 +235,10 @@ export function isRoboLineRevealed(robo: RoboState, lineId: RoboLineId): boolean
   const index = ROBO_LINES.findIndex((line) => line.id === lineId);
   if (index <= 0) return index === 0;
   return robo.lines[ROBO_LINES[index - 1].id].owned > 0;
+}
+
+/** Preserve early prestige gains, then taper the compounding feedback loop. */
+export function getRoboCoreMultiplier(totalCoresEarned: number): number {
+  const cores = Math.max(0, Math.min(ROBO_MAX_CORES, Number.isFinite(totalCoresEarned) ? totalCoresEarned : 0));
+  return cores <= 64 ? 1 + cores * 0.1 : 7.4 + 0.8 * (Math.sqrt(cores) - 8);
 }

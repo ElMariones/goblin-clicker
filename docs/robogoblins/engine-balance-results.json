@@ -1,0 +1,88 @@
+[
+  {
+    "hours": 72,
+    "active": false,
+    "recompile": false,
+    "projects": {},
+    "firstEightCores": 3480,
+    "firstOwned": {
+      "tin_cradle": 0,
+      "windup_workbench": 270,
+      "cutlery_press": 630,
+      "magnet_nursery": 1080,
+      "boiler_brood": 1650,
+      "punchcard_den": 2730,
+      "servo_scriptorium": 5790,
+      "walking_foundry": 14760,
+      "thunderhead_coil": 36090,
+      "moonwire_loom": 113970
+    },
+    "firstProject": {},
+    "cores": 0,
+    "recompiles": 0,
+    "rate": 838751541705,
+    "lifetime": 45855272166165150
+  },
+  {
+    "hours": 72,
+    "active": true,
+    "recompile": true,
+    "projects": {},
+    "firstEightCores": 2730,
+    "firstOwned": {
+      "tin_cradle": 0,
+      "windup_workbench": 180,
+      "cutlery_press": 420,
+      "magnet_nursery": 870,
+      "boiler_brood": 1260,
+      "punchcard_den": 2130,
+      "servo_scriptorium": 6630,
+      "walking_foundry": 9960,
+      "thunderhead_coil": 15420,
+      "moonwire_loom": 24210,
+      "clockwyrm_assembly": 36810,
+      "paradox_nest": 70410
+    },
+    "firstProject": {},
+    "cores": 66545,
+    "recompiles": 14,
+    "rate": 167161084715605200,
+    "lifetime": 8.668195083439396e+21
+  },
+  {
+    "hours": 720,
+    "active": true,
+    "recompile": true,
+    "projects": {
+      "scrap_archive": 5,
+      "stellar_engine": 5,
+      "causality_anchor": 5,
+      "eternity_foundry": 3
+    },
+    "firstEightCores": 2730,
+    "firstOwned": {
+      "tin_cradle": 0,
+      "windup_workbench": 180,
+      "cutlery_press": 420,
+      "magnet_nursery": 870,
+      "boiler_brood": 1260,
+      "punchcard_den": 2130,
+      "servo_scriptorium": 6630,
+      "walking_foundry": 9960,
+      "thunderhead_coil": 15420,
+      "moonwire_loom": 24210,
+      "clockwyrm_assembly": 36810,
+      "paradox_nest": 70410
+    },
+    "firstProject": {
+      "scrap_archive": 121650,
+      "stellar_engine": 349230,
+      "causality_anchor": 481860,
+      "eternity_foundry": 702960
+    },
+    "cores": 68253765,
+    "recompiles": 24,
+    "rate": 1.957175196022311e+25,
+    "lifetime": 1.0336353677349206e+31
+  }
+]

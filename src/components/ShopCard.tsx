@@ -179,7 +179,7 @@ export function ShopCard({ id, name, description, ownedLabel, priceLabel, produc
           <span>{buyLabel}</span><strong><Icon name="coin" size={14} /> {priceLabel}</strong>
         </button>
         {onSell && !locked && <button type="button" className="shop-card__sell" onClick={(event) => { onSell(id); if (event.detail > 0) event.currentTarget.blur(); }} aria-describedby={hasHoverDetails ? detailId : undefined} aria-label={t('shop.sellAria', { name })}>{t('shop.sell')}</button>}
-        {secondaryAction && !locked && <button type="button" className="shop-card__sell" title={secondaryAction.title} disabled={secondaryAction.disabled} aria-describedby={hasHoverDetails ? detailId : undefined} onClick={(event) => { secondaryAction.onActivate(); if (event.detail > 0) event.currentTarget.blur(); }}>{secondaryAction.label}</button>}
+        {secondaryAction && !locked && <button type="button" className="shop-card__sell" title={secondaryAction.title} aria-label={`${secondaryAction.label}: ${name}. ${secondaryAction.title ?? ''}`} disabled={secondaryAction.disabled} aria-describedby={hasHoverDetails ? detailId : undefined} onClick={(event) => { secondaryAction.onActivate(); if (event.detail > 0) event.currentTarget.blur(); }}>{secondaryAction.label}</button>}
       </div>
       {detailsPopover}
     </article>

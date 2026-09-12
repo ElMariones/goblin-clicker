@@ -1,3 +1,6 @@
+import { getWarrenProjectProgress } from './projects';
+import type { WarrenProjectId } from './types';
+import { getNextExpansionMilestoneQuantity } from './math';
 import { collectExpedition, launchExpedition } from './expeditions';
 import { COSMETIC_BY_ID } from './cosmetics';
 import type { CosmeticId, ExpeditionPlan } from './types';
@@ -156,6 +159,24 @@ export function purchaseBuilding(
     buildings: { ...ticked.buildings, [buildingId]: ticked.buildings[buildingId] + quantity },
   };
   return { state: awardAchievements(next, now), success: true, amount: cost };
+}
+
+export function purchaseBuildingMilestone(state: GameState, buildingId: BuildingId, now = state.lastUpdateAt): EconomyActionResult {
+  const ticked = tickGame(state, now);
+  return purchaseBuilding(ticked, buildingId, getNextExpansionMilestoneQuantity(ticked, buildingId), ticked.lastUpdateAt);
+}
+
+export function buildWarrenProject(state: GameState, id: WarrenProjectId, now = state.lastUpdateAt): EconomyActionResult {
+  const ticked = tickGame(state, now);
+  const progress = getWarrenProjectProgress(ticked, id);
+  if (!progress?.canBuild) return { state: ticked, success: false, amount: 0 };
+  const next: GameState = {
+    ...ticked,
+    goblins: clampResource(ticked.goblins - progress.cost),
+    prestige: { ...ticked.prestige, shards: ticked.prestige.shards - progress.cunningCost,
+      projects: { ...ticked.prestige.projects, [id]: progress.rank + 1 } },
+  };
+  return { state: awardAchievements(next, now), success: true, amount: progress.cost };
 }
 
 export function sellBuilding(

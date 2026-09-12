@@ -1,3 +1,4 @@
+import { INNOVATION_UTILITY_IDS, WARREN_PROGRESSION } from './warrenProgression';
 import { createContext, useContext, type ReactNode } from 'react';
 import { numberFormatter } from '../utils/format';
 
@@ -560,6 +561,13 @@ const PERK_DESCRIPTIONS: Record<LanguageCode, Record<string, string>> = {
 };
 
 export function localizedName(language: LanguageCode, kind: 'building' | 'upgrade' | 'achievement' | 'perk', id: string, fallback: string): string {
+  if (kind === 'upgrade' && id.startsWith('innovation_')) {
+    const index = INNOVATION_UTILITY_IDS.indexOf(id);
+    if (index >= 0) return WARREN_PROGRESSION[language].utility[index];
+    const buildingId = id.slice('innovation_'.length);
+    const building = BUILDING_NAMES[language][buildingId] ?? fallback.split(':')[0];
+    return `${building}: ${WARREN_PROGRESSION[language].living}`;
+  }
   const table = kind === 'building' ? BUILDING_NAMES : kind === 'upgrade' ? UPGRADE_NAMES : kind === 'achievement' ? ACHIEVEMENT_NAMES : PERK_NAMES;
   return table[language][id] ?? fallback;
 }

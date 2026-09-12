@@ -55,3 +55,9 @@ export function hasRoboBulkFabrication(robo: RoboState, circuit: RoboCircuitId):
   const project = ROBO_PROJECTS.find((entry) => entry.circuit === circuit)!;
   return (robo.kernel.projects[project.id] ?? 0) > 0;
 }
+
+/** Fully built circuit wonders unlock the final stretch beyond 500 robots. */
+export function hasRoboDeepFabrication(robo: RoboState, circuit: RoboCircuitId): boolean {
+  const project = ROBO_PROJECTS.find((entry) => entry.circuit === circuit)!;
+  return (robo.kernel.projects[project.id] ?? 0) >= project.maxRank;
+}

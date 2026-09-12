@@ -8,6 +8,12 @@ The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/
 
 ### Added
 
+- Four permanent Warren megaprojects with 20 stages, current-run ownership/research requirements, goblin and Ancestral Cunning costs, and production bonuses retained through migration.
+- Eighteen deep innovations: a fourth local research tier for all twelve expansions plus new click, lunar, offline, mastery-network and global-production research. Fully localized and accessible from the research window.
+- A next-milestone purchase button on each unmastered Warren expansion, using the exact bulk price and buying only the units needed.
+- RoboGoblins mastery and circuit tiers at 600, 700, 800, 900 and 1,000 robots, with cumulative production rewards and localized tier names.
+- Completing a circuit megaproject unlocks 1.5% price growth beyond 500 robots in that circuit. Opening prices and first-stage bulk fabrication remain unchanged.
+
 - **Brood scale**: a small line under the goblin population, and one in the Warren Ledger for the all-time total, comparing the brood to a 50-rung ladder of real-world quantities — a busload of commuters, every car on Earth, every human alive, every chicken alive, the seconds since the Big Bang, the grains of salt in the oceans, the atoms in the Moon, the photons in the observable universe, and on to the Planck volumes in it. The multiplier is snapped to a 1-2-5 ladder so it reads ×2, ×5, ×10 instead of creeping through ×1.81, ×1.82; below ×2 it is dropped entirely. The next rung to overtake is on the line's tooltip. Localized in all seven interface languages and meaningful all the way to the `1e300` resource ceiling.
 - RoboGoblins, the multi-tab save-ownership lease, the adjustable UI scale and the release-check commands are now documented in the README.
 

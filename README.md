@@ -54,10 +54,11 @@ RoboGoblins is discovered permanently once all twelve Warren expansions have bee
 
 | System | What is currently in the game |
 | --- | --- |
-| **Incremental core** | Manual spawning, passive production, escalating structure costs, bulk purchasing/selling, offline progress, compact number formatting, and persistent statistics. |
+| **Incremental core** | Manual spawning, passive production, escalating structure costs, bulk purchasing/selling, one-click purchasing to the next mastery milestone, offline progress, compact number formatting, and persistent statistics. |
 | **12 warren expansions** | From the Brood Matron and Mushroom Nursery through Deepforge Vats, Wyrm Hoards, Goblin Gates, and the Reality Burrow. Every expansion has bespoke artwork and production identity. |
 | **Expansion mastery** | 8 ownership tiers — Established, Thriving, Veteran, Renowned, Elite, Legendary, Ancestral, and Mythic — with local production multipliers plus an all-warren mastery network bonus, and a veterancy factor that keeps early expansions relevant. |
-| **Research & doctrines** | 56 research nodes: 48 foundation upgrades plus 8 migration-scoped doctrine choices arranged as four mutually exclusive pairs. The tree supports drag-to-pan, wheel zoom, centering, reset, and explicit purchase states. |
+| **Research & doctrines** | 74 research nodes: 48 foundation upgrades, 8 migration-scoped doctrines in four mutually exclusive pairs, and 18 deep innovations. The original tree retains pan/zoom controls; a separate innovations view shows late-game costs, effects and requirements. |
+| **Warren megaprojects** | Four permanent wonders with five stages each: Worldroot Sanctuary, Moonforge Citadel, Worldgate Nexus and Everlasting Warren. Spend goblins and Ancestral Cunning, meet current-run ownership/research requirements, and retain production bonuses through migration. |
 | **Great Migration** | Prestige into a new warren for permanent **Ancestral Cunning**, then spend it across 11 ranked bloodline perks affecting production, clicks, costs, offline play, Mooncaps, mastery, and starting resources. |
 | **Contracts** | Three simultaneous Directorate contract horizons — Quick Order, Quartermaster Contract, and Grand Directive — with progress tracking, production-scaled rewards, completion effects, and immediately refreshed objectives. |
 | **Mooncaps & Moon Dial** | Four event families — Clutchcap, Frenzycap, Bloodcap, and Oraclecap — with distinct rewards/buffs, lunar charge, charge spending, and animated event presentation. |
@@ -71,13 +72,14 @@ RoboGoblins is discovered permanently once all twelve Warren expansions have bee
 | System | What is currently in the game |
 | --- | --- |
 | **Assembly** | A spendable RG stock built by hand and by 12 escalating assembly lines, from the Tin Cradle to the Paradox Nest. |
-| **Blueprints** | 3 local blueprint tiers per line (Stolen Plans, Self-inspection, Recursive Tooling) plus 6 global blueprints. |
-| **Circuits** | Three line groups — scrap, steam, impossible — that pay out as their members cross shared ownership thresholds. |
+| **Blueprints** | 5 local blueprint tiers per line plus 10 global blueprints. |
+| **Circuits** | Three line groups — scrap, steam, impossible — with 13 shared ownership tiers through 1,000 robots per line. Every closed tier adds 10% to the all-line bonus, increased by Copper Memory. |
 | **Firmware** | Two mutually exclusive choices: Clockwork Consensus vs. Spark Personality, then Quick-release Latches vs. Heavy Batch Protocol (fast delivery or larger, slower batches). |
 | **Charge & Overclock** | A bounded charge meter, not a third economy, spent on a limited Overclock that doubles mechanical passive assembly. |
 | **Recompile** | Resets only the mechanical plane for **Kernel Cores**, spendable across 8 ranked kernel perks. |
-| **Line mastery** | 8 ownership tiers from Bolted to Unreasonably Alive. |
-| **Robo achievements** | 12 mechanical deeds tracked separately from the Warren's. |
+| **Line mastery** | 15 ownership tiers through Thousandfold at 1,000 robots, including new bonuses at 600, 700, 800, 900 and 1,000. Each line has a next-milestone purchase button. |
+| **Megaprojects & fabrication** | Four permanent wonders with 20 stages. The first circuit-project stage lowers price growth after 100 robots to 3.5%; its final stage lowers growth after 500 to 1.5%, supporting the path to 1,000. |
+| **Robo achievements** | 16 mechanical deeds tracked separately from the Warren's. |
 
 ### Presentation & platform
 
@@ -175,7 +177,9 @@ Opening the same save in a second tab is safe: the newer tab detects that the le
 
 ## Project notes
 
-- RoboGoblins design, balance model and implementation contract: [`docs/robogoblins/README.md`](docs/robogoblins/README.md)
+- Warren megaprojects, new innovations and the 1,000-robot expansion: [`docs/WARREN_PROGRESSION.md`](docs/WARREN_PROGRESSION.md)
+
+- Proposed RoboGoblins expansion — game design, architecture, art direction and balance tests (not implemented): [`docs/robogoblins/README.md`](docs/robogoblins/README.md)
 - Surface expedition design and balance: [`docs/SURFACE_EXPEDITIONS.md`](docs/SURFACE_EXPEDITIONS.md)
 - Surface map generation notes: [`docs/SURFACE_MAP_PROMPT.md`](docs/SURFACE_MAP_PROMPT.md)
 - Release history: [`CHANGELOG.md`](CHANGELOG.md)

@@ -1,3 +1,4 @@
+import { getWarrenProjectSpend, sanitizeWarrenProjects } from './projects';
 import { sanitizeExpeditions } from './expeditions';
 import { ACHIEVEMENTS, BUILDINGS, PERMANENT_UPGRADES, UPGRADES } from './content';
 import { COSMETICS } from './cosmetics';
@@ -186,6 +187,7 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       totalShardsEarned,
       resets: integer(rawPrestige.resets),
       permanentUpgrades,
+      projects: {},
       cosmetics: { owned: ownedCosmetics, equipped: equippedCosmetic },
     },
     buffs,
@@ -216,6 +218,15 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
       lifetimeProducedByBuilding,
     },
   };
+
+  const perkSpend = PERMANENT_UPGRADES.reduce((sum, perk) => {
+    const rank = permanentUpgrades[perk.id] ?? 0;
+    return sum + Array.from({ length: rank }, (_, i) => Math.max(1, Math.ceil(perk.baseCost * perk.costGrowth ** i - 1e-9))).reduce((a, b) => a + b, 0);
+  }, 0);
+  const cosmeticSpend = COSMETICS.reduce((sum, cosmetic) => sum + (ownedCosmetics[cosmetic.id] ? cosmetic.cost : 0), 0);
+  state.prestige.projects = sanitizeWarrenProjects(rawPrestige.projects, totalShardsEarned - perkSpend - cosmeticSpend);
+  const projectSpend = getWarrenProjectSpend(state.prestige.projects);
+  if (projectSpend > 0) state.prestige.shards = Math.min(state.prestige.shards, Math.max(0, totalShardsEarned - perkSpend - cosmeticSpend - projectSpend));
 
   if (state.lastUpdateAt > now + 5 * 60_000) {
     warnings.push('Save timestamp was in the future and has been clamped to the current time.');

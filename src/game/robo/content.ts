@@ -60,6 +60,11 @@ export const ROBO_MASTERY_LEVELS = [
   { threshold: 300, multiplier: 4, name: 'Unreasonably Alive' },
   { threshold: 400, multiplier: 3, name: 'Timeless' },
   { threshold: 500, multiplier: 4, name: 'Infinite' },
+  { threshold: 600, multiplier: 3, name: 'Transcendent' },
+  { threshold: 700, multiplier: 3, name: 'Omnipresent' },
+  { threshold: 800, multiplier: 4, name: 'Starforged' },
+  { threshold: 900, multiplier: 4, name: 'Reality Engine' },
+  { threshold: 1000, multiplier: 5, name: 'Thousandfold' },
 ] as const;
 
 export const ROBO_CIRCUITS: Readonly<Record<RoboCircuitId, readonly RoboLineId[]>> = {
@@ -68,7 +73,7 @@ export const ROBO_CIRCUITS: Readonly<Record<RoboCircuitId, readonly RoboLineId[]
   impossible: ['thunderhead_coil', 'moonwire_loom', 'clockwyrm_assembly', 'paradox_nest'],
 };
 
-export const ROBO_CIRCUIT_THRESHOLDS = [10, 25, 50, 100, 150, 200, 300, 500] as const;
+export const ROBO_CIRCUIT_THRESHOLDS = [10, 25, 50, 100, 150, 200, 300, 500, 600, 700, 800, 900, 1000] as const;
 
 export const ROBO_BLUEPRINT_TIERS = [
   { tierId: 'stolen_plans', suffix: 'Stolen Plans', threshold: 10, costFactor: 25, multiplier: 2 },

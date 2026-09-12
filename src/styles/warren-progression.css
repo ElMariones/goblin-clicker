@@ -1,0 +1,49 @@
+.warren-projects-help { margin: 0 0 18px; color: var(--ink-soft); font-size: 13px; line-height: 1.65; max-width: 80ch; }
+.warren-project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.warren-project { --project-accent: var(--moss); display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-top: 3px solid var(--project-accent); background: var(--bg-deep); border-radius: var(--radius-sm); }
+.warren-project--industry { --project-accent: var(--ember); }
+.warren-project--beyond { --project-accent: var(--prestige); }
+.warren-project--all { --project-accent: var(--ember-bright); }
+.warren-project > header { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.warren-project header img { width: 84px; height: 84px; object-fit: contain; flex: 0 0 auto; }
+.warren-project h3 { margin: 4px 0 8px; font-family: var(--font-display); font-size: 17px; line-height: 1.3; overflow-wrap: anywhere; }
+.warren-project header small { color: var(--project-accent); font-size: 11px; }
+.warren-project header span { color: var(--ink-soft); font-size: 12px; }
+.warren-project__stages { display: flex; gap: 6px; margin: 16px 0 12px; }
+.warren-project__stages > span { flex: 1; display: grid; place-items: center; padding: 7px; border: 1px solid var(--line); color: var(--ink-muted); }
+.warren-project__stages > .is-built { color: var(--project-accent); border-color: currentColor; background: var(--bg-hover); }
+.warren-project__effect { color: var(--project-accent); font-size: 13px; line-height: 1.5; }
+.warren-project__members { font-size: 11px; color: var(--ink-soft); line-height: 1.6; }
+.warren-project__requirements { list-style: none; padding: 0; margin: 4px 0 18px; font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
+.warren-project__requirements li + li { margin-top: 7px; }
+.warren-project__requirements .is-met { color: var(--moss); }
+.warren-project > button { margin-top: auto; padding: 11px 12px; width: 100%; border: 1px solid var(--line-strong); background: var(--bg-panel-raised); color: var(--ink); border-radius: var(--radius-sm); text-align: start; cursor: pointer; }
+.warren-project > button > span { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; }
+.warren-project > button > small { display: block; margin-top: 6px; font-size: 11px; line-height: 1.5; }
+.warren-project.is-affordable > button { border-color: var(--project-accent); color: var(--project-accent); }
+.warren-project > button:disabled { cursor: default; color: var(--ink-muted); }
+.warren-project.is-complete { border-color: var(--project-accent); }
+.warren-projects-entry { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; width: 100%; padding: 12px; text-align: start; background: var(--bg-deep); border: 1px solid var(--line-strong); color: var(--ember-bright); border-radius: var(--radius-sm); cursor: pointer; }
+.warren-projects-entry > span { display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 700; }
+.warren-projects-entry small { color: var(--ink-soft); font-size: 11px; line-height: 1.5; }
+.innovation-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.innovation-tabs button { padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-deep); color: var(--ink-soft); cursor: pointer; font-size: 12px; }
+.innovation-tabs button[aria-pressed="true"] { color: var(--moss-bright); border-color: var(--moss-deep); background: var(--bg-hover); }
+.deep-innovation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.deep-innovation { display: flex; flex-direction: column; min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg-deep); }
+.deep-innovation header { display: flex; align-items: center; gap: 10px; color: var(--moss); }
+.deep-innovation header img { height: 46px; width: 46px; object-fit: contain; flex: 0 0 auto; }
+.deep-innovation header > svg { flex: 0 0 46px; }
+.deep-innovation h3 { font: 12px/1.5 var(--font-display); margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.deep-innovation p { color: var(--moss-bright); font-size: 12px; line-height: 1.5; }
+.deep-innovation > small { color: var(--ink-soft); font-size: 11px; line-height: 1.5; margin-bottom: 14px; }
+.deep-innovation button { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding: 9px; border: 1px solid var(--line); background: var(--bg-panel-raised); color: var(--ink); cursor: pointer; border-radius: var(--radius-sm); font-size: 11px; }
+.deep-innovation.is-affordable, .deep-innovation.is-complete { border-color: var(--moss-deep); }
+.deep-innovation button:disabled { cursor: default; color: var(--ink-muted); }
+.warren-project button:focus-visible, .warren-projects-entry:focus-visible, .deep-innovation button:focus-visible, .innovation-tabs button:focus-visible { outline: 2px solid var(--ember-bright); outline-offset: 3px; }
+@media (max-width: 720px) { .deep-innovation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) { .warren-project-grid, .deep-innovation-grid { grid-template-columns: minmax(0, 1fr); } .warren-project { padding: 14px; } .warren-project h3 { font-size: 15px; } .warren-project header img { width: 64px; height: 64px; } }
+
+.research-modal .innovation-tabs { margin: 12px 16px; }
+.research-modal--deep .modal__body { overflow: auto; }
+.deep-innovations { padding: 0 16px 16px; }

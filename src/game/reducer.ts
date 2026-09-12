@@ -1,3 +1,5 @@
+import { buildWarrenProject, purchaseBuildingMilestone } from './engine';
+import type { WarrenProjectId } from './types';
 import { startExpedition, cancelExpedition, claimExpedition } from './engine';
 import type { ExpeditionPlan } from './types';
 import { claimContract, claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, spendLunarCharge, tickGame } from './engine';
@@ -6,6 +8,8 @@ import type { UpgradeId } from './content';
 import type { BuildingId, ContractKind, GameState, PermanentUpgradeId } from './types';
 
 export type GameAction =
+  | { type: 'buildWarrenProject'; id: WarrenProjectId; now: number }
+  | { type: 'buyBuildingMilestone'; buildingId: BuildingId; now: number }
   | { type: 'startExpedition'; plan: ExpeditionPlan; now: number }
   | { type: 'cancelExpedition'; now: number }
   | { type: 'claimExpedition'; now: number }
@@ -24,6 +28,8 @@ export type GameAction =
 /** React/useReducer-friendly adapter over the richer engine action functions. */
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'buildWarrenProject': return buildWarrenProject(state, action.id, action.now).state;
+    case 'buyBuildingMilestone': return purchaseBuildingMilestone(state, action.buildingId, action.now).state;
     case 'startExpedition': return startExpedition(state, action.plan, action.now);
     case 'cancelExpedition': return cancelExpedition(state, action.now);
     case 'claimExpedition': return claimExpedition(state, action.now).state;

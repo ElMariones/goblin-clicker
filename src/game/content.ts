@@ -105,6 +105,29 @@ export const BUILDINGS = [
   },
 ] as const satisfies readonly BuildingDefinition[];
 
+/** Deep innovations are rebuilt each migration, alongside foundation research. */
+export const WARREN_INNOVATIONS: readonly UpgradeDefinition[] = [
+  ...BUILDINGS.map((building) => ({
+    id: `innovation_${building.id}`, name: `${building.name}: Living Architecture`,
+    description: 'Grow the expansion into a living part of the warren. Triple its production.',
+    cost: building.baseCost * 1e10,
+    requirements: [{ type: 'buildingOwned' as const, buildingId: building.id, amount: 150 }],
+    effects: [{ type: 'buildingMultiplier' as const, buildingId: building.id, multiplier: 3 }],
+  })),
+  { id: 'innovation_collective_instinct', name: 'Collective Instinct', description: 'The entire brood hatches as one. Double manual spawning.', cost: 1e13,
+    requirements: [{ type: 'lifetimeGoblins', amount: 1e14 }], effects: [{ type: 'clickMultiplier', multiplier: 2 }] },
+  { id: 'innovation_lunar_almanac', name: 'Lunar Almanac', description: 'Record the hidden seasons of the Mooncaps. Rewards and durations rise by 25%.', cost: 1e15,
+    requirements: [{ type: 'buildingOwned', buildingId: 'moonspore_cavern', amount: 100 }], effects: [{ type: 'mooncapRewardMultiplier', multiplier: 1.25 }, { type: 'mooncapDurationMultiplier', multiplier: 1.25 }] },
+  { id: 'innovation_sleeping_shifts', name: 'Sleeping Shifts', description: 'The warren works by instinct. Add 10 percentage points to offline efficiency, capped at 100%.', cost: 1e16,
+    requirements: [{ type: 'buildingOwned', buildingId: 'deepforge_vat', amount: 100 }], effects: [{ type: 'offlineEfficiencyBonus', bonus: 0.1 }] },
+  { id: 'innovation_ancestral_curriculum', name: 'Ancestral Curriculum', description: 'Teach every district the craft of the old clans. The mastery network bonus grows by 50%.', cost: 1e18,
+    requirements: [{ type: 'buildingOwned', buildingId: 'goblin_gate', amount: 100 }], effects: [{ type: 'masteryNetworkMultiplier', multiplier: 1.5 }] },
+  { id: 'innovation_brood_resonance', name: 'Brood Resonance', description: 'Each manual hatch echoes through the warren. Clicks gain another 2% of base production.', cost: 1e20,
+    requirements: [{ type: 'buildingOwned', buildingId: 'wyrm_hoard', amount: 100 }], effects: [{ type: 'clickCpsFraction', fraction: 0.02 }] },
+  { id: 'innovation_boundless_warren', name: 'Boundless Warren', description: 'The tunnels have forgotten where the world ends. Double all production.', cost: 1e22,
+    requirements: [{ type: 'buildingOwned', buildingId: 'reality_burrow', amount: 100 }], effects: [{ type: 'globalCpsMultiplier', multiplier: 2 }] },
+];
+
 /**
  * Mastery rewards breadth and continued investment in older expansions.
  * productionMultiplier is applied multiplicatively for every reached level;
@@ -146,6 +169,7 @@ export const EXPANSION_MASTERY_LEVELS = [
 ] as const satisfies readonly ExpansionMasteryLevelDefinition[];
 
 export const UPGRADES = [
+  ...WARREN_INNOVATIONS,
   {
     id: 'sharpened_nails', name: 'Sharpened Nails', description: 'Clicks hatch twice as many goblins.', cost: 100,
     requirements: [{ type: 'totalClicks', amount: 25 }], effects: [{ type: 'clickMultiplier', multiplier: 2 }],

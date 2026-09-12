@@ -194,11 +194,15 @@ export interface GameStatistics {
   lifetimeProducedByBuilding: Record<BuildingId, number>;
 }
 
+export type WarrenProjectId = 'worldroot' | 'moonforge' | 'worldgate' | 'everlasting_warren';
+export type WarrenDistrict = 'roots' | 'industry' | 'beyond';
+
 export interface PrestigeState {
   shards: number;
   totalShardsEarned: number;
   resets: number;
   permanentUpgrades: Partial<Record<PermanentUpgradeId, number>>;
+  projects: Partial<Record<WarrenProjectId, number>>;
   cosmetics: {
     owned: Partial<Record<CosmeticId, true>>;
     equipped: CosmeticId | null;

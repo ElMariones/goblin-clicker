@@ -1,3 +1,6 @@
+import { WarrenProjectsModal } from './components/WarrenProjectsModal';
+import { WARREN_PROGRESSION, formatWarren } from './i18n/warrenProgression';
+import { WARREN_PROJECTS, buildWarrenProject, purchaseBuildingMilestone, type WarrenProjectId } from './game';
 import { startExpedition, cancelExpedition, claimExpedition, creditGoblins, getClaimableExpeditionReward, getExpeditionReservation } from './game';
 import { EXPEDITION_COPY } from './i18n/expeditions';
 import { SCALE_COPY, formatScale } from './i18n/scale';
@@ -87,7 +90,7 @@ const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'g
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
 const SAVE_OWNERSHIP = createBrowserSaveOwnership(SAVE_KEY);
 const INITIAL_SAVE_OWNERSHIP = SAVE_OWNERSHIP.claimInitial(Date.now());
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | 'roboUnlock' | null;
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | 'roboUnlock' | 'warrenProjects' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = SaveLoadWarning;
@@ -474,6 +477,19 @@ function App() {
     const id = rawId as BuildingId; const current = gameRef.current; const quantity = resolveBuyQuantity(current, id); if (quantity <= 0) return;
     const result = purchaseBuilding(current, id, quantity, Date.now()); commitGame(result.state); if (result.success) playSound('buy', settings.sound);
   };
+  const buyBuildingToMilestone = useCallback((id: BuildingId) => {
+    const result = purchaseBuildingMilestone(gameRef.current, id, Date.now());
+    commitGame(result.state);
+    if (result.success) playSound('buy', settings.sound);
+  }, [commitGame, settings.sound]);
+  const buildOrganicProject = (id: WarrenProjectId) => {
+    const result = buildWarrenProject(gameRef.current, id, Date.now());
+    if (!commitGame(result.state) || !result.success) return;
+    playSound('upgrade', settings.sound);
+    const copy = WARREN_PROGRESSION[language];
+    addToast({ title: copy.projects[WARREN_PROJECTS.findIndex((project) => project.id === id)], message: copy.built, icon: 'hammer', tone: 'prestige' });
+    persistOwnedSave(result.state, result.state.lastUpdateAt);
+  };
   const sellOneBuilding = (rawId: string) => { const result = sellBuilding(gameRef.current, rawId as BuildingId, 1, Date.now()); commitGame(result.state); if (result.success) playSound('buy', settings.sound); };
   const buyUpgrade = (id: string) => {
     const result = purchaseUpgrade(gameRef.current, id as (typeof UPGRADES)[number]['id'], Date.now()); commitGame(result.state);
@@ -762,6 +778,10 @@ function App() {
       id: upgrade.id,
       name: localizedName(language, 'upgrade', upgrade.id, upgrade.name),
       description: language === 'en' ? upgrade.description : t('upgrade.genericDescription'),
+      requirementLabel: upgrade.requirements.map((requirement) => formatWarren(WARREN_PROGRESSION[language].requires, {
+        amount: fmtNumber(requirement.amount),
+        name: requirement.type === 'buildingOwned' ? localizedName(language, 'building', requirement.buildingId, BUILDING_BY_ID[requirement.buildingId].name) : t('ledger.allTime'),
+      })).join(' · '),
       priceLabel: fmtNumber(upgrade.cost),
       effectLabel: upgradeEffectLabel(upgrade),
       purchased: Boolean(game.purchasedUpgrades[upgrade.id]),
@@ -944,6 +964,10 @@ function App() {
     </SidePanel>
     <SidePanel title={t('research.title')} eyebrow={t('research.eyebrow')} action={availableUpgrades > 0 ? <span className="notification-badge">{fmtInteger(availableUpgrades)}</span> : undefined}>
       <p className="panel-copy">{t('research.copy')}</p><button className="panel-primary-button" type="button" onClick={() => setModal('upgrades')}><Icon name="sparkles" size={16} /> {t('research.open')} <Icon name="chevron" size={14} /></button>
+      <button className="warren-projects-entry" type="button" onClick={() => setModal('warrenProjects')}>
+        <span><Icon name="hammer" size={16} /> {WARREN_PROGRESSION[language].title} · {WARREN_PROJECTS.reduce((sum, project) => sum + (game.prestige.projects[project.id] ?? 0), 0)}/20</span>
+        <small>{WARREN_PROGRESSION[language].hint}</small>
+      </button>
     </SidePanel>
     <SidePanel title={t('bloodline.title')} eyebrow={t('bloodline.eyebrow')} className="prestige-panel">
       <div className="prestige-summary"><Icon name="crown" size={24} /><div><strong>{fmtInteger(game.prestige.shards)} {t('bloodline.cunning')}</strong><span>{t('bloodline.migrations', { count: fmtInteger(game.prestige.resets) })}</span></div></div>
@@ -1033,11 +1057,17 @@ function App() {
           network: t('shop.mastery.network'),
           maxed: t('shop.mastery.maxed'),
         },
-      }} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtAsset(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} />;
+      }} secondaryAction={!locked && nextMasteryLevel ? {
+        label: WARREN_PROGRESSION[language].nextMilestone,
+        title: `${fmtInteger(owned)} → ${fmtInteger(nextMasteryLevel.threshold)} · ${fmtNumber(getBuildingBulkCost(game, building.id, nextMasteryLevel.threshold - owned))} ${t('common.goblins')}`,
+        disabled: game.goblins < getBuildingBulkCost(game, building.id, nextMasteryLevel.threshold - owned),
+        onActivate: () => buyBuildingToMilestone(building.id),
+      } : undefined} canAfford={!locked && maxAffordable > 0 && game.goblins >= cost} onBuy={buyBuilding} onSell={owned > 0 ? sellOneBuilding : undefined} locked={locked} artSrc={locked ? undefined : buildingArtAsset(building.id)} buyAmountLabel={buyAmount === 'max' ? (maxAffordable > 0 ? t('shop.buy', { count: fmtInteger(maxAffordable) }) : t('shop.buyMax')) : t('shop.buy', { count: fmtInteger(quantity) })} />;
     })}
   </ShopPanel>;
 
   const overlay = <>
+    <WarrenProjectsModal open={modal === 'warrenProjects'} state={game} formatNumber={fmtNumber} onBuild={buildOrganicProject} onClose={() => setModal(null)} />
     <UpgradeModal open={modal === 'upgrades'} upgrades={upgradesView} onPurchase={buyUpgrade} onClose={() => setModal(null)} currencyLabel={t('upgrade.available', { amount: fmtNumber(game.goblins) })} />
     <AchievementModal open={modal === 'achievements'} achievements={achievementViews} onClose={() => setModal(null)} />
     <ContractModal

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { LanguageCode } from '../../i18n';
 import { formatRobo, getRoboCopy } from '../../i18n/robogoblins';
 import { ROBO_ENDGAME } from '../../i18n/roboEndgame';
-import { ROBO_ACHIEVEMENTS, ROBO_BLUEPRINT_TIERS, ROBO_GLOBAL_BLUEPRINTS } from '../../game/robo/content';
+import { ROBO_ACHIEVEMENTS, ROBO_BLUEPRINT_TIERS, ROBO_GLOBAL_BLUEPRINTS, ROBO_MASTERY_LEVELS, ROBO_CIRCUIT_THRESHOLDS } from '../../game/robo/content';
 
 const LANGUAGES = ['en', 'es', 'zh', 'fr', 'de', 'ar', 'tr'] as const satisfies readonly LanguageCode[];
 const LINE_IDS = [
@@ -62,6 +62,10 @@ describe('RoboGoblins localization', () => {
   it('localizes every added blueprint, achievement and project without missing labels', () => {
     for (const language of LANGUAGES) {
       const copy = getRoboCopy(language);
+      for (const tier of ROBO_MASTERY_LEVELS) expect(copy.masteryNames[tier.name], `${language}:${tier.name}`).toBeTruthy();
+      expect(formatRobo(copy.circuitTier, { tier: 12 })).toContain(`/ ${ROBO_CIRCUIT_THRESHOLDS.length}`);
+      expect(ROBO_ENDGAME[language].circuitHelp).toContain('1000');
+      expect(ROBO_ENDGAME[language].deepFabrication).toBeTruthy();
       for (const blueprint of ROBO_GLOBAL_BLUEPRINTS) expect(copy.globalBlueprints[blueprint.id]).toBeTruthy();
       for (const tier of ROBO_BLUEPRINT_TIERS) expect(copy.blueprintTiers[tier.tierId]).toBeTruthy();
       for (const achievement of ROBO_ACHIEVEMENTS) expect(copy.achievementsCopy[achievement.id]?.description).toBeTruthy();

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BLOCKS_CHARGE_CAP,
   BLOCKS_CHARGE_COSTS,
@@ -494,24 +495,34 @@ export function BlocksWarehouse({
 
       <p className="blocks-live" role="status" aria-live="polite">{announcement}</p>
 
-      {ghost && selected !== null && run?.tray[selected] && (
-        <GhostPiece piece={run.tray[selected]!} ghost={ghost} valid={preview !== null} />
+      {/*
+        * Portalled to the body on purpose. The app shell carries `zoom:
+        * uiScale`, and a fixed-position child of a zoomed subtree has its
+        * `left`/`top` multiplied by that zoom — so a pointer coordinate placed
+        * the dragged piece further and further right the higher the UI scale.
+        * Outside the shell, viewport coordinates mean what they say.
+        */}
+      {ghost && selected !== null && run?.tray[selected] && createPortal(
+        <GhostPiece piece={run.tray[selected]!} ghost={ghost} valid={preview !== null} still={reducedMotion} />,
+        document.body,
       )}
     </Modal>
   );
 }
 
-function GhostPiece({ piece, ghost, valid }: {
+function GhostPiece({ piece, ghost, valid, still }: {
   piece: NonNullable<NonNullable<GameState['blocks']['run']>['tray'][number]>;
   ghost: { x: number; y: number; size: number };
   valid: boolean;
+  /** Carried as a prop because the portal puts this outside `.blocks-modal`. */
+  still: boolean;
 }) {
   const definition = BLOCK_PIECE_BY_ID[piece.pieceId];
   const size = ghost.size;
   const occupied = new Set(definition.cells.map(([dx, dy]) => dy * definition.width + dx));
   return (
     <div
-      className={`blocks-ghost${valid ? '' : ' blocks-ghost--invalid'}`}
+      className={`blocks-ghost${valid ? '' : ' blocks-ghost--invalid'}${still ? ' blocks-ghost--still' : ''}`}
       style={{
         left: ghost.x,
         top: ghost.y,

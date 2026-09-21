@@ -30,6 +30,10 @@ The presentation leans into a dark CRT terminal aesthetic with illustrated gobli
 
 ![Goblin Cosmetics permanent wardrobe](docs/screenshots/goblin-cosmetics.png)
 
+### Goblin Blocks
+
+![The Hoard Warehouse block puzzle](docs/screenshots/goblin-blocks.png)
+
 ### Mobile layout
 
 ![Brood & Burrow on a phone-sized viewport](docs/screenshots/mobile.png)
@@ -63,7 +67,7 @@ RoboGoblins is discovered permanently once all twelve Warren expansions have bee
 | **Contracts** | Three simultaneous Directorate contract horizons — Quick Order, Quartermaster Contract, and Grand Directive — with progress tracking, production-scaled rewards, completion effects, and immediately refreshed objectives. |
 | **Mooncaps & Moon Dial** | Four event families — Clutchcap, Frenzycap, Bloodcap, and Oraclecap — with distinct rewards/buffs, lunar charge, charge spending, and animated event presentation. |
 | **Surface expeditions** | Send a reserved slice of production to one of 3 destinations with 3 crew specialties and 3 duration bands. Expeditions continue through offline progress, can be recalled, and can recover persistent keepsakes. |
-| **Goblin Blocks** | The Hoard Warehouse: an 8×8 block-placement puzzle unlocked for good by your first Warren Den. Three pieces at a time, no rotation and no timer; complete a row or column and the porters haul it away. Runs pay seconds of your own production plus Hoard Tokens, with the first run each day paying in full and later runs tapering. Tokens buy warehouse charges only, never production. Playable by drag or entirely by keyboard, and it survives Great Migration. |
+| **Goblin Blocks** | An 8×8 block-placement puzzle in the Hoard Warehouse, unlocked by your first Warren Den. Runs pay production time and Hoard Tokens. |
 | **Goblin cosmetics** | 10 permanent wardrobe unlocks purchased with Ancestral Cunning and carried through Great Migration, with the selected look reflected on the central spawn goblin. |
 | **Brood scale** | A 50-rung ladder of real-world quantities — a busload of commuters, every chicken alive on Earth, the seconds since the Big Bang, the grains of salt in the oceans, the photons in the observable universe, the Planck volumes in it — that turns the population counter into something a player can picture, all the way to `1e300`. The multiplier snaps to a 1-2-5 ladder so it steps ×2, ×5, ×10 rather than drifting digit by digit. |
 | **Achievements** | 26 progression deeds covering brood size, clicks, expansion ownership, CPS, Mooncaps, migrations, and broad warren development. |

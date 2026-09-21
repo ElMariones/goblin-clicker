@@ -8,7 +8,7 @@ import { getRoboCopy } from './i18n/robogoblins';
 import { BLOCKS_COPY } from './i18n/blocks';
 import { formatRoboUnlock, getRoboUnlockCopy } from './i18n/roboUnlock';
 import { RoboGameWorld, RoboWorldSwitch, type RoboBuyAmount } from './components/robo';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
   AchievementModal,
   BlocksEntry,
@@ -1306,7 +1306,9 @@ function App() {
   return <I18nProvider language={language}>
     <div
       className={`${settings.reducedMotion ? 'reduce-motion ' : ''}${settings.effects ? '' : 'effects-off'}`.trim()}
-      style={{ zoom: settings.uiScale }}
+      // `zoom` scales viewport units too, so anything sized in vh has to divide
+      // the scale back out. Exposed as a custom property for those rules.
+      style={{ zoom: settings.uiScale, '--ui-scale': settings.uiScale } as CSSProperties}
       inert={saveOwnership.role === 'secondary' ? true : undefined}
     >
       {activeWorld === 'robogoblins' && roboWorld ? roboWorld : <GameShell

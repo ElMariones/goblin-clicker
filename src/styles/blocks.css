@@ -76,16 +76,58 @@
 /* ---------- Layout ---------- */
 
 /*
+ * The warehouse takes nearly the whole window. It is the one screen where the
+ * player is doing real spatial reading, so the board gets the room rather than
+ * being squeezed into a dialog the size of a shop panel.
+ */
+.modal.blocks-modal {
+  width: min(calc(96vw / var(--ui-scale, 1)), 1180px);
+  max-height: calc(96vh / var(--ui-scale, 1));
+}
+
+/*
  * The board is sized from the height the modal actually has, not just its
  * width, so the tray and charges stay on screen without scrolling. The floor
  * is the one column all three rows share.
  */
 .blocks-layout {
-  --blocks-size: max(220px, min(100%, 560px, calc(88vh - 400px)));
+  --blocks-size: max(220px, min(100%, 620px, calc(94vh / var(--ui-scale, 1) - 330px)));
   display: flex;
   flex-direction: column;
   gap: 14px;
   align-items: center;
+}
+
+/*
+ * Wide enough for two columns: the tray and charges move beside the board so
+ * the board can use the full height instead of sharing it, which is what makes
+ * it big. Below this the single column is still the right shape.
+ */
+@media (min-width: 1040px) {
+  .blocks-layout {
+    --blocks-size: min(calc(94vh / var(--ui-scale, 1) - 165px), 820px, calc(100vw / var(--ui-scale, 1) - 560px));
+    display: grid;
+    gap: 16px 26px;
+    grid-template-columns: auto minmax(300px, 400px);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "stage hud"
+      "stage tray"
+      "stage footer";
+    align-items: start;
+    justify-content: center;
+  }
+  .blocks-stage { grid-area: stage; }
+  .blocks-hud { grid-area: hud; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .blocks-hud__stats { width: 100%; justify-content: space-between; }
+  .blocks-hud__stats div { align-items: flex-start; }
+  .blocks-tray { grid-area: tray; width: 100%; }
+  .blocks-tray__slot { min-height: 104px; }
+  .blocks-footer { grid-area: footer; width: 100%; flex-direction: column; align-items: stretch; gap: 14px; }
+  .blocks-charges { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .blocks-tally { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; }
+  .blocks-tally div { align-items: flex-start; }
+  .blocks-note--keys { text-align: start; }
 }
 
 .blocks-hud {
@@ -330,8 +372,8 @@
 .blocks-modal--still .blocks-tray__slot,
 .blocks-modal--still .blocks-primary,
 .blocks-modal--still .blocks-secondary,
-.blocks-modal--still .blocks-ghost { transition: none; }
-.blocks-modal--still .blocks-ghost { transform: translate(-50%, -50%); }
+.blocks-ghost--still { transition: none; }
+.blocks-ghost--still { transform: translate(-50%, -50%); }
 
 @media (prefers-reduced-motion: reduce) {
   .blocks-cell img, .blocks-flourish { animation: none; }

@@ -8,6 +8,25 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+/*
+ * Dragging a piece, a card or the research tree should never paint a text or
+ * image selection over the game. Fields keep normal behaviour so the save
+ * import/export boxes still work.
+ */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, select, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+img, svg, canvas {
+  -webkit-user-drag: none;
+}
+
 body {
   margin: 0;
   min-width: 320px;

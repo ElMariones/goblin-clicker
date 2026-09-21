@@ -4,17 +4,18 @@
 
 | File | Responsibility |
 | --- | --- |
-| `src/game/blocks/pieces.ts` | The 32-piece library. Pure data plus derived lookup maps. |
+| `src/game/blocks/pieces.ts` | The 31-piece library. Pure data plus derived lookup maps. |
 | `src/game/blocks/rules.ts` | Pure board rules: placement legality, clear detection, scoring, game over. No state, no clock, no RNG. |
 | `src/game/blocks/generator.ts` | Weighted trio generation against a board, driven by the save's seed/counter. |
-| `src/game/blocks/state.ts` | `BlocksState` creation, the run lifecycle, and the reward contract. |
+| `src/game/blocks/factory.ts` | Fresh `BlocksState` and the calendar helper, free of any `../state` import so `createInitialGameState` can call in without closing a cycle. |
+| `src/game/blocks/state.ts` | The run lifecycle and the reward contract, over an already-ticked `GameState`. |
+| `src/game/blocks/engine.ts` | The public actions, each settling production with `tickGame` first. |
 | `src/game/blocks/save.ts` | `sanitizeBlocksState` — the trust boundary for imported saves. |
 | `src/game/blocks/index.ts` | Barrel re-exported from `src/game/index.ts`. |
-| `src/components/BlocksWarehouse.tsx` | The modal: board, tray, drag, keyboard, result panel. |
-| `src/components/BlocksEntry.tsx` | The giver button in the spawn-pit row. |
+| `src/components/BlocksWarehouse.tsx` | The modal (board, tray, drag, keyboard, result panel) and the `BlocksEntry` giver button beside it. |
 | `src/styles/blocks.css` | Feature stylesheet, imported by the component (the `expeditions.css` pattern). |
 | `src/i18n/blocks.ts` | Seven-language copy object. |
-| `src/utils/blocksAssets.ts` | Tile art indirection; returns `null` today so the CSS tile is used. |
+| `src/utils/blocksAssets.ts` | Tile art indirection: the painted WebP set, plus the per-variant mirror/turn. |
 
 `rules.ts` never imports from `state.ts`. That separation is what makes the rules exhaustively
 testable without constructing a `GameState`.
@@ -58,6 +59,8 @@ export interface BlocksRun {
   blocksPlaced: number;
   boardClears: number;
   perfectSets: number;
+  /** Tokens from Perfect Sets and board clears, on top of the score conversion. */
+  bonusTokens: number;
   rngSeed: number;
   rngCounter: number;
   result: BlocksRunResult | null;
@@ -103,9 +106,10 @@ The run seed comes from `seedFromTimestamp(now)` at run start.
 **Placement legality.** For anchor `(x, y)` and piece cells `(dx, dy)`: every `(x+dx, y+dy)` must be
 inside `0..7` on both axes and map to an empty board index. Checked with a flat index, no allocation.
 
-**Clear detection.** After placement, collect the distinct rows and columns the piece touched, test
-only those for fullness, then clear all of them simultaneously. A cell at an intersection of a cleared
-row and a cleared column is cleared once.
+**Clear detection.** After placement, scan all eight rows and all eight columns for fullness, then
+clear every full line simultaneously. A cell at the intersection of a cleared row and a cleared column
+is cleared once. Scanning the whole board rather than only the touched lines costs nothing at 64 cells
+and cannot drift out of sync with a rule that fills cells some other way.
 
 **Game over.** `hasAnyLegalPlacement(board, trayPieces)` — for each non-null tray piece, scan anchors
 `0..63` and return on the first legal placement. Worst case 3 × 64 × 9 cell tests, which is trivial at
@@ -193,44 +197,46 @@ derivations (legal-placement maps) out of the render path.
 ## 9. Task checklist
 
 ### Rules and data
-- [ ] `pieces.ts` — 32 shapes with cells, dimensions, weight, difficulty; derived `BLOCK_PIECE_BY_ID`.
-- [ ] `rules.ts` — `canPlace`, `placePiece`, `findFullLines`, `clearLines`, `hasAnyLegalPlacement`,
+- [x] `pieces.ts` — 32 shapes with cells, dimensions, weight, difficulty; derived `BLOCK_PIECE_BY_ID`.
+- [x] `rules.ts` — `canPlace`, `placePiece`, `findFullLines`, `clearLines`, `hasAnyLegalPlacement`,
       `scoreForLines`, `comboMultiplier`, `isBoardEmpty`.
-- [ ] `generator.ts` — weighted draw, occupancy and run-length scaling, trio rejection rules, fallback.
+- [x] `generator.ts` — weighted draw, occupancy and run-length scaling, trio rejection rules, fallback.
 
 ### State and economy
-- [ ] `BlocksState` types added to `src/game/types.ts`.
-- [ ] `state.ts` — initial state, run lifecycle, `rewardSecondsForScore`, `dailyFactorFor`,
+- [x] `BlocksState` types added to `src/game/types.ts`.
+- [x] `state.ts` — initial state, run lifecycle, `rewardSecondsForScore`, `dailyFactorFor`,
       `getBlocksRunReward`, the six engine actions.
-- [ ] Unlock latch in `awardAchievements`.
-- [ ] `gameReducer` actions and `src/game/index.ts` barrel export.
+- [x] Unlock latch in `awardAchievements`.
+- [x] `gameReducer` actions and `src/game/index.ts` barrel export.
 
 ### Persistence
-- [ ] `CURRENT_SAVE_VERSION` → 7 and the `sanitizeState` branch.
-- [ ] `sanitizeBlocksState` with the clamps above.
+- [x] `CURRENT_SAVE_VERSION` → 7 and the `sanitizeState` branch.
+- [x] `sanitizeBlocksState` with the clamps above.
 
 ### Interface
-- [ ] `BlocksEntry` giver button beside the Contract Giver.
-- [ ] `BlocksWarehouse` modal: header, board, tray, charges, footer stats.
-- [ ] Pointer drag with touch offset; keyboard placement; live-region announcements.
-- [ ] Placement preview including the completing-line pulse.
-- [ ] Clear, combo, board-clear and game-over presentation, all honouring
+- [x] `BlocksEntry` giver button beside the Contract Giver.
+- [x] `BlocksWarehouse` modal: header, board, tray, charges, footer stats.
+- [x] Pointer drag with touch offset; keyboard placement; live-region announcements.
+- [x] Placement preview including the completing-line pulse.
+- [x] Clear, combo, board-clear and game-over presentation, all honouring
       `reducedMotion` and `effects`.
-- [ ] Result panel with score, best, lines, best combo, token and production payouts.
-- [ ] Tutorial overlay, five beats, shown once.
-- [ ] `blocks.css`.
+- [x] Result panel with score, best, lines, best combo, token and production payouts.
+- [x] Tutorial overlay, five beats, shown once.
+- [x] `blocks.css`.
 
 ### Integration
-- [ ] `src/i18n/blocks.ts` in seven languages.
-- [ ] New sound names in `src/audio.ts`.
-- [ ] `blocksAssets.ts` seam.
-- [ ] Toast on collection, matching the expedition-claim pattern.
+- [x] `src/i18n/blocks.ts` in seven languages.
+- [x] New sound names in `src/audio.ts`.
+- [x] `blocksAssets.ts` seam.
+- [x] Toast on collection, matching the expedition-claim pattern.
 
 ### Verification
-- [ ] `blocks.test.ts` — the gates in §10.
-- [ ] `npm run check` clean.
-- [ ] Manual pass in the browser preview: full run to game over, save/resume mid-run, keyboard-only
-      run, reduced-motion pass, 390px-wide layout.
+- [x] `blocks.test.ts` — the gates in §10.
+- [x] `npm run check` clean.
+- [x] Manual pass in the browser preview: drag and keyboard placement, single and combo clears with
+      the correct score arithmetic, set bonuses and redeal, game over with the right reward bracket,
+      collection into goblins and tokens, both charges, save/resume mid-run, reduced motion, and a
+      375px-wide layout with no horizontal overflow.
 
 ## 10. Acceptance gates
 

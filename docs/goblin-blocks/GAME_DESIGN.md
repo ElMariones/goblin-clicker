@@ -38,11 +38,13 @@ because layering colour matching onto the core mechanic would obscure the one th
 to read.
 
 Loot families: `gold`, `weapon`, `fungus`, `crystal`, `relic`, `tool`. A piece is a single family, so
-a placed piece reads as one object rather than a confetti of cells.
+a placed piece reads as one object rather than a confetti of cells. Each family ships one painted
+crate; the saved `variant` picks a mirror or quarter-turn of it, which is enough to stop a large
+single-family region reading as one repeated texture.
 
 ## 4. Piece library
 
-32 shapes, each a static cell list. **Rotated variants are separate entries**; the player cannot
+31 shapes, each a static cell list. **Rotated variants are separate entries**; the player cannot
 rotate. Every shape is defined in `BLOCK_PIECES` with `cells`, `width`, `height`, `weight` and
 `difficulty`.
 
@@ -232,14 +234,16 @@ Two, bought with tokens from the warehouse screen, held as charges across runs:
 | Charge | Cost | Effect | Cap |
 | --- | --- | --- | --- |
 | **Shuffle** | 6 tokens | Replace the three current tray pieces with a freshly generated trio. | 3 held |
-| **Hammer** | 10 tokens | Destroy one occupied cell, then run the normal clear check. | 3 held |
+| **Hammer** | 10 tokens | Destroy one occupied cell. | 3 held |
 
 Using a charge does **not** break an active combo, and does not itself score. Both are capped at three
 held charges so a run can be rescued but never played on rails. Neither can be used after the run has
 ended.
 
 A Shuffle can rescue a trio, but it draws from the same generator against the same board — it is not
-a guaranteed survival button.
+a guaranteed survival button. Removing a cell can never complete a line, so the Hammer runs no clear
+check, and a Hammer that happens to empty the last cell does **not** award a board clear — otherwise
+the 2,500-point bonus would be purchasable with tokens.
 
 ### 8.5 Prestige
 

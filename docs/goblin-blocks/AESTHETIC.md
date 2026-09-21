@@ -19,8 +19,8 @@ Scoped under `.blocks-modal`, layered on the existing root tokens. No new root v
 | Token | Value | Purpose |
 | --- | --- | --- |
 | `--blocks-floor` | `#151c12` | Vault floor between cells |
-| `--blocks-cell` | `rgba(28, 38, 23, 0.72)` | Empty storage square |
-| `--blocks-cell-line` | `rgba(202, 226, 170, 0.12)` | Square edges; barely there |
+| `--blocks-cell` | `rgba(11, 16, 10, 0.62)` | Empty storage square |
+| `--blocks-cell-line` | `rgba(202, 226, 170, 0.17)` | Square edges; barely there |
 | `--blocks-preview` | `var(--ember-bright)` | Valid placement preview |
 | `--blocks-preview-line` | `var(--moss-bright)` | Row/column that this placement would complete |
 | `--blocks-invalid` | `var(--danger)` | Refused placement |
@@ -49,13 +49,16 @@ game. Validate it with real colour pairs, not with intent.
 └──────────────────────────────────────────────────────┘
 ```
 
-Desktop: the board is a centred square that grows to fill available height, capped at 560px. The tray
-sits directly beneath it with generous spacing. Statistics live in the footer strip, never beside the
-board where they would compete for attention.
+Desktop: the board is a centred square sized by `--blocks-size`, which is the smallest of the column
+width, 560px, and a height budget of `88vh - 400px`. Sizing from height as well as width is what keeps
+the tray and charges on screen instead of below a scroll. The tray and footer share the same width.
+Statistics live in the footer strip, never beside the board where they would compete for attention.
 
-Below 760px the same single column holds: header, board, tray, charges. The board takes the full
-width minus a 16px gutter. Tray pieces never shrink below a 44×44px touch target, even when the piece
-itself is a single cell — the hit area is padded independently of the art.
+Below 640px the same single column holds: header, board, tray, charges. Charges stack one per row —
+two side by side cannot hold a 44px target and a price at phone width without clipping the price off
+screen — and the tally becomes a 2×2 grid. Tray slots never shrink below a 44×44px touch target, even
+for a single-cell piece: the hit area is padded independently of the art, and all three slots share
+one `--blocks-tray-cell` size so a 1×1 reads as small and a 3×3 reads as the board-hog it is.
 
 The board is a CSS grid of 64 cells with `aspect-ratio: 1`. It must not reflow while dragging.
 
@@ -73,30 +76,36 @@ independent squares. Six families, all decorative:
 | `relic` | Rune-carved artifact, violet leak | Prestige lilac |
 | `tool` | Rusty tools, brass gears | Orange rust |
 
-Each family also has three art variants so a large flat region of one family does not tile visibly.
+Each family ships one painted crate. The saved `variant` selects one of four presentations of it — as
+placed, mirrored, half-turned or flipped — so a large flat region of one family does not tile visibly
+without costing four times the art.
 
 **Readability rule:** every tile keeps a visible square footprint with a 1–2px inner border. The art
 may be irregular inside that square, never outside it. A player must be able to count cells at a
 glance without decoding the illustration.
 
-## 5. Asset seam — currently CSS, ready for WebP
+## 5. Asset seam
 
-Tiles ship as hand-authored CSS gradient and inline-SVG art, selected through a single indirection
-module so replacing them with painted WebP is a one-file change:
+Every tile, the floor and the giver resolve through one indirection module, so swapping the painted
+set — or adding a second board skin — touches only this file:
 
 ```text
-src/utils/blocksAssets.ts   → blocksTileArt(family, variant): string | null
+src/utils/blocksAssets.ts   → blocksTileArt(family), blocksTileTransform(variant), blocksArt
 ```
 
-When the module returns `null`, the renderer falls back to the CSS tile. Drop WebP files into
-`src/images/blocks/`, return their imported URLs from that function, and nothing else changes.
+The shipped set lives in `src/images/blocks/` at 256×256 for tiles (about 15 KB each), 768×768 for
+the floor and 584×640 for the giver, roughly 262 KB in total.
 
-### 5.1 Asset briefs for the painted pass
+### 5.1 How the shipped set was made
 
-Production targets: tiles 512×512 WebP, readable at 48px, square composition filling the frame
-(no transparency needed — the tile fills its cell). Giver art 768×768 transparent WebP, clean
-silhouette at 220px. Keep source artwork outside runtime paths and record provenance in
-`THIRD_PARTY_NOTICES.md`.
+Generated locally with Qwen-Image 2.1 through ComfyUI. The gold crate was produced first and then
+used as the **reference image for every other tile**, editing only the contents — that is what keeps
+one crate, one light and one brushwork across the six families, which generating each from scratch
+did not. The Hoardmaster was generated separately and cut out by hand.
+
+Re-run the set from the brief below if the art is ever replaced. Tiles need no transparency, because
+each one fills its cell; the giver needs a clean alpha silhouette at 220px. Keep source artwork
+outside runtime paths and record provenance in `THIRD_PARTY_NOTICES.md`.
 
 Shared brief:
 
@@ -115,7 +124,7 @@ Shared brief:
 | `block-relic.webp` | Arcane relic crate, rune-carved artifact floating above the open lid, violet light from the seams |
 | `block-tool.webp` | Goblin toolbox crate crammed with rusty tools, brass gears, a chipped hammer, a bent wrench |
 | `blocks-giver.webp` | Goblin warehouse foreman, three-quarter view, crooked grin, leather apron, stamped clipboard under one arm, beside a teetering stack of loot crates and spilled coins |
-| `blocks-floor.webp` | *Optional.* Vault floor: stone flags and timber shelving frames, 1600×1600, no marked grid, no text |
+| `vault-floor.webp` | Vault floor: stone flags and timber shelving frames, seamless, no focal point, no marked grid, no text. Rendered under a 68% black wash so placed crates carry all the contrast |
 
 ## 6. Feedback
 

@@ -2,12 +2,13 @@
 
 .blocks-modal {
   --blocks-floor: #151c12;
-  --blocks-cell: rgba(28, 38, 23, .72);
-  --blocks-cell-line: rgba(202, 226, 170, .12);
+  --blocks-cell: rgba(11, 16, 10, .62);
+  --blocks-cell-line: rgba(202, 226, 170, .17);
   --blocks-preview: var(--ember-bright);
   --blocks-preview-line: var(--moss-bright);
   --blocks-invalid: var(--danger);
   --blocks-token: var(--ember);
+  --blocks-tray-cell: clamp(15px, 3.4vw, 27px);
 }
 
 /* ---------- Entry button in the spawn pit ---------- */
@@ -69,7 +70,18 @@
 
 /* ---------- Layout ---------- */
 
-.blocks-layout { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+/*
+ * The board is sized from the height the modal actually has, not just its
+ * width, so the tray and charges stay on screen without scrolling. The floor
+ * is the one column all three rows share.
+ */
+.blocks-layout {
+  --blocks-size: max(220px, min(100%, 560px, calc(88vh - 400px)));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
 
 .blocks-hud {
   display: flex;
@@ -88,7 +100,7 @@
 .blocks-hud__stats strong { color: var(--ink-soft); font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
 .blocks-hud__tokens strong { color: var(--blocks-token); }
 
-.blocks-stage { position: relative; width: 100%; max-width: 560px; }
+.blocks-stage { position: relative; width: var(--blocks-size); max-width: 100%; }
 
 /* ---------- Board ---------- */
 
@@ -102,6 +114,7 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   background-color: var(--blocks-floor);
+  background-image: linear-gradient(rgba(6, 9, 6, .68), rgba(6, 9, 6, .68)), var(--blocks-floor-image, none);
   background-size: cover;
   background-position: center;
   box-shadow: var(--shadow-lg), inset 0 0 40px rgba(0, 0, 0, .55);
@@ -117,7 +130,7 @@
   border-radius: var(--radius-sm);
   transition: background-color 120ms ease, box-shadow 120ms ease;
 }
-.blocks-cell.is-empty { background: var(--blocks-cell); box-shadow: inset 0 0 0 1px var(--blocks-cell-line), inset 0 2px 5px rgba(0, 0, 0, .35); }
+.blocks-cell.is-empty { background: var(--blocks-cell); box-shadow: inset 0 0 0 1px var(--blocks-cell-line), inset 0 3px 7px rgba(0, 0, 0, .55); }
 .blocks-cell.is-filled { background: rgba(0, 0, 0, .3); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .55), 0 1px 3px rgba(0, 0, 0, .4); }
 .blocks-cell img { display: block; width: 100%; height: 100%; object-fit: cover; animation: blocks-pop 120ms var(--ease-spring); }
 .blocks-cell.is-preview { background: color-mix(in srgb, var(--blocks-preview) 45%, transparent); box-shadow: inset 0 0 0 1px var(--blocks-preview); }
@@ -166,8 +179,8 @@
 
 .blocks-tray {
   display: grid;
-  width: 100%;
-  max-width: 560px;
+  width: var(--blocks-size);
+  max-width: 100%;
   padding: 10px;
   gap: 10px;
   grid-template-columns: repeat(3, 1fr);
@@ -192,10 +205,10 @@
 .blocks-tray__slot.is-dragging { opacity: .35; }
 .blocks-tray__slot--empty { background: rgba(0, 0, 0, .1); cursor: default; }
 
-/* Columns and rows are set inline from the piece; square cells give the height. */
-.blocks-piece { display: grid; width: min(100%, 118px); gap: 2px; }
-.blocks-piece img { display: block; width: 100%; aspect-ratio: 1; border-radius: 3px; object-fit: cover; }
-.blocks-piece span { display: block; aspect-ratio: 1; }
+/* Columns and rows are set inline from the piece, in shared tray-cell units. */
+.blocks-piece { display: grid; gap: 2px; }
+.blocks-piece img { display: block; width: 100%; height: 100%; border-radius: 3px; object-fit: cover; }
+.blocks-piece span { display: block; }
 
 /* ---------- Overlays ---------- */
 
@@ -250,7 +263,7 @@
 
 /* ---------- Footer ---------- */
 
-.blocks-footer { display: flex; width: 100%; max-width: 560px; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.blocks-footer { display: flex; width: var(--blocks-size); max-width: 100%; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 .blocks-charges { display: flex; gap: 8px; }
 .blocks-charge { display: flex; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); }
 .blocks-charge.is-armed { border-color: var(--blocks-invalid); }
@@ -274,14 +287,25 @@
 }
 
 @media (max-width: 640px) {
-  .blocks-layout { gap: 10px; }
+  /* Stacked charges need a little more vertical room than the board was using. */
+  .blocks-layout { --blocks-size: max(200px, min(100%, calc(88vh - 450px))); gap: 10px; }
   .blocks-hud { gap: 8px; }
   .blocks-hud__stats { gap: 10px; }
   .blocks-board { padding: 5px; gap: 2px; }
   .blocks-tray { padding: 8px; gap: 6px; }
   .blocks-tray__slot { min-height: 74px; padding: 6px; }
   .blocks-footer { flex-direction: column; align-items: stretch; }
-  .blocks-tally { justify-content: space-between; }
+
+  /* One charge per row: two side by side cannot hold a 44px target plus a
+     price at phone width without clipping the price off the screen. */
+  .blocks-charges { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .blocks-charge { min-width: 0; }
+  .blocks-charge__use { min-width: 0; flex: 1; }
+  .blocks-charge__use span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .blocks-charge__buy { flex: 0 0 auto; }
+
+  .blocks-tally { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
+  .blocks-tally div { align-items: flex-start; }
 }
 
 /* ---------- Reduced motion ---------- */

@@ -237,7 +237,13 @@ export function BlocksWarehouse({
       return;
     }
     if ((event.key === 'Enter' || event.key === ' ') && selected !== null && anchor !== null) {
-      if (placementIndices(run.board, run.tray[selected]!.pieceId, anchor)) applyFeedback(onPlace(selected, anchor));
+      if (placementIndices(run.board, run.tray[selected]!.pieceId, anchor)) {
+        applyFeedback(onPlace(selected, anchor));
+        // Clear the selection exactly as the pointer path does. Without this a
+        // completed set deals a new piece into a slot that still reads as
+        // selected, and the next Enter would place it unchosen.
+        setSelected(null);
+      }
       event.preventDefault();
     }
   };
@@ -301,7 +307,15 @@ export function BlocksWarehouse({
           if (event.key === 'Enter' || event.key === ' ') { setSelected(slot); setAnchor((current) => current ?? 0); event.preventDefault(); }
         }}
       >
-        <div className="blocks-piece" style={{ gridTemplateColumns: `repeat(${definition.width}, 1fr)`, gridTemplateRows: `repeat(${definition.height}, 1fr)` }}>
+        <div
+          className="blocks-piece"
+          style={{
+            // A shared cell size across all three slots, so a 1x1 reads as small
+            // and a 3x3 reads as the board-hog it is.
+            gridTemplateColumns: `repeat(${definition.width}, var(--blocks-tray-cell))`,
+            gridTemplateRows: `repeat(${definition.height}, var(--blocks-tray-cell))`,
+          }}
+        >
           {Array.from({ length: definition.width * definition.height }, (_, index) => (
             occupied.has(index)
               ? <img key={index} src={blocksTileArt(piece.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(piece.variant) }} />
@@ -377,7 +391,7 @@ export function BlocksWarehouse({
           <div
             ref={boardRef}
             className={`blocks-board${invalid ? ' blocks-board--invalid' : ''}${hammerArmed ? ' blocks-board--hammer' : ''}`}
-            style={{ backgroundImage: `url(${blocksArt.floor})` }}
+            style={{ '--blocks-floor-image': `url(${blocksArt.floor})` } as React.CSSProperties}
             role="grid"
             aria-label={copy.board}
             tabIndex={0}

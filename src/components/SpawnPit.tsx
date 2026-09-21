@@ -32,6 +32,7 @@ export interface SpawnPitProps {
   className?: string;
   contractGiver?: ReactNode;
   expeditionGiver?: ReactNode;
+  blocksGiver?: ReactNode;
   moonDial?: ReactNode;
   worldSwitch?: ReactNode;
   goblinArtSrc?: string;
@@ -49,7 +50,7 @@ export interface SpawnPitProps {
 
 const OMEN_DEPARTURE_MS = 850;
 
-export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, moonDial, worldSwitch, goblinArtSrc = gameArt.goblinSpawn, scale = null, children, labels }: SpawnPitProps) {
+export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn, disabled = false, statusLabel, bonusEvent, activityLevel = 'dormant', className = '', contractGiver, expeditionGiver, blocksGiver, moonDial, worldSwitch, goblinArtSrc = gameArt.goblinSpawn, scale = null, children, labels }: SpawnPitProps) {
   const { t } = useI18n();
   const [departingEvent, setDepartingEvent] = useState<BonusEventView | null>(null);
   const previousBonusEvent = useRef<BonusEventView | null>(null);
@@ -109,6 +110,7 @@ export function SpawnPit({ totalLabel, perSecondLabel, clickPowerLabel, onSpawn,
       {moonDial}
       {worldSwitch}
       {expeditionGiver}
+      {blocksGiver}
       {contractGiver}
 
       {visibleBonusEvent && (

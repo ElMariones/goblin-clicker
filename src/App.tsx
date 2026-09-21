@@ -2,11 +2,14 @@ import { startExpedition, cancelExpedition, claimExpedition, creditGoblins, getC
 import { EXPEDITION_COPY } from './i18n/expeditions';
 import { SCALE_COPY, formatScale } from './i18n/scale';
 import { getRoboCopy } from './i18n/robogoblins';
+import { BLOCKS_COPY } from './i18n/blocks';
 import { formatRoboUnlock, getRoboUnlockCopy } from './i18n/roboUnlock';
 import { RoboGameWorld, RoboWorldSwitch, type RoboBuyAmount } from './components/robo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AchievementModal,
+  BlocksEntry,
+  BlocksWarehouse,
   ContractModal,
   CosmeticsModal,
   CRTWarp,
@@ -28,6 +31,7 @@ import {
   ToastStack,
   UpgradeModal,
   WarrenBuildingField,
+  type BlocksFeedback,
   type FloatingNumberView,
   type IconName,
   type ToastView,
@@ -39,6 +43,8 @@ import {
   getPermanentRank, getPermanentUpgradeCost, getPrestigeShardGain, getUpgradeChoiceBlocker, hatchGoblin, isUpgradeBlockedByChoice, isUpgradeUnlocked, isWarrenBuildingRevealed, performPrestigeReset,
   equipCosmetic, importGameSave, isContractComplete, purchaseBuilding, purchaseCosmetic, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, serializeGame, spendLunarCharge, tickGame,
   getScaleComparison,
+  buyBlocksCharge, collectBlocksRun, markBlocksTutorialSeen, placeBlocksPiece, startBlocksRun, spendBlocksHammer, spendBlocksShuffle,
+  type BlocksChargeId,
   type BuildingId, type ContractKind, type CosmeticId, type GameState, type MooncapFamily, type PermanentUpgradeId, type UpgradeExclusiveGroup,
 } from './game';
 import {
@@ -67,7 +73,7 @@ import {
   type RoboPurchaseAmount,
   type WorldId,
 } from './game';
-import { playSound } from './audio';
+import { playClearSound, playSound } from './audio';
 import { BackgroundMusicPlayer, MUSIC_TRACKS } from './music';
 import { createBrowserSaveOwnership, type SaveOwnershipSnapshot } from './browser/saveOwnership';
 import { loadStoredGame, type SaveLoadWarning } from './browser/saveLifecycle';
@@ -87,7 +93,7 @@ const LEGACY_SAVE_KEYS = ['goblin-clicker.save.v3', 'goblin-clicker.save.v2', 'g
 const SETTINGS_KEY = 'goblin-clicker.settings.v2';
 const SAVE_OWNERSHIP = createBrowserSaveOwnership(SAVE_KEY);
 const INITIAL_SAVE_OWNERSHIP = SAVE_OWNERSHIP.claimInitial(Date.now());
-type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | 'roboUnlock' | null;
+type ModalName = 'upgrades' | 'achievements' | 'prestige' | 'settings' | 'contracts' | 'moonDial' | 'expeditions' | 'cosmetics' | 'roboUnlock' | 'blocks' | null;
 type BuyAmount = 1 | 10 | 100 | 'max';
 
 type WarningCode = SaveLoadWarning;
@@ -178,6 +184,7 @@ function App() {
   const language = settings.language;
   const roboUnlockCopy = getRoboUnlockCopy(language);
   const roboCopy = getRoboCopy(language);
+  const blocksCopy = BLOCKS_COPY[language];
   const activeWorld: WorldId = settings.activeWorld === 'robogoblins' && game.unlocks.robogoblins && game.robo ? 'robogoblins' : 'warren';
   const locale = getLanguageMeta(language).locale;
   const t = useCallback((key: TranslationKey, values?: Record<string, string | number>) => translate(language, key, values), [language]);
@@ -918,6 +925,67 @@ function App() {
       ? formatScale(withMultiple, { reference, multiple: fmtNumber(comparison.steppedMultiple) })
       : formatScale(plain, { reference });
   };
+  const blocksStart = useCallback(() => {
+    if (resetInProgress.current) return;
+    commitGame(startBlocksRun(gameRef.current, Date.now()).state);
+    playSound('blockPick', settings.sound);
+  }, [commitGame, settings.sound]);
+
+  const blocksPlace = useCallback((slot: number, anchorIndex: number): BlocksFeedback | null => {
+    if (resetInProgress.current) return null;
+    const result = placeBlocksPiece(gameRef.current, slot, anchorIndex, Date.now());
+    if (!result.success) return null;
+    commitGame(result.state);
+    if (result.boardCleared) playSound('blockBoardClear', settings.sound);
+    else if (result.clearedLines > 0) playClearSound(result.clearedLines, settings.sound);
+    else playSound('blockPlace', settings.sound);
+    if (result.runEnded) playSound('blockOver', settings.sound);
+    return {
+      clearedLines: result.clearedLines,
+      combo: result.combo,
+      boardCleared: result.boardCleared,
+      runEnded: result.runEnded,
+    };
+  }, [commitGame, settings.sound]);
+
+  const blocksShuffle = useCallback(() => {
+    if (resetInProgress.current) return;
+    const result = spendBlocksShuffle(gameRef.current, Date.now());
+    if (!result.success) return;
+    commitGame(result.state);
+    playSound('blockPick', settings.sound);
+  }, [commitGame, settings.sound]);
+
+  const blocksHammer = useCallback((cellIndex: number) => {
+    if (resetInProgress.current) return;
+    const result = spendBlocksHammer(gameRef.current, cellIndex, Date.now());
+    if (!result.success) return;
+    commitGame(result.state);
+    playSound('blockPlace', settings.sound);
+  }, [commitGame, settings.sound]);
+
+  const blocksCollect = useCallback(() => {
+    if (resetInProgress.current) return;
+    const result = collectBlocksRun(gameRef.current, Date.now());
+    if (!result.success) return;
+    commitGame(result.state);
+    playSound('achievement', settings.sound);
+    addToast({
+      title: blocksCopy.title,
+      message: `+${fmtNumber(result.goblins)} · +${fmtInteger(result.tokens)} ${blocksCopy.tokens}`,
+      icon: 'coin',
+      tone: 'success',
+    });
+  }, [addToast, blocksCopy, commitGame, fmtInteger, fmtNumber, settings.sound]);
+
+  const blocksBuyCharge = useCallback((charge: BlocksChargeId) => {
+    if (resetInProgress.current) return;
+    const result = buyBlocksCharge(gameRef.current, charge, Date.now());
+    if (!result.success) return;
+    commitGame(result.state);
+    playSound('buy', settings.sound);
+  }, [commitGame, settings.sound]);
+
   const populationScale = getScaleComparison(game.goblins);
   const broodScale = {
     headline: scaleLine(populationScale, scaleCopy.outnumbers, scaleCopy.outnumbersPlain),
@@ -953,6 +1021,8 @@ function App() {
 
   const center = <SpawnPit totalLabel={fmtNumber(game.goblins)} perSecondLabel={fmtNumber(cps)} clickPowerLabel={fmtNumber(clickPower)} statusLabel={statusLine} onSpawn={spawn} activityLevel={spawnActivity} className={sevenfoldActive ? 'spawn-pit--sevenfold' : ''} goblinArtSrc={goblinCosmeticArt(game.prestige.cosmetics.equipped)} scale={broodScale} bonusEvent={game.mooncap.active && mooncapCopy ? { id: 'mooncap', label: mooncapCopy.label, detail: mooncapCopy.detail, tone: mooncapFamily ?? undefined, fading: game.mooncap.expiresAt !== null && game.mooncap.expiresAt - now <= MOONCAP_BLINK_DURATION_MS, onClaim: clickMooncap } : null} expeditionGiver={
     <ExpeditionEntry state={game} onOpen={() => setModal('expeditions')} />
+  } blocksGiver={
+    <BlocksEntry state={game} onOpen={() => setModal('blocks')} />
   } contractGiver={
     <button className={`contract-giver${readyContracts > 0 ? ' contract-giver--ready' : ''}`} type="button" onClick={() => setModal('contracts')} aria-label={t('contract.openAria')}>
       <span className="contract-giver__signal" aria-hidden="true" />
@@ -1051,6 +1121,20 @@ function App() {
       onClaim={collectContract}
       onClose={() => setModal(null)}
       labels={{ title: t('contract.title'), subtitle: t('contract.subtitle'), progress: t('contract.progress'), reward: t('contract.reward'), claim: t('contract.claim'), working: t('contract.working'), complete: t('contract.complete') }}
+    />
+    <BlocksWarehouse
+      open={modal === 'blocks'}
+      state={game}
+      effects={settings.effects}
+      reducedMotion={settings.reducedMotion}
+      onClose={() => setModal(null)}
+      onStart={blocksStart}
+      onPlace={blocksPlace}
+      onShuffle={blocksShuffle}
+      onHammer={blocksHammer}
+      onCollect={blocksCollect}
+      onBuyCharge={blocksBuyCharge}
+      onTutorialSeen={() => commitGame(markBlocksTutorialSeen(gameRef.current, Date.now()))}
     />
     <ExpeditionMap open={modal === 'expeditions'} state={game} onClose={() => setModal(null)}
       onLaunch={(plan) => { if (resetInProgress.current) return; commitGame(startExpedition(gameRef.current, plan, Date.now())); playSound('buy', settings.sound); }}

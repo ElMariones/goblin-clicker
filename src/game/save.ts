@@ -1,3 +1,5 @@
+import { sanitizeBlocksState } from './blocks/save';
+import { createInitialBlocksState } from './blocks/factory';
 import { sanitizeExpeditions } from './expeditions';
 import { ACHIEVEMENTS, BUILDINGS, PERMANENT_UPGRADES, UPGRADES } from './content';
 import { COSMETICS } from './cosmetics';
@@ -245,6 +247,11 @@ function sanitizeState(raw: Record<string, unknown>, now: number, warnings: stri
     state.unlocks = { robogoblins: false, robogoblinsEligible: false };
     state.robo = null;
   }
+  // Saves older than schema 7 simply predate the Hoard Warehouse; the unlock
+  // then latches itself from the restored building counts on the first tick.
+  state.blocks = declaredVersion >= 7
+    ? sanitizeBlocksState(raw.blocks, state.lastUpdateAt, warnings)
+    : createInitialBlocksState(state.lastUpdateAt);
   state = ensureRobogoblinsEligibility(state);
   state = ensureContracts(state, state.lastUpdateAt);
   return state;

@@ -1,4 +1,6 @@
-type SoundName = 'spawn' | 'buy' | 'upgrade' | 'achievement' | 'mooncap' | 'prestige';
+type SoundName =
+  | 'spawn' | 'buy' | 'upgrade' | 'achievement' | 'mooncap' | 'prestige'
+  | 'blockPick' | 'blockPlace' | 'blockClear' | 'blockBoardClear' | 'blockOver';
 
 let context: AudioContext | null = null;
 
@@ -24,6 +26,19 @@ function tone(frequency: number, duration: number, gainValue: number, type: Osci
   gain.connect(audio.destination);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.02);
+}
+
+/**
+ * Line clears rise in pitch with the number of lines cleared, capped so a rare
+ * six-line haul is triumphant rather than shrill.
+ */
+export function playClearSound(lines: number, enabled: boolean) {
+  if (!enabled) return;
+  const step = Math.min(5, Math.max(1, Math.floor(lines))) - 1;
+  const root = 523 * Math.pow(2, step / 12);
+  tone(root, 0.09, 0.026, 'triangle');
+  tone(root * 1.5, 0.12, 0.022, 'sine', 0.05);
+  if (step >= 1) tone(root * 2, 0.16, 0.018, 'sine', 0.1);
 }
 
 export function playSound(name: SoundName, enabled: boolean) {
@@ -55,6 +70,27 @@ export function playSound(name: SoundName, enabled: boolean) {
       tone(220, 0.2, 0.025, 'sine');
       tone(330, 0.22, 0.022, 'triangle', 0.1);
       tone(440, 0.35, 0.02, 'sine', 0.22);
+      break;
+    case 'blockPick':
+      tone(180, 0.035, 0.016, 'triangle');
+      break;
+    case 'blockPlace':
+      tone(120, 0.07, 0.03, 'triangle');
+      tone(90, 0.05, 0.018, 'sine', 0.02);
+      break;
+    case 'blockClear':
+      playClearSound(1, true);
+      break;
+    case 'blockBoardClear':
+      tone(523, 0.12, 0.028, 'triangle');
+      tone(659, 0.12, 0.026, 'triangle', 0.09);
+      tone(784, 0.14, 0.024, 'sine', 0.18);
+      tone(1046, 0.3, 0.022, 'sine', 0.27);
+      break;
+    case 'blockOver':
+      tone(196, 0.14, 0.024, 'triangle');
+      tone(165, 0.16, 0.022, 'triangle', 0.11);
+      tone(131, 0.32, 0.02, 'sine', 0.24);
       break;
   }
 }

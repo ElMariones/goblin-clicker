@@ -1,6 +1,7 @@
+import type { BlocksState } from './blocks/types';
 import type { RoboState } from './robo/types';
 
-export const CURRENT_SAVE_VERSION = 6 as const;
+export const CURRENT_SAVE_VERSION = 7 as const;
 
 export type WorldId = 'warren' | 'robogoblins';
 
@@ -227,6 +228,8 @@ export interface GameState {
     robogoblinsEligible: boolean;
   };
   robo: RoboState | null;
+  /** The Hoard Warehouse puzzle. Survives Great Migrations in full. */
+  blocks: BlocksState;
 }
 
 export type ExpeditionDestination = 'mine' | 'ruins' | 'cellar';

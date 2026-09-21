@@ -1,4 +1,5 @@
 export * from './AchievementModal';
+export * from './BlocksWarehouse';
 export * from './CRTWarp';
 export * from './ContractModal';
 export * from './CosmeticsModal';

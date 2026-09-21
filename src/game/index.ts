@@ -11,6 +11,7 @@ export * from './offline';
 export * from './save';
 export * from './reducer';
 export * from './expeditions';
+export * from './blocks';
 export * from './cosmetics';
 export * from './worlds';
 export * from './robo/types';

@@ -4,6 +4,7 @@ import { getBaseCps } from '../math';
 import { applyOfflineProgress } from '../offline';
 import { deserializeGame, serializeGame } from '../save';
 import { createInitialGameState } from '../state';
+import { CURRENT_SAVE_VERSION } from '../types';
 import {
   canPurchaseMechanicalCharter,
   getMechanicalCharterProgress,
@@ -419,7 +420,7 @@ describe('RoboGoblins offline and save behavior', () => {
     expect(loaded.migratedFrom).toBe(5);
     expect(loaded.state.unlocks.robogoblins).toBe(false);
     expect(loaded.state.robo).toBeNull();
-    expect(loaded.state.version).toBe(6);
+    expect(loaded.state.version).toBe(CURRENT_SAVE_VERSION);
   });
 
   it('round-trips v6 mechanical state without replaying grants', () => {

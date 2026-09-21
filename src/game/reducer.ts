@@ -1,3 +1,5 @@
+import { buyBlocksCharge, collectBlocksRun, markBlocksTutorialSeen, placeBlocksPiece, startBlocksRun, spendBlocksHammer, spendBlocksShuffle } from './blocks/engine';
+import type { BlocksChargeId } from './blocks/types';
 import { startExpedition, cancelExpedition, claimExpedition } from './engine';
 import type { ExpeditionPlan } from './types';
 import { claimContract, claimMooncap, hatchGoblin, performPrestigeReset, purchaseBuilding, purchasePermanentUpgrade, purchaseUpgrade, sellBuilding, spendLunarCharge, tickGame } from './engine';
@@ -19,6 +21,13 @@ export type GameAction =
   | { type: 'moonDial'; action: MoonDialAction; now: number }
   | { type: 'prestige'; now: number }
   | { type: 'buyPermanentUpgrade'; upgradeId: PermanentUpgradeId; now: number }
+  | { type: 'blocksStart'; now: number }
+  | { type: 'blocksPlace'; slot: number; anchorIndex: number; now: number }
+  | { type: 'blocksShuffle'; now: number }
+  | { type: 'blocksHammer'; cellIndex: number; now: number }
+  | { type: 'blocksCollect'; now: number }
+  | { type: 'blocksBuyCharge'; charge: BlocksChargeId; now: number }
+  | { type: 'blocksTutorialSeen'; now: number }
   | { type: 'replaceState'; state: GameState };
 
 /** React/useReducer-friendly adapter over the richer engine action functions. */
@@ -37,6 +46,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'moonDial': return spendLunarCharge(state, action.action, action.now).state;
     case 'prestige': return performPrestigeReset(state, action.now).state;
     case 'buyPermanentUpgrade': return purchasePermanentUpgrade(state, action.upgradeId, action.now).state;
+    case 'blocksStart': return startBlocksRun(state, action.now).state;
+    case 'blocksPlace': return placeBlocksPiece(state, action.slot, action.anchorIndex, action.now).state;
+    case 'blocksShuffle': return spendBlocksShuffle(state, action.now).state;
+    case 'blocksHammer': return spendBlocksHammer(state, action.cellIndex, action.now).state;
+    case 'blocksCollect': return collectBlocksRun(state, action.now).state;
+    case 'blocksBuyCharge': return buyBlocksCharge(state, action.charge, action.now).state;
+    case 'blocksTutorialSeen': return markBlocksTutorialSeen(state, action.now);
     case 'replaceState': return action.state;
   }
 }

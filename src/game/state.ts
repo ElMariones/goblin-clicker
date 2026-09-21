@@ -1,3 +1,4 @@
+import { createInitialBlocksState } from './blocks/factory';
 import { BUILDINGS } from './content';
 import { ensureContracts } from './contracts';
 import { scheduleNextMooncap } from './events';
@@ -88,6 +89,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
     },
     unlocks: { robogoblins: false, robogoblinsEligible: false },
     robo: null,
+    blocks: createInitialBlocksState(timestamp),
   };
 
   return ensureContracts(scheduleNextMooncap(initial, timestamp), timestamp);

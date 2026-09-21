@@ -57,7 +57,7 @@
       "scrap_archive": 5,
       "stellar_engine": 5,
       "causality_anchor": 5,
-      "eternity_foundry": 3
+      "eternity_foundry": 5
     },
     "firstEightCores": 2730,
     "firstOwned": {
@@ -76,13 +76,13 @@
     },
     "firstProject": {
       "scrap_archive": 121650,
-      "stellar_engine": 349230,
-      "causality_anchor": 481860,
-      "eternity_foundry": 702960
+      "stellar_engine": 244320,
+      "causality_anchor": 364020,
+      "eternity_foundry": 550560
     },
-    "cores": 68253765,
-    "recompiles": 24,
-    "rate": 1.957175196022311e+25,
-    "lifetime": 1.0336353677349206e+31
+    "cores": 546647352,
+    "recompiles": 27,
+    "rate": 1.5025954002124349e+29,
+    "lifetime": 1.967854464444059e+35
   }
 ]

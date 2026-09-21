@@ -14,7 +14,7 @@ import {
   ROBO_MAX_OWNED,
   ROBO_CORE_SCALE,
 } from './content';
-import { getRoboProjectMultiplier, hasRoboBulkFabrication } from './projects';
+import { getRoboProjectMultiplier, hasRoboBulkFabrication, hasRoboDeepFabrication } from './projects';
 import { getRawKernelPerkRank } from './state';
 import type { KernelPerkId, RoboCircuitId, RoboCircuitSummary, RoboLineId, RoboState } from './types';
 
@@ -177,10 +177,14 @@ export function getRoboLineBulkCostFromState(robo: RoboState, lineId: RoboLineId
   let raw: number;
   if (hasRoboBulkFabrication(robo, definition.circuit)) {
     const normalUnits = Math.min(quantity, Math.max(0, 100 - owned));
-    const bulkUnits = quantity - normalUnits;
+    const deepFabrication = hasRoboDeepFabrication(robo, definition.circuit);
+    const bulkUnits = deepFabrication ? Math.min(quantity - normalUnits, Math.max(0, 500 - Math.max(100, owned))) : quantity - normalUnits;
+    const deepUnits = quantity - normalUnits - bulkUnits;
     const normal = geometric(definition.baseCost * ROBO_COST_GROWTH ** Math.min(owned, 100), ROBO_COST_GROWTH, normalUnits);
-    const bulkFirst = definition.baseCost * ROBO_COST_GROWTH ** 100 * 1.035 ** Math.max(0, owned - 100);
-    raw = normal + geometric(bulkFirst, 1.035, bulkUnits);
+    const bulkOwned = deepFabrication ? Math.min(500, owned) : owned;
+    const bulkFirst = definition.baseCost * ROBO_COST_GROWTH ** 100 * 1.035 ** Math.max(0, bulkOwned - 100);
+    const deepFirst = definition.baseCost * ROBO_COST_GROWTH ** 100 * 1.035 ** 400 * 1.015 ** Math.max(0, owned - 500);
+    raw = normal + geometric(bulkFirst, 1.035, bulkUnits) + geometric(deepFirst, 1.015, deepUnits);
   } else {
     raw = geometric(definition.baseCost * Math.exp(owned * Math.log(ROBO_COST_GROWTH)), ROBO_COST_GROWTH, quantity);
   }

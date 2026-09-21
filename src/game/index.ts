@@ -23,3 +23,4 @@ export * from './robo/offline';
 export * from './robo/achievements';
 
 export * from './robo/projects';
+export * from './projects';

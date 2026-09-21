@@ -130,10 +130,10 @@ describe('economy math', () => {
     expect(getAncestralMomentumMultiplier(state)).toBeCloseTo(1.75, 10);
   });
 
-  it('provides a third building-specific production tier for every structure', () => {
+  it('provides four building-specific production tiers for every structure', () => {
     for (const building of BUILDINGS) {
       const tiers = UPGRADES.filter((upgrade) => !('exclusiveGroup' in upgrade) && upgrade.effects.some((effect) => effect.type === 'buildingMultiplier' && effect.buildingId === building.id));
-      expect(tiers).toHaveLength(3);
+      expect(tiers).toHaveLength(4);
       expect(tiers.some((upgrade) => upgrade.requirements.some((requirement) => requirement.type === 'buildingOwned' && requirement.buildingId === building.id && requirement.amount === 100))).toBe(true);
     }
   });

@@ -1,3 +1,4 @@
+import { ROBO_CIRCUIT_THRESHOLDS } from '../game/robo/content';
 import type { LanguageCode } from './index';
 import { ROBO_ENDGAME } from './roboEndgame';
 
@@ -336,9 +337,9 @@ export function getRoboCopy(language: LanguageCode): RoboCopy {
   return {
     ...copy, appearancesCopy,
     circuitAllClosed: extra.complete,
-    circuitTier: copy.circuitTier.replace('/ 4', '/ 8'),
+    circuitTier: copy.circuitTier.replace('/ 4', `/ ${ROBO_CIRCUIT_THRESHOLDS.length}`),
     preservedItems: [...copy.preservedItems, extra.title],
-    masteryNames: { ...copy.masteryNames, Timeless: extra.mastery[0], Infinite: extra.mastery[1] },
+    masteryNames: { ...copy.masteryNames, ...Object.fromEntries(['Timeless', 'Infinite', 'Transcendent', 'Omnipresent', 'Starforged', 'Reality Engine', 'Thousandfold'].map((name, i) => [name, extra.mastery[i]])) },
     blueprintTiers: { ...copy.blueprintTiers, quantum_tools: extra.tiers[0], ancestral_forge: extra.tiers[1] },
     globalBlueprints: { ...copy.globalBlueprints, ...Object.fromEntries(['stellar_protocol', 'causal_network', 'eternal_factory', 'beyond_the_clock'].map((id, i) => [id, extra.blueprints[i]])) },
     achievementsCopy: { ...copy.achievementsCopy, ...Object.fromEntries(['rg_megaproject', 'rg_four_wonders', 'rg_deep_mastery', 'rg_eternal_foundry'].map((id, i) => [id, { name: extra.achievements[i], description: extra.achievementDescriptions[i] }])) },

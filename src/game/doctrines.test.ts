@@ -41,7 +41,7 @@ function doctrineReward(id: (typeof DOCTRINE_IDS)[number], family: 'clutch' | 'f
 describe('migration doctrines', () => {
   it('keeps the original 48 foundation nodes non-exclusive and adds four doctrine pairs', () => {
     const doctrines = UPGRADES.filter((upgrade) => 'exclusiveGroup' in upgrade && upgrade.exclusiveGroup);
-    const foundation = UPGRADES.filter((upgrade) => !('exclusiveGroup' in upgrade));
+    const foundation = UPGRADES.filter((upgrade) => !('exclusiveGroup' in upgrade) && !upgrade.id.startsWith('innovation_'));
     expect(foundation).toHaveLength(48);
     expect(doctrines).toHaveLength(8);
     expect(doctrines.map(({ id }) => id)).toEqual([...DOCTRINE_IDS]);

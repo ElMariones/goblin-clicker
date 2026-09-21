@@ -58,6 +58,7 @@ export function createInitialGameState(now = Date.now(), seed = seedFromTimestam
       totalShardsEarned: 0,
       resets: 0,
       permanentUpgrades: {},
+      projects: {},
       cosmetics: { owned: {}, equipped: null },
     },
     buffs: [],

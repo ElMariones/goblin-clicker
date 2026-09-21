@@ -32,7 +32,7 @@ export function RoboProjectsModal({ open, robo, formatNumber, onBuild, onClose }
         <header><Icon name={project.circuit === 'all' ? 'sparkles' : 'hammer'} size={24} /><div><small>{formatRobo(endgame.stage, { rank: progress.rank, max: project.maxRank })}</small><h3>{endgame.projects[index]}</h3></div></header>
         <p>{endgame.descriptions[index]}</p>
         <strong>{formatRobo(endgame.effect, { circuit, current: formatNumber(1 + progress.rank * increment, 2), next: formatNumber(1 + Math.min(project.maxRank, progress.rank + 1) * increment, 2) })}</strong>
-        {project.circuit !== 'all' && <p className="robo-project__fabrication">{endgame.fabrication}</p>}
+        {project.circuit !== 'all' && <p className="robo-project__fabrication">{endgame.fabrication} {endgame.deepFabrication}</p>}
         <progress aria-label={endgame.projects[index]} value={progress.rank} max={project.maxRank} />
         {!progress.complete && <ul className="robo-project__requirements">
           <li className={entryMet ? 'is-met' : ''}>{entryMet ? '✓ ' : '○ '}{endgame.entry}</li>

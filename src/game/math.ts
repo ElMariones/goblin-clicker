@@ -19,6 +19,7 @@ import type {
   UpgradeExclusiveGroup,
   UpgradeEffect,
 } from './types';
+import { getWarrenProjectMultiplier } from './projects';
 import { getFamilyAdapterFactor } from './robo/math';
 import { getRawKernelPerkRank } from './robo/state';
 
@@ -42,6 +43,11 @@ export function getExpansionMasteryLevel(state: GameState, buildingId: BuildingI
 export function getNextExpansionMasteryLevel(state: GameState, buildingId: BuildingId) {
   const owned = Math.max(0, Math.floor(state.buildings[buildingId]));
   return EXPANSION_MASTERY_LEVELS.find((level) => owned < level.threshold) ?? null;
+}
+
+export function getNextExpansionMilestoneQuantity(state: GameState, buildingId: BuildingId): number {
+  const next = getNextExpansionMasteryLevel(state, buildingId);
+  return next ? next.threshold - state.buildings[buildingId] : 0;
 }
 
 /** Product of every local mastery multiplier earned by the expansion. */
@@ -206,7 +212,7 @@ export function getMooncapDurationMultiplier(state: GameState): number {
 }
 
 export function getBuildingProductionMultiplier(state: GameState, buildingId: BuildingId): number {
-  let multiplier = getExpansionMasteryProductionMultiplier(state, buildingId);
+  let multiplier = getExpansionMasteryProductionMultiplier(state, buildingId) * getWarrenProjectMultiplier(state, buildingId);
   for (const effect of getPurchasedEffects(state)) {
     if (effect.type === 'buildingMultiplier' && effect.buildingId === buildingId) multiplier *= effect.multiplier;
   }

@@ -1,4 +1,5 @@
 import type { BlockPieceId } from './pieces';
+import type { BlocksTileSetId } from './tilesets';
 
 /**
  * Loot families are decoration. Geometry is the entire game, so no rule ever
@@ -45,6 +46,8 @@ export interface BlocksRunResult {
 export interface BlocksRun {
   startedAt: number;
   endedAt: number | null;
+  /** Which costume the tiles wear. Rotates every time the vault is emptied. */
+  tileSet: BlocksTileSetId;
   /** 64 entries, row-major, index = y * 8 + x. */
   board: (BlocksCell | null)[];
   /** Exactly three slots. `null` means that piece has already been placed this set. */
@@ -54,6 +57,8 @@ export interface BlocksRun {
   setNumber: number;
   score: number;
   combo: number;
+  /** Dry placements since the last clear. A chain survives two of them. */
+  comboMisses: number;
   bestCombo: number;
   largestClear: number;
   clearsThisSet: number;

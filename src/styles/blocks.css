@@ -8,7 +8,7 @@
   --blocks-preview-line: var(--moss-bright);
   --blocks-invalid: var(--danger);
   --blocks-token: var(--ember);
-  --blocks-tray-cell: clamp(15px, 3.4vw, 27px);
+  --blocks-tray-cell: clamp(15px, 3.4vw, 34px);
 }
 
 /* ---------- Entry button in the spawn pit ---------- */
@@ -81,7 +81,8 @@
  * being squeezed into a dialog the size of a shop panel.
  */
 .modal.blocks-modal {
-  width: min(calc(96vw / var(--ui-scale, 1)), 1180px);
+  width: min(calc(97vw / var(--ui-scale, 1)), 1600px);
+  height: calc(96vh / var(--ui-scale, 1));
   max-height: calc(96vh / var(--ui-scale, 1));
 }
 
@@ -91,7 +92,7 @@
  * is the one column all three rows share.
  */
 .blocks-layout {
-  --blocks-size: max(220px, min(100%, 620px, calc(94vh / var(--ui-scale, 1) - 330px)));
+  --blocks-size: max(220px, min(100%, 660px, calc(96vh / var(--ui-scale, 1) - 350px)));
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -99,33 +100,42 @@
 }
 
 /*
- * Wide enough for two columns: the tray and charges move beside the board so
- * the board can use the full height instead of sharing it, which is what makes
- * it big. Below this the single column is still the right shape.
+ * Wide windows get side rails for the readouts, which keeps the board as tall
+ * as the window allows. The pieces stay directly under the board where they
+ * belong — only the chrome moves out to the sides.
  */
-@media (min-width: 1040px) {
+@media (min-width: 1100px) {
   .blocks-layout {
-    --blocks-size: min(calc(94vh / var(--ui-scale, 1) - 165px), 820px, calc(100vw / var(--ui-scale, 1) - 560px));
+    /* Only the board and tray share the height, so the budget is tight. */
+    --blocks-size: min(
+      calc(96vh / var(--ui-scale, 1) - 250px),
+      900px,
+      calc(100vw / var(--ui-scale, 1) - 700px)
+    );
+    --blocks-tray-cell: clamp(24px, 2.6vw, 40px);
     display: grid;
-    gap: 16px 26px;
-    grid-template-columns: auto minmax(300px, 400px);
-    grid-template-rows: auto auto 1fr;
+    gap: 16px 30px;
+    grid-template-columns: minmax(190px, 300px) auto minmax(210px, 320px);
+    grid-template-rows: auto auto;
     grid-template-areas:
-      "stage hud"
-      "stage tray"
-      "stage footer";
+      "hud stage side"
+      "hud tray  side";
     align-items: start;
     justify-content: center;
   }
-  .blocks-stage { grid-area: stage; }
-  .blocks-hud { grid-area: hud; flex-direction: column; align-items: flex-start; gap: 12px; }
-  .blocks-hud__stats { width: 100%; justify-content: space-between; }
+  .blocks-hud { grid-area: hud; flex-direction: column; align-items: flex-start; gap: 20px; }
+  .blocks-hud__stats { width: 100%; flex-direction: column; align-items: flex-start; gap: 14px; }
   .blocks-hud__stats div { align-items: flex-start; }
-  .blocks-tray { grid-area: tray; width: 100%; }
-  .blocks-tray__slot { min-height: 104px; }
-  .blocks-footer { grid-area: footer; width: 100%; flex-direction: column; align-items: stretch; gap: 14px; }
+  .blocks-hud__score strong { font-size: clamp(34px, 3.4vw, 54px); }
+  .blocks-hud__stats span, .blocks-tally dt { font-size: 9px; }
+  .blocks-hud__stats strong { font-size: 22px; }
+  .blocks-tally dd { font-size: 17px; }
+  .blocks-charge__use { font-size: 13px; }
+  .blocks-stage { grid-area: stage; }
+  .blocks-tray { grid-area: tray; width: var(--blocks-size); }
+  .blocks-footer { grid-area: side; flex-direction: column; align-items: stretch; gap: 16px; }
   .blocks-charges { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .blocks-tally { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; }
+  .blocks-tally { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 12px; }
   .blocks-tally div { align-items: flex-start; }
   .blocks-note--keys { text-align: start; }
 }
@@ -205,6 +215,99 @@
   18% { opacity: 1; transform: translate(-50%, -2px) scale(1.04); }
   70% { opacity: 1; transform: translate(-50%, -8px) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -22px) scale(1); }
+}
+
+/* ---------- Clear, combo and board-clear effects ---------- */
+
+.blocks-burst {
+  position: absolute;
+  z-index: 4;
+  /* Matches the board's padding so the grid maths below lines up with cells. */
+  inset: 7px;
+  --cell: calc((100% - 21px) / 8);
+  pointer-events: none;
+}
+
+.blocks-sweep {
+  position: absolute;
+  border-radius: var(--radius-sm);
+}
+.blocks-sweep--row {
+  left: 0;
+  right: 0;
+  height: var(--cell);
+  top: calc(var(--line) * (var(--cell) + 3px));
+  background: linear-gradient(90deg, transparent, rgba(255, 226, 150, .92), transparent);
+  animation: blocks-sweep-x 460ms var(--ease-out) forwards;
+}
+.blocks-sweep--column {
+  top: 0;
+  bottom: 0;
+  width: var(--cell);
+  left: calc(var(--line) * (var(--cell) + 3px));
+  background: linear-gradient(180deg, transparent, rgba(255, 226, 150, .92), transparent);
+  animation: blocks-sweep-y 460ms var(--ease-out) forwards;
+}
+@keyframes blocks-sweep-x {
+  0% { opacity: 0; transform: scaleX(.25); }
+  30% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+@keyframes blocks-sweep-y {
+  0% { opacity: 0; transform: scaleY(.25); }
+  30% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+
+.blocks-wash {
+  position: absolute;
+  inset: -7px;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 226, 150, .5), rgba(182, 231, 107, .18) 45%, transparent 72%);
+  animation: blocks-wash 1s var(--ease-out) forwards;
+}
+@keyframes blocks-wash {
+  0% { opacity: 0; transform: scale(.7); }
+  35% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+/* The reward for emptying the vault: it visibly restocks with a new set. */
+.blocks-setcard {
+  position: absolute;
+  z-index: 6;
+  top: 42%;
+  left: 50%;
+  display: flex;
+  padding: 14px 26px;
+  gap: 4px;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(233, 195, 113, .5);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  background: rgba(10, 14, 9, .9);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .6), 0 0 40px rgba(226, 184, 96, .18);
+  pointer-events: none;
+  animation: blocks-setcard 1.7s var(--ease-out) forwards;
+}
+.blocks-setcard strong { color: var(--ember-bright); font-family: var(--font-display); font-size: clamp(18px, 2.6vw, 26px); }
+.blocks-setcard span { color: var(--ink-soft); font-size: 13px; }
+@keyframes blocks-setcard {
+  0% { opacity: 0; transform: translate(-50%, 14px) scale(.9); }
+  14% { opacity: 1; transform: translate(-50%, -4px) scale(1.03); }
+  30% { transform: translate(-50%, 0) scale(1); }
+  78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -18px) scale(1); }
+}
+
+.blocks-hud__combo strong { animation: blocks-combo-pop 300ms var(--ease-spring); }
+.blocks-hud__combo.is-hot strong { color: var(--ember-bright); }
+.blocks-hud__combo.is-blazing strong { color: #ff9f52; text-shadow: 0 0 14px rgba(255, 150, 60, .55); }
+@keyframes blocks-combo-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.34); }
+  100% { transform: scale(1); }
 }
 
 /* ---------- Dragged piece ---------- */
@@ -367,7 +470,13 @@
 /* ---------- Reduced motion ---------- */
 
 .blocks-modal--still .blocks-cell img,
+.blocks-modal--still .blocks-hud__combo strong,
+.blocks-modal--still .blocks-sweep,
+.blocks-modal--still .blocks-wash,
 .blocks-modal--still .blocks-flourish { animation: none; }
+.blocks-modal--still .blocks-sweep,
+.blocks-modal--still .blocks-wash { opacity: .55; }
+.blocks-modal--still .blocks-setcard { animation: none; opacity: 1; transform: translate(-50%, 0); }
 .blocks-modal--still .blocks-flourish { opacity: 1; transform: translate(-50%, -8px); }
 .blocks-modal--still .blocks-tray__slot,
 .blocks-modal--still .blocks-primary,

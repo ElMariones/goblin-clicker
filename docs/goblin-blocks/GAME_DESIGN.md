@@ -37,10 +37,19 @@ which are decoration only — the entire game is geometry. Colour never gates a 
 because layering colour matching onto the core mechanic would obscure the one thing the player has
 to read.
 
-Loot families: `gold`, `weapon`, `fungus`, `crystal`, `relic`, `tool`. A piece is a single family, so
-a placed piece reads as one object rather than a confetti of cells. Each family ships one painted
-crate; the saved `variant` picks a mirror or quarter-turn of it, which is enough to stop a large
-single-family region reading as one repeated texture.
+A cell's slot is one of six, and a piece is a single slot, so a placed piece reads as one object
+rather than a confetti of cells. The saved `variant` picks a mirror or quarter-turn, which stops a
+large single-slot region reading as one repeated texture.
+
+### 3.1 Tile sets
+
+Five sets fill those six slots: **Stolen Loot** (crates of coins, weapons, mushrooms, crystals,
+relics and tools), **Goblin Heads**, **Cut Gems**, **Bottled Brews** and **Clockwork**. A set is
+purely a change of costume — the geometry is identical, so nothing about a set affects play.
+
+A run opens on a random set and **rotates to a different one every time the vault is emptied**. That
+makes a board clear pay out three ways: score, tokens, and a warehouse that visibly restocks with
+something new for the rest of the run.
 
 ## 4. Piece library
 
@@ -73,7 +82,7 @@ difficulty ceiling faster than they raise the interest.
 
 ### 5.1 Placement
 
-**+10 per occupied cell.** A 1×1 pays 10; a 2×2 pays 40; a 3×3 pays 90.
+**+50 per occupied cell.** A 1×1 pays 50; a 2×2 pays 200; a 3×3 pays 450.
 
 ### 5.2 Line clears
 
@@ -81,20 +90,26 @@ Base reward for clearing *n* lines in one placement, where rows and columns coun
 
 | Lines | Base |
 | --- | --- |
-| 1 | 100 |
-| 2 | 250 |
-| 3 | 450 |
-| 4 | 700 |
-| 5 | 1,000 |
-| 6+ | 1,000 + 350 per line beyond five |
+| 1 | 750 |
+| 2 | 2,000 |
+| 3 | 4,000 |
+| 4 | 7,000 |
+| 5 | 11,000 |
+| 6+ | 11,000 + 4,500 per line beyond five |
 
-The gap between four separate single clears (400) and a genuine quad (700) is the whole reason to
+The gap between four separate single clears (3,000) and a genuine quad (7,000) is the whole reason to
 engineer multi-line placements instead of clearing greedily.
+
+The whole table sits an order of magnitude above a cautious first tuning, because a score worth
+chasing should read in the hundreds of thousands. The reward brackets in §8.1 moved by the same
+factor, so what a given quality of run actually pays is unchanged.
 
 ### 5.3 Combo
 
-`combo` counts **consecutive placements that cleared at least one line**. A placement that clears
-nothing resets it to zero.
+`combo` counts **placements that cleared at least one line**. A chain survives up to two dry
+placements; the third in a row breaks it. Losing six moves of accumulated combo to one awkward piece
+punished the wrong thing — the player should be able to spend a move tidying the board without
+forfeiting everything they have built.
 
 ```text
 clearScore = base × min(5.0, 1 + (combo − 1) × 0.15)
@@ -108,21 +123,22 @@ brackets.
 
 Awarded when the third piece of a trio is placed:
 
-* **+50** for placing all three.
-* **+100** more if at least one line cleared during the set.
-* **+500** for a **Perfect Set** — every one of the three pieces cleared at least one line. A Perfect
-  Set also pays **+1 Hoard Token** directly.
+* **+500** for placing all three.
+* **+1,000** more if at least one line cleared during the set.
+* **+5,000** for a **Perfect Set** — every one of the three pieces cleared at least one line. A
+  Perfect Set also pays **+1 Hoard Token** directly.
 
 ### 5.5 Board clear
 
 Emptying the board completely:
 
-* **+2,500**
+* **+25,000**
 * the next **three** placements score **×2** on both placement and clear score,
-* **+3 Hoard Tokens**.
+* **+3 Hoard Tokens**,
+* and the vault restocks with a different tile set (§3.1).
 
-Board clears should feel like an event. They are rare, entirely skill-driven, and the doubled window
-lets the player convert one into a large chain.
+Board clears should feel like an event, and they should not be so rare that most players never see
+one — hence the generator assist in §6.
 
 ## 6. Piece generation
 
@@ -153,6 +169,17 @@ Rule 5's last clause is the whole anti-frustration policy, and it is narrow on p
 guarantees the player gets **one** legal move, never that the set is survivable. Deaths come from the
 board the player built, not from a trio that was dead on arrival.
 
+### 6.1 Board-clear assist
+
+Before the normal draw, when the board holds **22 cells or fewer** and a seeded roll passes (55%), the
+generator looks for a finishing set: if every occupied cell already lies on one row or one column, it
+offers the straight pieces that exactly fill that line's gaps, which empties the board.
+
+This is deliberately conditional on the player having already done the work. The assist never appears
+on a crowded board, and it can only ever hand over pieces that complete a line the player has already
+set up — it turns a board clear from a lucky accident into a reachable goal, without clearing the
+board for anyone.
+
 ## 7. Game over
 
 Checked after every placement and immediately after every generation:
@@ -181,12 +208,12 @@ rewardGoblins = max(rewardSeconds, floor(getBaseCps(state) × rewardSeconds × d
 
 | Score | Seconds of production |
 | --- | --- |
-| < 2,000 | 20 |
-| 2,000 – 4,999 | 45 |
-| 5,000 – 9,999 | 90 |
-| 10,000 – 19,999 | 180 |
-| 20,000 – 39,999 | 300 |
-| 40,000+ | 300 + 60 per further 20,000, capped at **600** |
+| < 20,000 | 20 |
+| 20,000 – 49,999 | 45 |
+| 50,000 – 99,999 | 90 |
+| 100,000 – 199,999 | 180 |
+| 200,000 – 399,999 | 300 |
+| 400,000+ | 300 + 60 per further 200,000, capped at **600** |
 
 For calibration against the existing board: a Quick Order pays 10s, a Quartermaster Contract 60s, a
 Grand Directive 240s. A good ten-minute puzzle run therefore lands in the same band as a Grand
@@ -217,7 +244,7 @@ warehouse is not behind; a player who grinds it for an hour is not ahead.
 ### 8.3 Hoard Tokens
 
 ```text
-tokens = floor(score / 1,000) + perfectSetTokens + boardClearTokens
+tokens = floor(score / 10,000) + perfectSetTokens + boardClearTokens
 ```
 
 capped so that **no more than 50 tokens are earned per local day**. Tokens are *not* multiplied by

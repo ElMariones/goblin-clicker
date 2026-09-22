@@ -29,7 +29,13 @@ import { generatePieces } from './generator';
 import { BLOCK_PIECES, BLOCK_PIECE_BY_ID, type BlockPieceId } from './pieces';
 import {
   BOARD_CELLS,
+  BOARD_CLEAR_SCORE,
   BOARD_SIZE,
+  COMBO_GRACE_PLACEMENTS,
+  PERFECT_SET_SCORE,
+  PLACEMENT_SCORE_PER_CELL,
+  SET_COMPLETE_SCORE,
+  SET_WITH_CLEAR_SCORE,
   canPlace,
   cellIndex,
   comboMultiplier,
@@ -37,6 +43,10 @@ import {
   hasAnyLegalPlacement,
   scoreForLines,
 } from './rules';
+import { BLOCKS_TILE_SETS } from './tilesets';
+
+/** Score for placing a piece of `cells` cells, at the current tuning. */
+const place = (cells: number) => cells * PLACEMENT_SCORE_PER_CELL;
 import type { BlocksCell, BlocksRun } from './types';
 
 const START = 1_700_000_000_000;
@@ -65,12 +75,14 @@ function makeRun(board: (BlocksCell | null)[], tray: readonly (BlockPieceId | nu
   return {
     startedAt: START,
     endedAt: null,
+    tileSet: 'loot',
     board,
     tray: tray.map((pieceId) => (pieceId === null ? null : { pieceId, loot: 'gold' as const, variant: 0 })),
     previousTrayIds: [],
     setNumber: 1,
     score: 0,
     combo: 0,
+    comboMisses: 0,
     bestCombo: 0,
     largestClear: 0,
     clearsThisSet: 0,
@@ -136,9 +148,11 @@ describe('gate 2 — simultaneous clears', () => {
 
     expect(result.success).toBe(true);
     expect(result.clearedLines).toBe(3);
-    // 2 cells placed (20) + the triple band at combo x1 (450).
-    expect(result.scoreGained).toBe(20 + scoreForLines(3));
-    expect(result.scoreGained).toBeGreaterThan(20 + 4 * scoreForLines(1));
+    expect(result.scoreGained).toBe(place(2) + scoreForLines(3));
+    // A genuine triple beats four separate singles, which is the whole point.
+    expect(result.scoreGained).toBeGreaterThan(place(2) + 4 * scoreForLines(1));
+    expect(result.clearedRows).toEqual([0, 1]);
+    expect(result.clearedColumns).toEqual([7]);
     const next = result.state.blocks.run!;
     expect(next.board[cellIndex(0, 4)]).not.toBeNull();
     expect(next.board.filter((cell) => cell !== null)).toHaveLength(1);
@@ -156,7 +170,7 @@ describe('gate 3 — combo arithmetic', () => {
     expect(comboMultiplier(1_000)).toBe(5);
   });
 
-  it('builds across consecutive clearing placements and resets on a dry one', () => {
+  it('builds across consecutive clearing placements and survives a dry one', () => {
     // Rows 0 and 1 each need their last cell. The stray cell on row 5 keeps the
     // board from emptying, which would otherwise fire a board clear instead.
     let state = warehouse(makeRun(
@@ -166,18 +180,43 @@ describe('gate 3 — combo arithmetic', () => {
 
     const first = applyPlacement(state, 0, cellIndex(7, 0), START);
     expect(first.combo).toBe(1);
-    expect(first.scoreGained).toBe(10 + scoreForLines(1));
+    expect(first.scoreGained).toBe(place(1) + scoreForLines(1));
 
     state = first.state;
     const second = applyPlacement(state, 1, cellIndex(7, 1), START);
     expect(second.combo).toBe(2);
-    expect(second.scoreGained).toBe(10 + Math.round(scoreForLines(1) * 1.15));
+    expect(second.scoreGained).toBe(place(1) + Math.round(scoreForLines(1) * 1.15));
 
     state = second.state;
     const third = applyPlacement(state, 2, cellIndex(0, 3), START);
     expect(third.clearedLines).toBe(0);
-    expect(third.combo).toBe(0);
+    // One dry placement no longer costs the chain.
+    expect(third.combo).toBe(2);
+    expect(third.comboBroken).toBe(false);
     expect(third.state.blocks.run?.bestCombo).toBe(2);
+  });
+
+  it('breaks the chain only after three dry placements', () => {
+    let state = warehouse(makeRun(
+      boardFrom(['XXXXXXX.', '', '', '', '', 'X.......']),
+      ['dot', 'dot', 'dot'],
+    ));
+    state = applyPlacement(state, 0, cellIndex(7, 0), START).state;
+    expect(state.blocks.run?.combo).toBe(1);
+
+    const dryAnchors = [cellIndex(0, 2), cellIndex(1, 2), cellIndex(2, 2)];
+    let last = applyPlacement(state, 1, dryAnchors[0], START);
+    expect(last.combo).toBe(1);
+    last = applyPlacement(last.state, 2, dryAnchors[1], START);
+    expect(last.combo).toBe(1);
+    expect(last.comboBroken).toBe(false);
+
+    // The third dry placement is the one that finally breaks it.
+    const run = last.state.blocks.run!;
+    last = applyPlacement(last.state, 0, findFreeAnchor(run, 0), START);
+    expect(last.comboBroken).toBe(true);
+    expect(last.combo).toBe(0);
+    expect(COMBO_GRACE_PLACEMENTS).toBe(3);
   });
 });
 
@@ -194,8 +233,9 @@ describe('gate 4 — perfect set', () => {
     const run = third.state.blocks.run!;
     expect(run.perfectSets).toBe(1);
     expect(run.bonusTokens).toBe(1);
-    // Placement 10 + clear at x1.30 + set 50 + set-with-clear 100 + perfect 500.
-    expect(third.scoreGained).toBe(10 + Math.round(scoreForLines(1) * 1.3) + 50 + 100 + 500);
+    expect(third.scoreGained).toBe(
+      place(1) + Math.round(scoreForLines(1) * 1.3) + SET_COMPLETE_SCORE + SET_WITH_CLEAR_SCORE + PERFECT_SET_SCORE,
+    );
   });
 
   it('pays neither when only two of the three pieces clear', () => {
@@ -207,27 +247,27 @@ describe('gate 4 — perfect set', () => {
 
     expect(third.perfectSet).toBe(false);
     expect(third.state.blocks.run?.bonusTokens).toBe(0);
-    // Set complete (50) plus at-least-one-clear (100), but no perfect bonus.
-    expect(third.scoreGained).toBe(10 + 50 + 100);
+    // Set complete plus at-least-one-clear, but no perfect bonus.
+    expect(third.scoreGained).toBe(place(1) + SET_COMPLETE_SCORE + SET_WITH_CLEAR_SCORE);
   });
 });
 
 describe('gate 5 — board clear', () => {
-  it('pays 2,500 with three tokens and doubles exactly the next three placements', () => {
+  it('pays the board-clear bonus with three tokens and doubles exactly the next three placements', () => {
     const state = warehouse(makeRun(boardFrom(['XXXXXXX.']), ['dot', 'h2', 'h3']));
     const cleared = applyPlacement(state, 0, cellIndex(7, 0), START);
 
     expect(cleared.boardCleared).toBe(true);
-    expect(cleared.scoreGained).toBe(10 + scoreForLines(1) + 2_500);
+    expect(cleared.scoreGained).toBe(place(1) + scoreForLines(1) + BOARD_CLEAR_SCORE);
     expect(cleared.state.blocks.run?.bonusTokens).toBe(3);
     expect(cleared.state.blocks.run?.doubleScorePlacements).toBe(3);
 
     const second = applyPlacement(cleared.state, 1, cellIndex(0, 4), START);
-    expect(second.scoreGained).toBe(2 * 10 * 2);
+    expect(second.scoreGained).toBe(place(2) * 2);
     const third = applyPlacement(second.state, 2, cellIndex(0, 6), START);
-    // Still doubled, plus the set bonus (50) and the at-least-one-clear bonus
-    // (100), which the board-clearing first placement earned for this set.
-    expect(third.scoreGained).toBe(3 * 10 * 2 + 50 + 100);
+    // Still doubled, plus the set bonus and the at-least-one-clear bonus, which
+    // the board-clearing first placement earned for this set.
+    expect(third.scoreGained).toBe(place(3) * 2 + SET_COMPLETE_SCORE + SET_WITH_CLEAR_SCORE);
 
     const run = third.state.blocks.run!;
     expect(run.doubleScorePlacements).toBe(1);
@@ -244,6 +284,46 @@ function findFreeAnchor(run: BlocksRun, slot: number): number {
   }
   throw new Error('no legal anchor for the test fixture');
 }
+
+describe('tile sets', () => {
+  it('re-dresses the vault on a board clear and keeps the costume otherwise', () => {
+    const state = warehouse(makeRun(boardFrom(['XXXXXXX.']), ['dot', 'h2', 'h3']));
+    const before = state.blocks.run!.tileSet;
+    const cleared = applyPlacement(state, 0, cellIndex(7, 0), START);
+
+    expect(cleared.boardCleared).toBe(true);
+    expect(cleared.tileSet).not.toBe(before);
+    expect(BLOCKS_TILE_SETS).toContain(cleared.tileSet);
+
+    const dry = applyPlacement(cleared.state, 1, cellIndex(0, 4), START);
+    expect(dry.tileSet).toBe(cleared.tileSet);
+  });
+});
+
+describe('board-clear assist', () => {
+  it('offers exactly the pieces that empty a vault down to one row', () => {
+    // Every occupied cell sits on row 3, with two gaps left to fill.
+    const board = boardFrom(['', '', '', 'XX..XXX.']);
+    let found = false;
+    for (let seed = 1; seed < 200 && !found; seed += 1) {
+      const drawn = generatePieces(board, seed, 0, 3, [], 4);
+      if (!drawn.assisted) continue;
+      found = true;
+      // Placing the offered pieces must be able to finish row 3.
+      const widths = drawn.ids.map((id) => BLOCK_PIECE_BY_ID[id].width * BLOCK_PIECE_BY_ID[id].height);
+      expect(widths.length).toBe(3);
+      expect(hasAnyLegalPlacement(board, drawn.ids)).toBe(true);
+    }
+    expect(found).toBe(true);
+  });
+
+  it('never assists a board that is nowhere near empty', () => {
+    const board = checkerboard();
+    for (let seed = 1; seed < 60; seed += 1) {
+      expect(generatePieces(board, seed, 0, 3, [], 4).assisted).toBeFalsy();
+    }
+  });
+});
 
 describe('gate 6 — game over is exact', () => {
   it('continues while any single piece still fits', () => {
@@ -331,12 +411,12 @@ describe('gate 8 — determinism', () => {
 describe('gate 9 — reward bounds', () => {
   it('maps score brackets to seconds and never exceeds the ceiling', () => {
     expect(rewardSecondsForScore(0)).toBe(20);
-    expect(rewardSecondsForScore(1_999)).toBe(20);
-    expect(rewardSecondsForScore(2_000)).toBe(45);
-    expect(rewardSecondsForScore(5_000)).toBe(90);
-    expect(rewardSecondsForScore(10_000)).toBe(180);
-    expect(rewardSecondsForScore(20_000)).toBe(300);
-    expect(rewardSecondsForScore(40_000)).toBe(360);
+    expect(rewardSecondsForScore(19_999)).toBe(20);
+    expect(rewardSecondsForScore(20_000)).toBe(45);
+    expect(rewardSecondsForScore(50_000)).toBe(90);
+    expect(rewardSecondsForScore(100_000)).toBe(180);
+    expect(rewardSecondsForScore(200_000)).toBe(300);
+    expect(rewardSecondsForScore(400_000)).toBe(360);
     expect(rewardSecondsForScore(Number.MAX_VALUE)).toBe(BLOCKS_MAX_REWARD_SECONDS);
     expect(rewardSecondsForScore(Number.POSITIVE_INFINITY)).toBeLessThanOrEqual(BLOCKS_MAX_REWARD_SECONDS);
   });
@@ -358,7 +438,7 @@ describe('gate 9 — reward bounds', () => {
 
   it('stops awarding tokens once the daily cap is reached', () => {
     const state = warehouse(
-      makeRun(checkerboard(), ['dot', 'h2', 'v2'], { score: 400_000 }),
+      makeRun(checkerboard(), ['dot', 'h2', 'v2'], { score: 4_000_000 }),
       { daily: { day: 0, runsFinished: 0, tokensEarned: 0 } },
     );
     const ended = applyPlacement(state, 0, cellIndex(0, 0), START);
@@ -508,7 +588,7 @@ describe('run lifecycle', () => {
 
   it('collects a finished run before starting the next one', () => {
     const ended = applyPlacement(
-      warehouse(makeRun(checkerboard(), ['dot', 'h2', 'v2'], { score: 6_000 })),
+      warehouse(makeRun(checkerboard(), ['dot', 'h2', 'v2'], { score: 60_000 })),
       0,
       cellIndex(0, 0),
       START,

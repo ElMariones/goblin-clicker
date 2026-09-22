@@ -49,10 +49,15 @@ game. Validate it with real colour pairs, not with intent.
 └──────────────────────────────────────────────────────┘
 ```
 
-Desktop: the board is a centred square sized by `--blocks-size`, which is the smallest of the column
-width, 560px, and a height budget of `88vh - 400px`. Sizing from height as well as width is what keeps
-the tray and charges on screen instead of below a scroll. The tray and footer share the same width.
-Statistics live in the footer strip, never beside the board where they would compete for attention.
+Desktop: the warehouse is a near-fullscreen dialog — `97vw` wide up to 1600px, and `96vh` tall. Above
+1100px it becomes three columns: **readouts on the left rail, board and tray in the centre, charges
+and tallies on the right rail.** Only chrome moves to the sides; the pieces always sit directly under
+the board, because that is where the hand expects them.
+
+Giving the rails the chrome is what lets the board take the whole height: `--blocks-size` is the
+smallest of `96vh - 250px`, 900px, and `100vw - 700px`, which is roughly a 700px board on a 1080p
+screen. Every one of those viewport terms divides `--ui-scale` back out, because CSS `zoom` scales
+viewport units as well as layout.
 
 Below 640px the same single column holds: header, board, tray, charges. Charges stack one per row —
 two side by side cannot hold a 44px target and a price at phone width without clipping the price off
@@ -144,7 +149,8 @@ solving anything. Invalid positions tint the piece itself, not the board.
 coins and dust (160ms), and the score counter ticks up. Clears never block input — a player who
 already knows their next move can place during the animation.
 
-**Combo.** A text flourish near the score, escalating and thematic:
+**Combo.** The combo readout pops on every change and heats up as the chain grows — ember at ×5,
+orange with a glow at ×8. Alongside it, a text flourish near the board, escalating and thematic:
 
 | Combo | Text |
 | --- | --- |
@@ -154,8 +160,13 @@ already knows their next move can place during the animation.
 | ×8 | HOARDMASTER! |
 | ×10+ | ABSOLUTE GOBLIN GENIUS! |
 
-**Board clear.** A full-board wash of coins, the foreman celebrating, and a persistent ×2 badge for
-the three doubled placements.
+**Clear sweep.** Every cleared row and column gets its own bar of light, drawn over the exact cells
+that went and swept out along the line in 460ms. The engine reports which lines cleared, so this is
+never an approximation.
+
+**Board clear.** A radial wash over the whole board, then a card announcing the vault is empty and
+naming the tile set that replaces it. This is the one moment in the run that changes how the game
+looks, so it gets the longest beat at 1.7s.
 
 **Game over.** The board dims, shelving creaks, and the result panel slides up. No punishing noise —
 the run ending is the normal end of a session, not a failure state.

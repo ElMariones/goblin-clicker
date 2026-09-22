@@ -9,7 +9,8 @@
 
 import { clampResource } from '../state';
 import { isBlockPieceId, type BlockPieceId } from './pieces';
-import { BOARD_CELLS, BOARD_CLEAR_DOUBLE_PLACEMENTS, BOARD_SIZE } from './rules';
+import { isBlocksTileSetId } from './tilesets';
+import { BOARD_CELLS, BOARD_CLEAR_DOUBLE_PLACEMENTS, BOARD_SIZE, COMBO_GRACE_PLACEMENTS } from './rules';
 import {
   BLOCKS_CHARGE_CAP,
   BLOCKS_MAX_REWARD_SECONDS,
@@ -107,12 +108,15 @@ function sanitizeRun(raw: unknown, lastUpdateAt: number): BlocksRun | null {
   return {
     startedAt,
     endedAt,
+    // Runs saved before tile sets existed simply wear the original costume.
+    tileSet: isBlocksTileSetId(raw.tileSet) ? raw.tileSet : 'loot',
     board,
     tray,
     previousTrayIds,
     setNumber: Math.max(1, integer(raw.setNumber, 1)),
     score,
     combo: bounded(raw.combo, 10_000),
+    comboMisses: bounded(raw.comboMisses, COMBO_GRACE_PLACEMENTS),
     bestCombo: bounded(raw.bestCombo, 10_000),
     largestClear: bounded(raw.largestClear, BOARD_SIZE * 2),
     clearsThisSet: bounded(raw.clearsThisSet, BLOCKS_TRAY_SIZE),

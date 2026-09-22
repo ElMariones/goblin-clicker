@@ -13,7 +13,7 @@
 
 import { randomAt } from '../rng';
 import { BLOCK_PIECES, BLOCK_PIECE_BY_ID, type BlockPieceDefinition, type BlockPieceId } from './pieces';
-import { BOARD_CELLS, canPlaceAnywhere, countOccupied, type BlocksBoard } from './rules';
+import { BOARD_CELLS, BOARD_SIZE, canPlaceAnywhere, cellIndex, countOccupied, type BlocksBoard } from './rules';
 import type { BlocksDifficulty } from './pieces';
 
 const MAX_TRIO_ATTEMPTS = 12;
@@ -24,6 +24,71 @@ const MAX_RUN_PRESSURE = 0.35;
 export interface GeneratedPieces {
   ids: BlockPieceId[];
   counter: number;
+  /** True when the set was chosen to make emptying the vault reachable. */
+  assisted?: boolean;
+}
+
+/** Occupancy at or below which the generator will look for a board-clear set. */
+const ASSIST_MAX_OCCUPIED = 22;
+const ASSIST_CHANCE = 0.55;
+
+/** Horizontal runs of empty cells in a row, as {start, length}. */
+function emptyRuns(board: BlocksBoard, line: number, vertical: boolean): number[] {
+  const runs: number[] = [];
+  let run = 0;
+  for (let i = 0; i < BOARD_SIZE; i += 1) {
+    const index = vertical ? cellIndex(line, i) : cellIndex(i, line);
+    if (board[index] === null) run += 1;
+    else if (run > 0) { runs.push(run); run = 0; }
+  }
+  if (run > 0) runs.push(run);
+  return runs;
+}
+
+const LINE_PIECE: Record<number, { h: BlockPieceId; v: BlockPieceId }> = {
+  1: { h: 'dot', v: 'dot' },
+  2: { h: 'h2', v: 'v2' },
+  3: { h: 'h3', v: 'v3' },
+  4: { h: 'h4', v: 'v4' },
+  5: { h: 'h5', v: 'v5' },
+};
+
+/**
+ * Pieces that would exactly fill one line, when completing that line empties the
+ * whole board. Returns null unless every occupied cell already sits in that line
+ * and the gaps can be covered by `budget` straight pieces.
+ *
+ * This is what turns a board clear from a lucky accident into something the
+ * player can be handed — deliberately, and only when they have already done the
+ * work of clearing almost everything.
+ */
+function boardClearSet(board: BlocksBoard, budget: number): BlockPieceId[] | null {
+  for (let vertical = 0; vertical < 2; vertical += 1) {
+    for (let line = 0; line < BOARD_SIZE; line += 1) {
+      let occupiedOutside = 0;
+      for (let index = 0; index < BOARD_CELLS; index += 1) {
+        if (board[index] === null) continue;
+        const onLine = vertical ? index % BOARD_SIZE === line : Math.floor(index / BOARD_SIZE) === line;
+        if (!onLine) occupiedOutside += 1;
+      }
+      if (occupiedOutside > 0) continue;
+
+      const runs = emptyRuns(board, line, vertical === 1);
+      const pieces: BlockPieceId[] = [];
+      for (const run of runs) {
+        let left = run;
+        while (left > 0) {
+          const take = Math.min(5, left);
+          const entry = LINE_PIECE[take];
+          if (!entry || pieces.length >= budget) return null;
+          pieces.push(vertical === 1 ? entry.v : entry.h);
+          left -= take;
+        }
+      }
+      if (pieces.length > 0 && pieces.length <= budget) return pieces;
+    }
+  }
+  return null;
 }
 
 function difficultyScale(occupancy: number, setNumber: number): Record<BlocksDifficulty, number> {
@@ -91,6 +156,23 @@ export function generatePieces(
   const wanted = Math.max(1, Math.floor(count));
   const { pool, total } = buildPool(board, setNumber);
   let cursor = Math.max(0, Math.floor(counter));
+
+  // On a nearly-empty board, sometimes hand over exactly the pieces that finish
+  // the job. The roll is drawn either way so the sequence stays deterministic.
+  const assistRoll = randomAt(seed, cursor);
+  cursor += 1;
+  const occupied = countOccupied(board);
+  if (occupied > 0 && occupied <= ASSIST_MAX_OCCUPIED && assistRoll < ASSIST_CHANCE) {
+    const assist = boardClearSet(board, wanted);
+    if (assist) {
+      const ids = [...assist];
+      while (ids.length < wanted) {
+        ids.push(drawFromPool(pool, total, randomAt(seed, cursor)));
+        cursor += 1;
+      }
+      return { ids, counter: cursor, assisted: true };
+    }
+  }
 
   for (let attempt = 0; attempt < MAX_TRIO_ATTEMPTS; attempt += 1) {
     const ids: BlockPieceId[] = [];

@@ -14,9 +14,11 @@ import type { GameState } from '../types';
 import { localDayIndex } from './factory';
 import { generatePieces } from './generator';
 import { BLOCK_PIECE_BY_ID, type BlockPieceId } from './pieces';
+import { BLOCKS_TILE_SETS, nextTileSet, type BlocksTileSetId } from './tilesets';
 import {
   BOARD_CELLS,
   BOARD_CLEAR_DOUBLE_PLACEMENTS,
+  COMBO_GRACE_PLACEMENTS,
   BOARD_CLEAR_SCORE,
   BOARD_CLEAR_TOKENS,
   PERFECT_SET_SCORE,
@@ -45,7 +47,7 @@ import {
 } from './types';
 
 export const BLOCKS_TRAY_SIZE = 3;
-export const BLOCKS_SCORE_PER_TOKEN = 1_000;
+export const BLOCKS_SCORE_PER_TOKEN = 10_000;
 export const BLOCKS_TOKEN_DAILY_CAP = 50;
 export const BLOCKS_MAX_REWARD_SECONDS = 600;
 export const BLOCKS_CHARGE_CAP = 3;
@@ -64,9 +66,17 @@ export interface BlocksActionResult {
 
 export interface BlocksPlacementResult extends BlocksActionResult {
   clearedLines: number;
+  /** Which lines went, so the interface can animate exactly those. */
+  clearedRows: number[];
+  clearedColumns: number[];
+  /** Board indices the piece just filled, for the placement pop. */
+  placedCells: number[];
   combo: number;
+  comboBroken: boolean;
   scoreGained: number;
   boardCleared: boolean;
+  /** Set after the placement; differs from the previous one on a board clear. */
+  tileSet: BlocksTileSetId;
   perfectSet: boolean;
   setCompleted: boolean;
   runEnded: boolean;
@@ -109,13 +119,17 @@ export function isBlocksRunFinished(state: GameState): boolean {
   return run !== null && run.endedAt !== null && run.result !== null;
 }
 
+/**
+ * Brackets moved by the same factor as the score table, so the payout for a
+ * given quality of run is exactly what it was before scores were enlarged.
+ */
 export function rewardSecondsForScore(score: number): number {
-  if (!Number.isFinite(score) || score < 2_000) return 20;
-  if (score < 5_000) return 45;
-  if (score < 10_000) return 90;
-  if (score < 20_000) return 180;
-  if (score < 40_000) return 300;
-  const extraBands = Math.floor((score - 40_000) / 20_000) + 1;
+  if (!Number.isFinite(score) || score < 20_000) return 20;
+  if (score < 50_000) return 45;
+  if (score < 100_000) return 90;
+  if (score < 200_000) return 180;
+  if (score < 400_000) return 300;
+  const extraBands = Math.floor((score - 400_000) / 200_000) + 1;
   return Math.min(BLOCKS_MAX_REWARD_SECONDS, 300 + extraBands * 60);
 }
 
@@ -170,12 +184,14 @@ function createRun(now: number): BlocksRun {
   return {
     startedAt: Math.max(0, Math.floor(now)),
     endedAt: null,
+    tileSet: BLOCKS_TILE_SETS[Math.floor(randomAt(seed, 9_999) * BLOCKS_TILE_SETS.length) % BLOCKS_TILE_SETS.length],
     board,
     tray: dealt.tray,
     previousTrayIds: dealt.tray.map((piece) => piece.pieceId),
     setNumber: 1,
     score: 0,
     combo: 0,
+    comboMisses: 0,
     bestCombo: 0,
     largestClear: 0,
     clearsThisSet: 0,
@@ -268,9 +284,14 @@ const failedPlacement = (state: GameState): BlocksPlacementResult => ({
   state,
   success: false,
   clearedLines: 0,
+  clearedRows: [],
+  clearedColumns: [],
+  placedCells: [],
   combo: 0,
+  comboBroken: false,
   scoreGained: 0,
   boardCleared: false,
+  tileSet: state.blocks.run?.tileSet ?? 'loot',
   perfectSet: false,
   setCompleted: false,
   runEnded: false,
@@ -298,7 +319,11 @@ export function applyPlacement(state: GameState, slot: number, anchorIndex: numb
 
   const lines = findFullLines(board);
   const clearedLines = lines.rows.length + lines.columns.length;
-  const combo = clearedLines > 0 ? run.combo + 1 : 0;
+  // A chain survives a couple of dry placements. Losing six moves of combo to
+  // one awkward piece punished the wrong thing.
+  const comboMisses = clearedLines > 0 ? 0 : run.comboMisses + 1;
+  const comboBroken = clearedLines === 0 && comboMisses >= COMBO_GRACE_PLACEMENTS;
+  const combo = clearedLines > 0 ? run.combo + 1 : comboBroken ? 0 : run.combo;
   if (clearedLines > 0) {
     board = clearLines(board, lines);
     scoreGained += Math.round(scoreForLines(clearedLines) * comboMultiplier(combo)) * doubleFactor;
@@ -306,6 +331,8 @@ export function applyPlacement(state: GameState, slot: number, anchorIndex: numb
 
   const boardCleared = clearedLines > 0 && isBoardEmpty(board);
   if (boardCleared) scoreGained += BOARD_CLEAR_SCORE;
+  // Emptying the vault re-dresses it, so the rest of the run looks different.
+  const tileSet = boardCleared ? nextTileSet(run.tileSet, run.rngSeed, run.rngCounter + 7) : run.tileSet;
 
   const tray = [...run.tray];
   tray[slot] = null;
@@ -316,7 +343,9 @@ export function applyPlacement(state: GameState, slot: number, anchorIndex: numb
     ...run,
     board,
     tray,
+    tileSet,
     combo,
+    comboMisses: comboBroken ? 0 : comboMisses,
     bestCombo: Math.max(run.bestCombo, combo),
     largestClear: Math.max(run.largestClear, clearedLines),
     clearsThisSet,
@@ -358,9 +387,14 @@ export function applyPlacement(state: GameState, slot: number, anchorIndex: numb
     state: withBlocks(state, blocks),
     success: true,
     clearedLines,
+    clearedRows: lines.rows,
+    clearedColumns: lines.columns,
+    placedCells: indices,
     combo,
+    comboBroken,
     scoreGained,
     boardCleared,
+    tileSet,
     perfectSet,
     setCompleted,
     runEnded: blocks.run !== null && blocks.run.endedAt !== null,

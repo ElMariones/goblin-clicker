@@ -962,8 +962,11 @@ function App() {
     if (result.runEnded) playSound('blockOver', settings.sound);
     return {
       clearedLines: result.clearedLines,
+      clearedRows: result.clearedRows,
+      clearedColumns: result.clearedColumns,
       combo: result.combo,
       boardCleared: result.boardCleared,
+      tileSet: result.tileSet,
       runEnded: result.runEnded,
     };
   }, [commitGame, settings.sound]);

@@ -36,6 +36,9 @@ const en = {
   combo2: 'Nice haul!', combo3: 'Packed tight!', combo5: 'Goblin engineering!', combo8: 'HOARDMASTER!', combo10: 'ABSOLUTE GOBLIN GENIUS!',
   loot_gold: 'coin crate', loot_weapon: 'weapon crate', loot_fungus: 'mushroom sack',
   loot_crystal: 'crystal crate', loot_relic: 'relic crate', loot_tool: 'tool crate',
+  setSwap: 'Restocked with {set}',
+  set_loot: 'Stolen Loot', set_heads: 'Goblin Heads', set_gems: 'Cut Gems',
+  set_brews: 'Bottled Brews', set_cogs: 'Clockwork',
 };
 type Copy = typeof en;
 
@@ -75,6 +78,9 @@ const es: Copy = {
   combo2: '¡Buen botín!', combo3: '¡Bien apretado!', combo5: '¡Ingeniería goblin!', combo8: '¡MAESTRO DEL BOTÍN!', combo10: '¡GENIO GOBLIN ABSOLUTO!',
   loot_gold: 'caja de monedas', loot_weapon: 'caja de armas', loot_fungus: 'saco de setas',
   loot_crystal: 'caja de cristales', loot_relic: 'caja de reliquias', loot_tool: 'caja de herramientas',
+  setSwap: 'Reabastecido con {set}',
+  set_loot: 'Botín robado', set_heads: 'Cabezas goblin', set_gems: 'Gemas talladas',
+  set_brews: 'Brebajes embotellados', set_cogs: 'Relojería',
 };
 
 const fr: Copy = {
@@ -113,6 +119,9 @@ const fr: Copy = {
   combo2: 'Belle prise !', combo3: 'Bien tassé !', combo5: 'Ingénierie gobeline !', combo8: 'MAÎTRE DU BUTIN !', combo10: 'GÉNIE GOBELIN ABSOLU !',
   loot_gold: 'caisse de pièces', loot_weapon: 'caisse d’armes', loot_fungus: 'sac de champignons',
   loot_crystal: 'caisse de cristaux', loot_relic: 'caisse de reliques', loot_tool: 'caisse d’outils',
+  setSwap: 'Réapprovisionné en {set}',
+  set_loot: 'Butin volé', set_heads: 'Têtes de gobelin', set_gems: 'Gemmes taillées',
+  set_brews: 'Fioles de brassin', set_cogs: 'Horlogerie',
 };
 
 const de: Copy = {
@@ -151,6 +160,9 @@ const de: Copy = {
   combo2: 'Gute Beute!', combo3: 'Dicht gepackt!', combo5: 'Goblin-Ingenieurskunst!', combo8: 'HORTMEISTER!', combo10: 'ABSOLUTES GOBLIN-GENIE!',
   loot_gold: 'Münzkiste', loot_weapon: 'Waffenkiste', loot_fungus: 'Pilzsack',
   loot_crystal: 'Kristallkiste', loot_relic: 'Reliquienkiste', loot_tool: 'Werkzeugkiste',
+  setSwap: 'Neu bestückt mit {set}',
+  set_loot: 'Diebesgut', set_heads: 'Goblinköpfe', set_gems: 'Geschliffene Steine',
+  set_brews: 'Gebräu in Flaschen', set_cogs: 'Uhrwerk',
 };
 
 const zh: Copy = {
@@ -189,6 +201,9 @@ const zh: Copy = {
   combo2: '收获不错！', combo3: '塞得真紧！', combo5: '哥布林工程学！', combo8: '藏宝总管！', combo10: '绝顶哥布林天才！',
   loot_gold: '钱币箱', loot_weapon: '武器箱', loot_fungus: '蘑菇袋',
   loot_crystal: '晶石箱', loot_relic: '遗物箱', loot_tool: '工具箱',
+  setSwap: '已换上{set}',
+  set_loot: '赃物', set_heads: '哥布林头像', set_gems: '切割宝石',
+  set_brews: '瓶装药酿', set_cogs: '发条机械',
 };
 
 const ar: Copy = {
@@ -227,6 +242,9 @@ const ar: Copy = {
   combo2: 'غنيمة جيدة!', combo3: 'رصٌّ محكم!', combo5: 'هندسة غوبلن!', combo8: 'سيد الكنز!', combo10: 'عبقري غوبلن مطلق!',
   loot_gold: 'صندوق عملات', loot_weapon: 'صندوق أسلحة', loot_fungus: 'كيس فطر',
   loot_crystal: 'صندوق بلورات', loot_relic: 'صندوق آثار', loot_tool: 'صندوق أدوات',
+  setSwap: 'أعيد التخزين بـ {set}',
+  set_loot: 'غنائم مسروقة', set_heads: 'رؤوس غوبلن', set_gems: 'أحجار مصقولة',
+  set_brews: 'جرعات معبأة', set_cogs: 'آلية ساعاتية',
 };
 
 const tr: Copy = {
@@ -265,6 +283,9 @@ const tr: Copy = {
   combo2: 'İyi vurgun!', combo3: 'Sıkı istif!', combo5: 'Goblin mühendisliği!', combo8: 'GANİMET USTASI!', combo10: 'MUTLAK GOBLİN DEHASI!',
   loot_gold: 'sikke sandığı', loot_weapon: 'silah sandığı', loot_fungus: 'mantar çuvalı',
   loot_crystal: 'kristal sandığı', loot_relic: 'kalıntı sandığı', loot_tool: 'alet sandığı',
+  setSwap: '{set} ile yeniden dolduruldu',
+  set_loot: 'Çalıntı ganimet', set_heads: 'Goblin kafaları', set_gems: 'İşlenmiş taşlar',
+  set_brews: 'Şişelenmiş iksir', set_cogs: 'Saat çarkı',
 };
 
 export const BLOCKS_COPY: Record<LanguageCode, Copy> = { en, es, fr, de, zh, ar, tr };

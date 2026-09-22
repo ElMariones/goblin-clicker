@@ -14,19 +14,31 @@ export const BOARD_CELLS = BOARD_SIZE * BOARD_SIZE;
 
 export type BlocksBoard = readonly (BlocksCell | null)[];
 
-/** Score per occupied cell placed, before any board-clear doubling. */
-export const PLACEMENT_SCORE_PER_CELL = 10;
-export const BOARD_CLEAR_SCORE = 2_500;
+/**
+ * Score per occupied cell placed, before any board-clear doubling.
+ *
+ * The whole table is an order of magnitude above the original tuning: a good run
+ * should read in the hundreds of thousands, not the low thousands. The reward
+ * brackets in `state.ts` moved by the same factor, so the payout is unchanged.
+ */
+export const PLACEMENT_SCORE_PER_CELL = 50;
+export const BOARD_CLEAR_SCORE = 25_000;
 export const BOARD_CLEAR_DOUBLE_PLACEMENTS = 3;
 export const BOARD_CLEAR_TOKENS = 3;
-export const SET_COMPLETE_SCORE = 50;
-export const SET_WITH_CLEAR_SCORE = 100;
-export const PERFECT_SET_SCORE = 500;
+export const SET_COMPLETE_SCORE = 500;
+export const SET_WITH_CLEAR_SCORE = 1_000;
+export const PERFECT_SET_SCORE = 5_000;
 export const PERFECT_SET_TOKENS = 1;
 export const MAX_COMBO_MULTIPLIER = 5;
 
+/**
+ * Placements that may be dry before a combo chain breaks. A single awkward
+ * piece should not wipe out a chain the player spent six moves building.
+ */
+export const COMBO_GRACE_PLACEMENTS = 3;
+
 /** Index 0 is unused; six is the most lines a single placement can complete. */
-const LINE_CLEAR_BASE = [0, 100, 250, 450, 700, 1_000] as const;
+const LINE_CLEAR_BASE = [0, 750, 2_000, 4_000, 7_000, 11_000] as const;
 
 export function createEmptyBoard(): (BlocksCell | null)[] {
   return Array.from({ length: BOARD_CELLS }, () => null);
@@ -147,7 +159,7 @@ export function scoreForLines(lines: number): number {
   if (!Number.isFinite(lines) || lines <= 0) return 0;
   const count = Math.floor(lines);
   if (count < LINE_CLEAR_BASE.length) return LINE_CLEAR_BASE[count];
-  return LINE_CLEAR_BASE[LINE_CLEAR_BASE.length - 1] + (count - (LINE_CLEAR_BASE.length - 1)) * 350;
+  return LINE_CLEAR_BASE[LINE_CLEAR_BASE.length - 1] + (count - (LINE_CLEAR_BASE.length - 1)) * 4_500;
 }
 
 /**

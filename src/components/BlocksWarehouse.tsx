@@ -12,7 +12,7 @@ import {
   isBlocksRunFinished,
   placementIndices,
   type BlocksChargeId,
-  type BlocksLoot,
+  type BlocksTileSetId,
   type GameState,
 } from '../game';
 import { getLanguageMeta, useI18n } from '../i18n';
@@ -26,8 +26,11 @@ import '../styles/blocks.css';
 /** What a committed action actually did, so feedback never has to guess. */
 export interface BlocksFeedback {
   clearedLines: number;
+  clearedRows: number[];
+  clearedColumns: number[];
   combo: number;
   boardCleared: boolean;
+  tileSet: BlocksTileSetId;
   runEnded: boolean;
 }
 
@@ -92,15 +95,22 @@ export function BlocksWarehouse({
   const [hammerArmed, setHammerArmed] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   const [flourish, setFlourish] = useState<{ key: number; text: string } | null>(null);
-  const [clearKey, setClearKey] = useState(0);
+  /** Short-lived visuals for the last committed placement. */
+  const [burst, setBurst] = useState<{
+    key: number; rows: number[]; columns: number[]; boardCleared: boolean; tileSet: BlocksTileSetId;
+  } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const flourishTimer = useRef<number | null>(null);
+  const burstTimer = useRef<number | null>(null);
 
   const run = state.blocks.run;
   const finished = run !== null && run.endedAt !== null && run.result !== null;
   const active = run !== null && run.endedAt === null;
 
-  useEffect(() => () => { if (flourishTimer.current) window.clearTimeout(flourishTimer.current); }, []);
+  useEffect(() => () => {
+    if (flourishTimer.current) window.clearTimeout(flourishTimer.current);
+    if (burstTimer.current) window.clearTimeout(burstTimer.current);
+  }, []);
 
   /**
    * Announce and celebrate from what the engine reports it actually did, so a
@@ -116,7 +126,17 @@ export function BlocksWarehouse({
     setAnnouncement(parts.join(' '));
 
     if (feedback.clearedLines <= 0) return;
-    setClearKey((key) => key + 1);
+    if (effects) {
+      setBurst({
+        key: Date.now(),
+        rows: feedback.clearedRows,
+        columns: feedback.clearedColumns,
+        boardCleared: feedback.boardCleared,
+        tileSet: feedback.tileSet,
+      });
+      if (burstTimer.current) window.clearTimeout(burstTimer.current);
+      burstTimer.current = window.setTimeout(() => setBurst(null), feedback.boardCleared ? 1_700 : 520);
+    }
     const text = feedback.boardCleared ? copy.announceBoardClear : comboFlourish(copy, feedback.combo);
     if (!text || !effects) return;
     setFlourish({ key: Date.now(), text });
@@ -125,6 +145,7 @@ export function BlocksWarehouse({
   }, [copy, effects]);
 
   const resetInput = useCallback(() => {
+    setBurst(null);
     setSelected(null);
     setAnchor(null);
     setGhost(null);
@@ -283,7 +304,8 @@ export function BlocksWarehouse({
     }
   }
 
-  const lootName = (loot: BlocksLoot) => copy[`loot_${loot}` as const];
+  const tileSet: BlocksTileSetId = run?.tileSet ?? 'loot';
+  const setName = copy[`set_${tileSet}` as const];
   const n = (value: number) => formatNumber(value, 2, locale);
   const int = (value: number) => formatInteger(value, locale);
 
@@ -299,7 +321,7 @@ export function BlocksWarehouse({
         role="button"
         tabIndex={0}
         aria-pressed={selected === slot}
-        aria-label={formatBlocks(copy.traySlot, { index: slot + 1, piece: lootName(piece.loot), cells: definition.cells.length })}
+        aria-label={formatBlocks(copy.traySlot, { index: slot + 1, piece: setName, cells: definition.cells.length })}
         onPointerDown={startDrag(slot)}
         onPointerMove={moveDrag(slot)}
         onPointerUp={endDrag(slot)}
@@ -319,7 +341,7 @@ export function BlocksWarehouse({
         >
           {Array.from({ length: definition.width * definition.height }, (_, index) => (
             occupied.has(index)
-              ? <img key={index} src={blocksTileArt(piece.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(piece.variant) }} />
+              ? <img key={index} src={blocksTileArt(tileSet, piece.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(piece.variant) }} />
               : <span key={index} />
           ))}
         </div>
@@ -382,7 +404,10 @@ export function BlocksWarehouse({
           </div>
           <div className="blocks-hud__stats">
             <div><span>{copy.best}</span><strong>{int(blocks.stats.bestScore)}</strong></div>
-            <div><span>{copy.combo}</span><strong>×{int(Math.max(1, run?.combo ?? 0))}</strong></div>
+            <div className={`blocks-hud__combo${(run?.combo ?? 0) >= 5 ? ' is-hot' : ''}${(run?.combo ?? 0) >= 8 ? ' is-blazing' : ''}`}>
+              <span>{copy.combo}</span>
+              <strong key={run?.combo ?? 0}>×{int(Math.max(1, run?.combo ?? 0))}</strong>
+            </div>
             <div><span>{copy.set}</span><strong>{int(run?.setNumber ?? 0)}</strong></div>
             <div className="blocks-hud__tokens"><span>{copy.tokens}</span><strong>{int(blocks.tokens)}</strong></div>
           </div>
@@ -398,7 +423,6 @@ export function BlocksWarehouse({
             tabIndex={0}
             onPointerDown={onBoardPointerDown}
             onKeyDown={onBoardKeyDown}
-            data-clear={clearKey}
           >
             {(run?.board ?? Array.from({ length: BOARD_SIZE * BOARD_SIZE }, () => null)).map((cell, index) => {
               const row = cellRow(index);
@@ -417,13 +441,30 @@ export function BlocksWarehouse({
                   className={classes}
                   role="gridcell"
                   aria-label={cell
-                    ? formatBlocks(copy.cellFull, { row: row + 1, column: column + 1, loot: lootName(cell.loot) })
+                    ? formatBlocks(copy.cellFull, { row: row + 1, column: column + 1, loot: setName })
                     : formatBlocks(copy.cellEmpty, { row: row + 1, column: column + 1 })}
                 >
-                  {cell && <img src={blocksTileArt(cell.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(cell.variant) }} />}
+                  {cell && <img src={blocksTileArt(tileSet, cell.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(cell.variant) }} />}
                 </div>
               );
             })}
+            {burst && (
+              <div key={burst.key} className="blocks-burst" aria-hidden="true">
+                {burst.rows.map((row) => (
+                  <span key={`r${row}`} className="blocks-sweep blocks-sweep--row" style={{ '--line': row } as React.CSSProperties} />
+                ))}
+                {burst.columns.map((column) => (
+                  <span key={`c${column}`} className="blocks-sweep blocks-sweep--column" style={{ '--line': column } as React.CSSProperties} />
+                ))}
+                {burst.boardCleared && <span className="blocks-wash" />}
+              </div>
+            )}
+            {burst?.boardCleared && (
+              <div key={`set${burst.key}`} className="blocks-setcard" aria-hidden="true">
+                <strong>{copy.announceBoardClear}</strong>
+                <span>{formatBlocks(copy.setSwap, { set: copy[`set_${burst.tileSet}` as const] })}</span>
+              </div>
+            )}
             {flourish && <span key={flourish.key} className="blocks-flourish">{flourish.text}</span>}
           </div>
 
@@ -503,15 +544,16 @@ export function BlocksWarehouse({
         * Outside the shell, viewport coordinates mean what they say.
         */}
       {ghost && selected !== null && run?.tray[selected] && createPortal(
-        <GhostPiece piece={run.tray[selected]!} ghost={ghost} valid={preview !== null} still={reducedMotion} />,
+        <GhostPiece piece={run.tray[selected]!} tileSet={tileSet} ghost={ghost} valid={preview !== null} still={reducedMotion} />,
         document.body,
       )}
     </Modal>
   );
 }
 
-function GhostPiece({ piece, ghost, valid, still }: {
+function GhostPiece({ piece, tileSet, ghost, valid, still }: {
   piece: NonNullable<NonNullable<GameState['blocks']['run']>['tray'][number]>;
+  tileSet: BlocksTileSetId;
   ghost: { x: number; y: number; size: number };
   valid: boolean;
   /** Carried as a prop because the portal puts this outside `.blocks-modal`. */
@@ -535,7 +577,7 @@ function GhostPiece({ piece, ghost, valid, still }: {
     >
       {Array.from({ length: definition.width * definition.height }, (_, index) => (
         occupied.has(index)
-          ? <img key={index} src={blocksTileArt(piece.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(piece.variant) }} />
+          ? <img key={index} src={blocksTileArt(tileSet, piece.loot)} alt="" draggable={false} style={{ transform: blocksTileTransform(piece.variant) }} />
           : <span key={index} />
       ))}
     </div>

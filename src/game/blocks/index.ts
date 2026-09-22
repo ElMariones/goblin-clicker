@@ -1,5 +1,6 @@
 export * from './types';
 export * from './pieces';
+export * from './tilesets';
 export * from './factory';
 export * from './rules';
 export * from './generator';

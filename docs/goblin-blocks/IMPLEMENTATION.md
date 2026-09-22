@@ -6,7 +6,8 @@
 | --- | --- |
 | `src/game/blocks/pieces.ts` | The 31-piece library. Pure data plus derived lookup maps. |
 | `src/game/blocks/rules.ts` | Pure board rules: placement legality, clear detection, scoring, game over. No state, no clock, no RNG. |
-| `src/game/blocks/generator.ts` | Weighted trio generation against a board, driven by the save's seed/counter. |
+| `src/game/blocks/generator.ts` | Weighted trio generation against a board, driven by the save's seed/counter, plus the board-clear assist. |
+| `src/game/blocks/tilesets.ts` | The five tile sets and the rotation a board clear triggers. |
 | `src/game/blocks/factory.ts` | Fresh `BlocksState` and the calendar helper, free of any `../state` import so `createInitialGameState` can call in without closing a cycle. |
 | `src/game/blocks/state.ts` | The run lifecycle and the reward contract, over an already-ticked `GameState`. |
 | `src/game/blocks/engine.ts` | The public actions, each settling production with `tickGame` first. |
@@ -42,6 +43,8 @@ export interface BlocksRunResult {
 export interface BlocksRun {
   startedAt: number;
   endedAt: number | null;
+  /** Which costume the tiles wear; rotates on every board clear. */
+  tileSet: BlocksTileSetId;
   /** 64 entries, row-major, index = y * 8 + x. */
   board: (BlocksCell | null)[];
   /** Exactly 3 slots; null means already placed this set. */
@@ -50,6 +53,8 @@ export interface BlocksRun {
   setNumber: number;
   score: number;
   combo: number;
+  /** Dry placements since the last clear; a chain survives two. */
+  comboMisses: number;
   bestCombo: number;
   largestClear: number;
   clearsThisSet: number;
@@ -84,6 +89,9 @@ export interface BlocksState {
   tutorialSeen: boolean;
 }
 ```
+
+Both new run fields default tolerantly in the sanitizer (`tileSet: 'loot'`, `comboMisses: 0`), so a
+run saved before they existed loads without a schema bump.
 
 `daily.day` is a local-calendar day index, `Math.floor((now − timezoneOffsetMs) / 86_400_000)`. It is
 recomputed on every reward path; when it differs from the stored value, `runsFinished` and

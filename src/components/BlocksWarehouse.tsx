@@ -397,21 +397,21 @@ export function BlocksWarehouse({
       className={`blocks-modal${reducedMotion ? ' blocks-modal--still' : ''}`}
     >
       <div className="blocks-layout">
-        <header className="blocks-hud">
-          <div className="blocks-hud__score">
-            <span>{copy.score}</span>
-            <strong>{int(run?.score ?? 0)}</strong>
-          </div>
-          <div className="blocks-hud__stats">
-            <div><span>{copy.best}</span><strong>{int(blocks.stats.bestScore)}</strong></div>
-            <div className={`blocks-hud__combo${(run?.combo ?? 0) >= 5 ? ' is-hot' : ''}${(run?.combo ?? 0) >= 8 ? ' is-blazing' : ''}`}>
+        <aside className="blocks-rail blocks-rail--score">
+          <div className="blocks-panel blocks-scorecard">
+            <div className="blocks-stat blocks-stat--score">
+              <span>{copy.score}</span>
+              <strong>{int(run?.score ?? 0)}</strong>
+            </div>
+            <div className="blocks-stat"><span>{copy.best}</span><strong>{int(blocks.stats.bestScore)}</strong></div>
+            <div className={`blocks-stat blocks-stat--combo${(run?.combo ?? 0) >= 5 ? ' is-hot' : ''}${(run?.combo ?? 0) >= 8 ? ' is-blazing' : ''}`}>
               <span>{copy.combo}</span>
               <strong key={run?.combo ?? 0}>×{int(Math.max(1, run?.combo ?? 0))}</strong>
             </div>
-            <div><span>{copy.set}</span><strong>{int(run?.setNumber ?? 0)}</strong></div>
-            <div className="blocks-hud__tokens"><span>{copy.tokens}</span><strong>{int(blocks.tokens)}</strong></div>
+            <div className="blocks-stat"><span>{copy.lines}</span><strong>{int(run?.linesCleared ?? 0)}</strong></div>
+            <div className="blocks-stat blocks-stat--tokens"><span>{copy.tokens}</span><strong>{int(blocks.tokens)}</strong></div>
           </div>
-        </header>
+        </aside>
 
         <div className="blocks-stage">
           <div
@@ -515,23 +515,40 @@ export function BlocksWarehouse({
           )}
         </div>
 
-        <div className="blocks-tray" role="group" aria-label={copy.tray}>
-          {[0, 1, 2].map(renderPiece)}
-        </div>
+        <aside className="blocks-rail blocks-rail--tools">
+          <section className="blocks-panel">
+            <h3 className="blocks-panel__title">{copy.sectionTools}</h3>
+            <div className="blocks-charges">
+              {chargeButton('shuffle', 'sparkles')}
+              {chargeButton('hammer', 'hammer')}
+            </div>
+          </section>
+          <section className="blocks-panel">
+            <h3 className="blocks-panel__title">{copy.sectionRecord}</h3>
+            <dl className="blocks-tally">
+              {([
+                ['pickaxe', copy.lines, blocks.stats.totalLines],
+                ['sparkles', copy.runs, blocks.stats.runs],
+                ['crown', copy.boardClears, blocks.stats.boardClears],
+                ['trophy', copy.perfectSets, blocks.stats.perfectSets],
+              ] as const).map(([icon, label, value]) => (
+                <div key={label}>
+                  <Icon name={icon} size={17} />
+                  <dt>{label}</dt>
+                  <dd>{int(value)}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="blocks-note blocks-note--keys">{copy.keyboardHint} {copy.tokensNote}</p>
+          </section>
+        </aside>
 
-        <footer className="blocks-footer">
-          <div className="blocks-charges">
-            {chargeButton('shuffle', 'sparkles')}
-            {chargeButton('hammer', 'hammer')}
+        <div className="blocks-tray">
+          <span className="blocks-tray__label" aria-hidden="true">{copy.tray}</span>
+          <div className="blocks-tray__slots" role="group" aria-label={copy.tray}>
+            {[0, 1, 2].map(renderPiece)}
           </div>
-          <dl className="blocks-tally">
-            <div><dt>{copy.lines}</dt><dd>{int(blocks.stats.totalLines)}</dd></div>
-            <div><dt>{copy.runs}</dt><dd>{int(blocks.stats.runs)}</dd></div>
-            <div><dt>{copy.boardClears}</dt><dd>{int(blocks.stats.boardClears)}</dd></div>
-            <div><dt>{copy.perfectSets}</dt><dd>{int(blocks.stats.perfectSets)}</dd></div>
-          </dl>
-          <p className="blocks-note blocks-note--keys">{copy.keyboardHint} {copy.tokensNote}</p>
-        </footer>
+        </div>
       </div>
 
       <p className="blocks-live" role="status" aria-live="polite">{announcement}</p>

@@ -22,7 +22,7 @@ Scoped under `.blocks-modal`, layered on the existing root tokens. No new root v
 | `--blocks-cell` | `rgba(11, 16, 10, 0.62)` | Empty storage square |
 | `--blocks-cell-line` | `rgba(202, 226, 170, 0.17)` | Square edges; barely there |
 | `--blocks-preview` | `var(--ember-bright)` | Valid placement preview |
-| `--blocks-preview-line` | `var(--moss-bright)` | Row/column that this placement would complete |
+| `--blocks-complete` | `#ffd977` | Row/column that this placement would complete |
 | `--blocks-invalid` | `var(--danger)` | Refused placement |
 | `--blocks-token` | `var(--ember)` | Hoard Token currency |
 
@@ -33,35 +33,48 @@ game. Validate it with real colour pairs, not with intent.
 ## 3. Layout
 
 ```text
-┌──────────────────────────────────────────────────────┐
-│ Hoard Warehouse                    ◆ 124 tokens   ✕  │
-│ Score 12,450          Best 18,920         Combo ×3   │
-├──────────────────────────────────────────────────────┤
-│                                                      │
-│                 ████████  8×8 board                  │
-│                 ████████                             │
-│                 ████████                             │
-│                                                      │
-├──────────────────────────────────────────────────────┤
-│        [piece]      [piece]      [piece]             │
-├──────────────────────────────────────────────────────┤
-│ ⟳ Shuffle ×2   🔨 Hammer ×1        Lines 46 · Sets 19│
-└──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│ ◆ Hoard Warehouse                                          ✕   │
+│   The goblins steal faster than they shelve.                   │
+├────────────────────────────────────────────────────────────────┤
+│ ┌──────────┐  ┌──────────────────────┐  ┌───────────────────┐  │
+│ │ SCORE    │  │                      │  │ TOOLS & SUPPLIES  │  │
+│ │ 124,950  │  │                      │  │ [⟳ Shuffle][🔨]   │  │
+│ ├──────────┤  │   ████████ 8×8       │  ├───────────────────┤  │
+│ │ BEST     │  │   ████████           │  │ WAREHOUSE RECORD  │  │
+│ ├──────────┤  │   ████████           │  │  318      11      │  │
+│ │ COMBO    │  │                      │  │  6        8       │  │
+│ ├──────────┤  │                      │  │                   │  │
+│ │ LINES    │  │                      │  │ Keys 1–3 pick …   │  │
+│ ├──────────┤  │                      │  │                   │  │
+│ │ TOKENS   │  │                      │  │                   │  │
+│ └──────────┘  └──────────────────────┘  └───────────────────┘  │
+│ ┌────────────────────────────────────────────────────────────┐ │
+│ │ INCOMING    [ piece ]    [ piece ]    [ piece ]            │ │
+│ │ SHIPMENT                                                   │ │
+│ └────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 Desktop: the warehouse is a near-fullscreen dialog — `97vw` wide up to 1600px, and `96vh` tall. Above
-1100px it becomes three columns: **readouts on the left rail, board and tray in the centre, charges
-and tallies on the right rail.** Only chrome moves to the sides; the pieces always sit directly under
-the board, because that is where the hand expects them.
+1100px it becomes three columns over two rows: **readouts on the left rail, board in the centre,
+tools and tallies on the right rail, and the three pieces in a labelled bar spanning the width
+underneath.** Only chrome moves to the sides; the pieces always sit below the board, because that is
+where the hand expects them.
+
+Every readout sits in a framed panel — ruled rows on the left, a titled section per group on the
+right — so the board is the only bare surface in the dialog and the eye has nowhere else to settle.
 
 Giving the rails the chrome is what lets the board take the whole height: `--blocks-size` is the
-smallest of `96vh - 250px`, 900px, and `100vw - 700px`, which is roughly a 700px board on a 1080p
+smallest of `96vh - 262px`, 900px, and `100vw - 660px`, which is roughly a 700px board on a 1080p
 screen. Every one of those viewport terms divides `--ui-scale` back out, because CSS `zoom` scales
-viewport units as well as layout.
+viewport units as well as layout. The subtracted constant is the rest of the dialog — header, body
+padding, the gap and the tray bar — so the same formula holds on a short window without a second
+breakpoint.
 
-Below 640px the same single column holds: header, board, tray, charges. Charges stack one per row —
-two side by side cannot hold a 44px target and a price at phone width without clipping the price off
-screen — and the tally becomes a 2×2 grid. Tray slots never shrink below a 44×44px touch target, even
+Below 1100px the whole thing is one column in play order: readouts, board, pieces, tools. Below
+640px the tray drops its label, which the three slots need the width for more than the player needs
+the reminder. Tray slots never shrink below a 44×44px touch target, even
 for a single-cell piece: the hit area is padded independently of the art, and all three slots share
 one `--blocks-tray-cell` size so a 1×1 reads as small and a 3×3 reads as the board-hog it is.
 
@@ -138,10 +151,15 @@ Feedback density is the reason a placement puzzle feels good. Every one of these
 **Drag.** The lifted piece scales to 1.06 and casts a soft shadow; its tray slot dims to 35%. On
 touch, the piece renders one cell height **above** the finger so the drop target is never hidden.
 
-**Preview.** Valid target cells fill with `--blocks-preview` at 45% opacity. A row or column that this
-placement would complete pulses gently along its whole length in `--blocks-preview-line`. That pulse
-is the single most valuable piece of feedback in the game: it teaches multi-line engineering without
-solving anything. Invalid positions tint the piece itself, not the board.
+**Preview.** Valid target cells fill with `--blocks-preview` at 45% opacity. Invalid positions tint
+the piece itself, not the board.
+
+**Completion.** A row or column the held piece would complete is the single most valuable piece of
+feedback in the game — it teaches multi-line engineering without solving anything — so it is not a
+hairline. The **whole line turns gold**: empty squares fill with `--blocks-complete`, the tiles
+already standing in it brighten and warm, a screen-blend wash breathes over the lot, and the cells
+the piece would actually occupy stay the brightest thing on the board. A placement that completes a
+row *and* a column draws the cross, which is exactly the shape worth learning to look for.
 
 **Placement.** Cells pop in with a 120ms scale from 0.82 to 1.
 

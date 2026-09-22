@@ -19,6 +19,8 @@ The project follows the spirit of [Keep a Changelog](https://keepachangelog.com/
 
 ### Changed
 
+- The Hoard Warehouse lights the **whole** row or column a placement would complete in gold — empty squares, the tiles already standing in it, and the cells the piece would land on — instead of outlining it in a thin green line. A placement that finishes a row and a column draws the cross.
+- The Hoard Warehouse is laid out in framed panels on desktop: readouts ruled down the left rail, tools and warehouse record on the right, and the three pieces in a labelled bar spanning the width beneath the board.
 - Number, percentage, duration and date formatters are cached per locale instead of being constructed on every call. A mid-game warren formats roughly 3,500 values per second, which cost about 70 ms of main thread per second and now costs about 3 ms.
 - Research, achievement, prestige, cosmetics and contract view models are only built while their panel is open, instead of on every frame of the 10 Hz simulation loop.
 - The surface expedition planner no longer derives its whole layout while the map is closed.
